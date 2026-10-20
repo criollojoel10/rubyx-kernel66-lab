@@ -8,8 +8,8 @@
 | 1 | Inventario de `compatible` ruby vs A34 | ✅ hecho |
 | 2 | Alias + auditoría de headers/API de los drivers | ✅ hecho |
 | 3 | Configuración mínima ruby 6.6 | ▶ siguiente |
-| 4 | Device Tree mínimo | pendiente |
-| 5 | Compilar y arrancar a consola | pendiente |
+| 4 | Device Tree mínimo | ✅ scaffold compilado |
+| 5 | Compilar y arrancar a consola | ▶ arquitectura decidida |
 | 6 | Almacenamiento, init de Android, ADB | pendiente |
 | 7 | Pantalla, touch, carga, audio, cámara | pendiente |
 | 8 | Droidspaces con PID/IPC/SYSVIPC built-in | pendiente |
