@@ -120,5 +120,17 @@
     "return_path": "bootloader_slot_b_tries_1_fallback",
     "misc_write": "failed ENXIO (block device absent in initramfs)",
     "device_restored": true
+  },
+  "test3": {
+    "date_utc": "2026-10-20T23:38:32Z",
+    "image": "/tmp/ruby-diag2-rubydtb.img",
+    "image_sha256": "fe0c4b3b248afa8a79251179e14322bee938a97283cb72bf60594d488a4897fb",
+    "dtb": "dts/ruby-minimal.dtb",
+    "dtb_size": 197665,
+    "result": "returned_to_a_without_new_pstore",
+    "pstore_sha256": "23d75c4c83ac7bac8d85c6a7601860076f99fca2d0564b1a0dbafa1481f48703",
+    "pmsg_sha256": "26d3e517935f8eecc801195a381a1540923bfaf0bbc58da2abe23d255a8efa6b",
+    "identical_to_test2": true,
+    "device_restored": true
   }
 }
