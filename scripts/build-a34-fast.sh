@@ -8,6 +8,9 @@ cd "$(dirname "$0")/.."
 SRC="sources/a34x"
 [ -d "$SRC" ] || { echo "falta $SRC; ejecuta make fetch" >&2; exit 1; }
 mkdir -p logs
+mkdir -p "$HOME/.cache/bazel-disk" "$HOME/.cache/bazel-repo"
+export DEBUG_ARGS="--disk_cache=$HOME/.cache/bazel-disk --repository_cache=$HOME/.cache/bazel-repo"
+export KBUILD_BUILD_TIMESTAMP="2025-01-01 00:00:00 UTC"
 LOG="logs/a34-fast-$(date -u +%Y%m%dT%H%M%SZ).log"
 
 cp "$SRC/build_kernel.sh" "$SRC/build_kernel_fast.sh"

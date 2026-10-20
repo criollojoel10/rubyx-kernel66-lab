@@ -41,6 +41,7 @@ jobs:
         with:
           path: |
             ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
             ~/.cache/ruby/clang-r536225
           key: fast-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ github.sha }}
           restore-keys: |
