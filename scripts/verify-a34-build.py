@@ -71,6 +71,21 @@ def main():
     else:
         check("Module.symvers real", False, "ausente o vacío")
 
+    tc = SRC / "aosp-kernel/prebuilts/clang/host/linux-x86/clang-r536225/bin/clang"
+    check("toolchain r536225 presente", tc.is_file(), str(tc))
+
+    dtbs = sorted(list(ART.glob("*.dtb")) + list(ART.glob("*.dtbo")) +
+                  list(ART.glob("dtbo.img")) + list(ART.glob("dtb.img")))
+    if dtbs:
+        ok = True
+        for d in dtbs:
+            magic = d.read_bytes()[:4]
+            if magic not in (b"\xd0\x0d\xfe\xed", b"\xd7\xb7\xab\x1e"):
+                ok = False
+        check("DTB/DTBO válido", ok, ", ".join(x.name for x in dtbs))
+    else:
+        check("DTB/DTBO válido", False, "no se produjo ninguno")
+
     ko = ART / "sample.ko"
     if ko.is_file():
         vm = run("modinfo", "-F", "vermagic", str(ko)).stdout.strip()

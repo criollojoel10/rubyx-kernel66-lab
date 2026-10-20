@@ -44,7 +44,7 @@ copy_first vmlinux vmlinux
 # DTB/DTBO si el build los produce
 while IFS= read -r -d '' f; do
   cp "$f" "$OUT/$(basename "$f")"
-done < <(find "$DIST" -type f \( -name '*.dtb' -o -name '*.dtbo' -o -name 'dtbo.img' \) -print0)
+done < <(find "$DIST" "$SRC/out" -type f \( -name '*.dtb' -o -name '*.dtbo' -o -name 'dtbo.img' -o -name 'dtb.img' \) -print0)
 
 # Inventario de módulos y sus hashes (sin duplicar cientos de MB)
 mapfile -d '' KOS < <(find "$DIST" -type f -name '*.ko' -print0)
