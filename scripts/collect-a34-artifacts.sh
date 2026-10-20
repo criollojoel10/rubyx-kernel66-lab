@@ -52,7 +52,13 @@ else
   log "AVISO: no se encontró Module.symvers en $SRC/out"
 fi
 
-DCFG="$(find "$SRC/out" -type f -path '*KLEAF_OBJ*' -name '.config' -print -quit)"
+DCFG=""
+while IFS= read -r f; do
+  if grep -q 'CONFIG_MTK_PLATFORM="mt6877"' "$f" 2>/dev/null; then
+    DCFG="$f"
+    break
+  fi
+done < <(find "$SRC/out" -type f -name '.config' -print)
 if [ -n "$DCFG" ]; then
   cp "$DCFG" "$OUT/device-modules.config"
   log "device-modules.config: $DCFG"
