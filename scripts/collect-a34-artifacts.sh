@@ -109,6 +109,29 @@ else
   log "AVISO: el build no produjo .ko"
 fi
 
+# Bundle mínimo para el primer arranque
+LIST="port/modules/boot-modules.list"
+if [ -f "$LIST" ]; then
+  mkdir -p "$OUT/boot-modules"
+  while IFS= read -r m; do
+    [ -n "$m" ] || continue
+    f="$(find "$DIST" -type f -name "$m" -print -quit)"
+    if [ -n "$f" ]; then
+      cp "$f" "$OUT/boot-modules/$m"
+    else
+      log "AVISO: módulo seleccionado ausente: $m"
+    fi
+  done < "$LIST"
+  for meta in modules.dep modules.load modules.alias modules.softdep; do
+    f="$(find "$DIST" -type f -name "$meta" -print -quit)"
+    if [ -n "$f" ]; then
+      cp "$f" "$OUT/boot-modules/$meta"
+    fi
+  done
+  tar --zstd -cf "$OUT/a34-boot-modules.tar.zst" -C "$OUT/boot-modules" .
+  log "bundle: $OUT/a34-boot-modules.tar.zst"
+fi
+
 (
   cd "$OUT"
   : > sha256sums.txt
