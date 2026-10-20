@@ -1,0 +1,226 @@
+{
+  "files": [
+    {
+      "path": "port/clk/clk-mt6877-apu.c",
+      "lines": 449,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/of_device.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-audsys.c",
+      "lines": 147,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-cam.c",
+      "lines": 250,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/of_device.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-fmeter.h",
+      "lines": 185,
+      "includes": {}
+    },
+    {
+      "path": "port/clk/clk-mt6877-i2c.c",
+      "lines": 377,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/of_device.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-img.c",
+      "lines": 175,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/of_device.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-ipe.c",
+      "lines": 100,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-mdp.c",
+      "lines": 139,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-mfgcfg.c",
+      "lines": 86,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-mm.c",
+      "lines": 153,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-msdc.c",
+      "lines": 110,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/of_device.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-pg.c",
+      "lines": 4990,
+      "includes": {
+        "linux/of.h": "kernel-6.6/include",
+        "linux/of_address.h": "kernel-6.6/include",
+        "linux/io.h": "kernel-6.6/include",
+        "linux/slab.h": "kernel-6.6/include",
+        "linux/delay.h": "kernel-6.6/include",
+        "linux/clkdev.h": "kernel-6.6/include",
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/clk.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "linux/time64.h": "kernel-6.6/include",
+        "linux/timekeeping.h": "kernel-6.6/include",
+        "linux/sched/clock.h": "kernel-6.6/include",
+        "clk-mt6877-pg.h": "kernel/kernel_device_modules-6.6/drivers/clk/mediatek",
+        "clkchk.h": "kernel/kernel_device_modules-6.6/drivers/clk/mediatek",
+        "clkchk-mt6877.h": "kernel/kernel_device_modules-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-pg.h",
+      "lines": 52,
+      "includes": {}
+    },
+    {
+      "path": "port/clk/clk-mt6877-scp_par.c",
+      "lines": 86,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-vde.c",
+      "lines": 111,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/of_device.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877-ven.c",
+      "lines": 116,
+      "includes": {
+        "linux/clk-provider.h": "kernel-6.6/include",
+        "linux/of_device.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877.c",
+      "lines": 2503,
+      "includes": {
+        "linux/clk.h": "kernel-6.6/include",
+        "linux/delay.h": "kernel-6.6/include",
+        "linux/mfd/syscon.h": "kernel-6.6/include",
+        "linux/of.h": "kernel-6.6/include",
+        "linux/of_address.h": "kernel-6.6/include",
+        "linux/of_device.h": "kernel-6.6/include",
+        "linux/platform_device.h": "kernel-6.6/include",
+        "linux/slab.h": "kernel-6.6/include",
+        "clk-mtk.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-mux.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-gate.h": "kernel-6.6/drivers/clk/mediatek",
+        "clk-mt6877.h": "kernel/kernel_device_modules-6.6/drivers/clk/mediatek",
+        "dt-bindings/clock/mt6877-clk.h": "kernel/kernel_device_modules-6.6/include",
+        "soc/mediatek/dramc.h": "kernel/kernel_device_modules-6.6/include"
+      }
+    },
+    {
+      "path": "port/clk/clk-mt6877.h",
+      "lines": 64,
+      "includes": {}
+    },
+    {
+      "path": "port/pinctrl/pinctrl-mt6877.c",
+      "lines": 788,
+      "includes": {
+        "pinctrl-mtk-mt6877.h": "kernel/kernel_device_modules-6.6/drivers/pinctrl/mediatek",
+        "pinctrl-paris.h": "kernel-6.6/drivers/pinctrl/mediatek"
+      }
+    }
+  ],
+  "shared_header_diff_lines": {
+    "drivers/clk/mediatek/clk-mtk.h": 305,
+    "drivers/clk/mediatek/clk-gate.h": 70,
+    "drivers/clk/mediatek/clk-mux.h": 484,
+    "drivers/pinctrl/mediatek/pinctrl-paris.h": 22
+  },
+  "missing": {}
+}

@@ -1,0 +1,9 @@
+config PINCTRL_MT6877
+	tristate "Mediatek MT6877 pin control"
+	depends on OF || COMPILE_TEST
+	select PINCTRL_MTK_PARIS
+	help
+	  This is the pin controller and gpio driver for mediatek
+	  mt6877 chipset. It enables the MediaTek common v2, paris
+	  and eint core drivers.
+	  Say Y here to enable it.

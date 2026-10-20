@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help fetch build collect verify inventory classify audit check-config clean
+.PHONY: help fetch build collect verify inventory classify audit audit-pilot check-config clean
 
 help:
 	@echo "make fetch    clona UN1CA/kernel_samsung_a34x @ 6.6.127 y su submódulo"
@@ -10,6 +10,7 @@ help:
 	@echo "make inventory  compara compatibles DTS ruby 4.19 vs A34 6.6"
 	@echo "make classify  clasifica los ruby-only por driver"
 	@echo "make audit     audita includes/API de los drivers a portar"
+	@echo "make audit-pilot  audita clk/pinctrl contra el GKI"
 	@echo "make check-config  valida el fragmento mínimo contra Kconfig del A34"
 	@echo "make clean    borra sources/, artifacts/ y logs/"
 
@@ -33,6 +34,9 @@ classify:
 
 audit:
 	./scripts/audit-port-drivers.py
+
+audit-pilot:
+	./scripts/audit-pilot.py
 
 check-config:
 	./scripts/check-config-symbols.py configs/ruby-6.6-minimal/ruby_earlycon.fragment

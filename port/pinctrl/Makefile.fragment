@@ -1,0 +1,1 @@
+obj-$(CONFIG_PINCTRL_MT6877)	+= pinctrl-mt6877.o
