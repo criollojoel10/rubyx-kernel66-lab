@@ -41,6 +41,14 @@ jobs:
           sudo chmod +x /tmp/mkbootimg/unpack_bootimg.py
           python3 --version
 
+      - name: Caché de acciones de Bazel
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/bazel-disk
+          key: bazel-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            bazel-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+
       - name: Fetch A34 6.6.127 (tag y submódulo fijados)
         run: make fetch
 

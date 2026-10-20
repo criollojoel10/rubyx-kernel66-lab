@@ -23,6 +23,11 @@ ENVLOG="logs/a34-build-env.txt"
 
 echo "[build] log: $LOG" >&2
 
+# Caché de acciones de Bazel (Kleaf no soporta ccache nativo).
+export DEBUG=0
+export DEBUG_ARGS="--disk_cache=${HOME}/.cache/bazel-disk"
+mkdir -p "${HOME}/.cache/bazel-disk"
+
 cd "$SRC"
 set -o pipefail
 bash build_kernel.sh 2>&1 | tee "../../$LOG"
