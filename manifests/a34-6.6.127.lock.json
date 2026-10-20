@@ -1,0 +1,41 @@
+{
+  "captured_at": "2026-10-20T00:00:00Z",
+  "reference": {
+    "name": "Samsung Galaxy A34 5G (a34x, MT6877V)",
+    "repo": "https://github.com/UN1CA/kernel_samsung_a34x",
+    "tag": "6.6.127_2026-04-06_A346BXXSEEZB6",
+    "commit": "f1a63bfb4bc3a93aefee99308535c3c1c39b0776",
+    "kernel_version": "6.6.127",
+    "osrc_release": "A346BXXSEEZB6",
+    "submodules": [
+      {
+        "path": "kernel-6.6",
+        "url": "https://github.com/UN1CA/kernel_samsung_mediatek_common",
+        "commit": "2415ac269f13919d8c855f495cb141268e8751bb",
+        "kernel_version": "6.6.127"
+      }
+    ]
+  },
+  "aosp_manifest": {
+    "url": "https://android.googlesource.com/kernel/manifest",
+    "branch": "common-android15-6.6"
+  },
+  "toolchain": {
+    "clang": "r536225",
+    "url": "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main-kernel-2025/clang-r536225.tar.gz"
+  },
+  "build": {
+    "script": "build_kernel.sh",
+    "system": "Kleaf/Bazel",
+    "defconfig": "mediatek-bazel_defconfig",
+    "overlays": [
+      "sec_ogki_fragment.config",
+      "mt6877_overlay.config",
+      "mt6877_teegris_5_overlay.config"
+    ],
+    "project": "mgk_64_k66",
+    "mode": "user",
+    "build_number": "ogkiA346BXXSEEZB6",
+    "expected_image": "dist/kernel_device_modules-6.6/mgk_64_k66_kernel_aarch64.user/Image"
+  }
+}

@@ -1,0 +1,8 @@
+sources/
+artifacts/
+logs/
+out/
+*.img
+*.zip
+__pycache__/
+*.pyc
