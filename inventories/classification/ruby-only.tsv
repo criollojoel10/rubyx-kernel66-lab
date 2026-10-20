@@ -1,0 +1,172 @@
+compatible	category	live_paths	a34_drivers	ruby419_drivers
+android,firmware	dts-only	/firmware/android		
+android,nebula-gz-log-v1	dts-only	/nebula/nebula-gz-log		
+android,nebula-irq-v1	driver-in-a34	/nebula/nebula-irq	kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/gz-trusty/trusty-irq.c	drivers/misc/mediatek/geniezone/gz-trusty/trusty-irq.c
+android,nebula-smc-v1	driver-in-a34	/nebula	kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/gz-trusty/trusty.c	drivers/misc/mediatek/geniezone/gz-trusty/trusty.c
+android,nebula-virtio-v1	driver-in-a34	/nebula/nebula-virtio	kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/gz-trusty/trusty-virtio.c	drivers/misc/mediatek/geniezone/gz-trusty/trusty-virtio.c
+android,trusty-gz-log-v1	driver-in-a34	/trusty/trusty-gz-log	kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/gz-trusty/gz-log.c	drivers/misc/mediatek/geniezone/gz-trusty/gz-log.c
+android,trusty-irq-v1	driver-in-a34	/trusty/trusty-irq	kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/gz-trusty/trusty-irq.c	drivers/misc/mediatek/geniezone/gz-trusty/trusty-irq.c
+android,trusty-smc-v1	driver-in-a34	/trusty	kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/gz-trusty/trusty.c	drivers/misc/mediatek/geniezone/gz-trusty/trusty.c
+android,trusty-virtio-v1	driver-in-a34	/trusty/trusty-virtio	kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/gz-trusty/trusty-virtio.c	drivers/misc/mediatek/geniezone/gz-trusty/trusty-virtio.c
+awinic,aw882xx_smartpa	port-driver	/i2c7@11d01000/aw882xx@34;/i2c7@11d01000/aw882xx@35		sound/soc/codecs/aw882xx/aw882xx.c
+awinic,awinic_haptic	port-driver	/i2c0@11e00000/aw869x_haptic@5a		drivers/input/misc/aw8697_haptic/aw_haptic.c
+bq25980_standalone1	port-driver	/i2c11@11281000/bq25980_standalone1@65		drivers/power/supply/ti/bq25980.c
+bq25980_standalone2	port-driver	/i2c0@11e00000/bq25980_standalone2@67		drivers/power/supply/ti/bq25980.c
+bq25980_standalone3	port-driver	/i2c0@11e00000/bq25980_standalone3@66		drivers/power/supply/ti/bq25980.c
+focaltech,3680-spi	port-driver	/spi@11013000/m16-touch@0		drivers/input/touchscreen/focaltech_3680/focaltech_core.c
+goodix,9916r-spi	port-driver	/spi@11013000/m16-touch@0		drivers/input/touchscreen/goodix_9916r/goodix_brl_spi.c
+goodix,goodix-fp	port-driver	/spi@11019000/fingerprint@0		drivers/input/fingerprint/goodix_cap/gf_spi_tee.c
+google,debug-kinfo	driver-in-a34	/debug-kinfo	kernel-6.6/drivers/android/debug_kinfo.c	drivers/staging/android/debug_kinfo.c
+lionsemi,ln8000	port-driver	/i2c7@11d01000/ln8000@51		drivers/power/supply/ln/ln8000.c
+lionsemi,ln8000-secondary	port-driver	/i2c11@11281000/ln8000-secondary@51		drivers/power/supply/ln/ln8000.c
+ln8410_master	port-driver	/i2c7@11d01000/ln8410_master@66		drivers/power/supply/ln/ln8410.c
+ln8410_slave	port-driver	/i2c11@11281000/ln8410_slave@67		drivers/power/supply/ln/ln8410.c
+m16_36_02_0b_dsc_vdo,lcm	port-driver	/dsi@14013000/panel2@0		drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.c
+m16_42_0d_0a_dsc_vdo,lcm	port-driver	/dsi@14013000/panel1@0		drivers/gpu/drm/panel/panel-m16-42-0d-0a-dsc-vdo.c
+m16_45_02_0c_dsc_vdo,lcm	port-driver	/dsi@14013000/panel3@0		drivers/gpu/drm/panel/panel-m16-45-02-0c-dsc-vdo.c
+max77932	port-driver	/i2c11@11281000/max77932@68		drivers/power/supply/maxim/max77932.c
+mediatek,DPM-reserved	reserved-memory	/reserved-memory/mblock-34-DPM-reserved		
+mediatek,MCUPM-reserved	reserved-memory	/reserved-memory/mblock-15-MCUPM-reserved		
+mediatek,PICACHU	reserved-memory	/reserved-memory/mblock-16-PICACHU	kernel_device_modules-6.6/drivers/misc/mediatek/eem_v2/mtk_eem_6877/mtk_picachu.c;kernel_device_modules-6.6/drivers/misc/mediatek/eem_v2/plat_k6833/mtk_picachu.c	
+mediatek,SCP-reserved	reserved-memory	/reserved-memory/mblock-23-SCP-reserved		
+mediatek,SPM-reserved	reserved-memory	/reserved-memory/mblock-22-SPM-reserved		
+mediatek,SSPM-reserved	reserved-memory	/reserved-memory/mblock-11-SSPM-reserved		
+mediatek,adc_channel	port-driver	/auxadc@11001000/adc_channel@		drivers/misc/mediatek/auxadc/mtk_auxadc.c
+mediatek,adsp_common	driver-in-a34	/adsp_common@10800000	kernel_device_modules-6.6/drivers/misc/mediatek/adsp/v1/adsp_driver_v1.c	drivers/misc/mediatek/adsp/mt6781/adsp_platform_driver.c;drivers/misc/mediatek/adsp/mt6785/adsp_platform_driver.c;drivers/misc/mediatek/adsp/mt6853/adsp_platform_driver.c;drivers/misc/mediatek/adsp/mt6873/adsp_platform_driver.c;drivers/misc/mediatek/adsp/mt6885/adsp_platform_driver.c
+mediatek,adsp_core_0	driver-in-a34	/adsp_core0@10820000	kernel_device_modules-6.6/drivers/misc/mediatek/adsp/v1/adsp_driver_v1.c;kernel_device_modules-6.6/drivers/misc/mediatek/lpm_legacy/modules/debug/k6781/logger.c;kernel_device_modules-6.6/drivers/misc/mediatek/lpm_legacy/modules/debug/k6833/lpm_logger.c;kernel_device_modules-6.6/drivers/misc/mediatek/lpm_legacy/modules/debug/k6853/lpm_logger.c;kernel_device_modules-6.6/drivers/misc/mediatek/lpm_legacy/modules/debug/k6877/mt6877_lpm_logger.c;kernel_device_modules-6.6/drivers/misc/mediatek/lpm_legacy/modules/debug/k6893/mt6893_lpm_logger.c	drivers/misc/mediatek/adsp/mt6781/adsp_platform_driver.c;drivers/misc/mediatek/adsp/mt6785/adsp_platform_driver.c;drivers/misc/mediatek/adsp/mt6853/adsp_platform_driver.c;drivers/misc/mediatek/adsp/mt6873/adsp_platform_driver.c;drivers/misc/mediatek/adsp/mt6885/adsp_platform_driver.c;drivers/misc/mediatek/lpm/modules/debug/mt6781/mt6781_logger.c;drivers/misc/mediatek/lpm/modules/debug/mt6833/mt6833_logger.c;drivers/misc/mediatek/lpm/modules/debug/mt6853/mt6853_logger.c;drivers/misc/mediatek/lpm/modules/debug/mt6873/mt6873_logger.c;drivers/misc/mediatek/lpm/modules/debug/mt6877/mt6877_logger.c;drivers/misc/mediatek/lpm/modules/debug/mt6885/mt6885_logger.c
+mediatek,aee_debug_kinfo	reserved-memory	/reserved-memory/mblock-17-aee_debug_kinfo	kernel_device_modules-6.6/drivers/misc/mediatek/mkp/mkp_demo.c;kernel_device_modules-6.6/drivers/misc/mediatek/pkvm_mkp/mkp_demo.c	
+mediatek,ap_md_c_smem	reserved-memory	/reserved-memory/mblock-32-ap_md_c_smem		
+mediatek,ap_md_nc_smem	reserved-memory	/reserved-memory/mblock-31-ap_md_nc_smem		
+mediatek,apusys_mnoc	port-driver	/apusys_mnoc@1906e000		drivers/misc/mediatek/apusys/mnoc/1.0/mnoc_drv.c
+mediatek,apusys_reviser	port-driver	/apusys_reviser@19021000		drivers/misc/mediatek/apusys/reviser/1.0/reviser_drv.c
+mediatek,atf-log-reserved	reserved-memory	/reserved-memory/mblock-9-atf-log-reserved	kernel_device_modules-6.6/drivers/misc/mediatek/atf/atf_log.c;kernel_device_modules-6.6/drivers/misc/mediatek/atf/tfa_debug.c	drivers/misc/mediatek/atf/atf_logger.c
+mediatek,atf-ramdump-reserved	reserved-memory	/reserved-memory/mblock-8-atf-ramdump-reserved		
+mediatek,atf-reserved	reserved-memory	/reserved-memory/mblock-7-atf-reserved	kernel_device_modules-6.6/drivers/soc/mediatek/devmpu/devmpu.c	drivers/misc/mediatek/devmpu/devmpu.c;drivers/soc/mediatek/devmpu/devmpu.c
+mediatek,blue	dts-only	/odm/led@2		
+mediatek,button-backlight	dts-only	/odm/led@5		
+mediatek,cam0_smi_3x1_sub_common	fallback-ruby	/cam0_smi_3x1_sub_common@1a00c000		
+mediatek,cam0_smi_4x1_sub_common	fallback-ruby	/cam0_smi_4x1_sub_common@1a00d000		
+mediatek,camera_main_three	dts-only	/i2c4@11d22000/camera_main_three@78		
+mediatek,ccci_tag_mem	reserved-memory	/reserved-memory/mblock-24-ccci_tag_mem		
+mediatek,dbgtop	driver-in-a34	/dbgtop@1000d000	kernel_device_modules-6.6/drivers/gpu/mediatek/gpufreq/v1/mt6853/mtk_gpufreq_plat.c;kernel_device_modules-6.6/drivers/gpu/mediatek/gpufreq/v1/mt6885/mtk_gpufreq_plat.c;kernel_device_modules-6.6/drivers/gpu/mediatek/gpufreq/v1/mt6893/mtk_gpufreq_plat.c	drivers/gpu/mediatek/gpufreq/v1/mt6833/mtk_gpufreq_plat.c;drivers/gpu/mediatek/gpufreq/v1/mt6853/mtk_gpufreq_plat.c;drivers/gpu/mediatek/gpufreq/v1/mt6873/mtk_gpufreq_plat.c;drivers/gpu/mediatek/gpufreq/v1/mt6877/mtk_gpufreq_plat.c;drivers/gpu/mediatek/gpufreq/v1/mt6885/mtk_gpufreq_plat.c;drivers/gpu/mediatek/gpufreq/v1/mt6893/mtk_gpufreq_plat.c;drivers/misc/mediatek/dbgtop/dbgtop.c
+mediatek,disp-leds	driver-in-a34	/disp_leds	kernel_device_modules-6.6/drivers/leds/leds-mtk-disp.c	drivers/misc/mediatek/leds/leds-mtk-disp.c
+mediatek,disp-pwm-leds	port-driver	/pwmleds		drivers/misc/mediatek/leds/leds-mtk-pwm.c
+mediatek,disp_smi_2x1_sub_common_u0	fallback-ruby	/disp_smi_2x1_sub_common_u0@1401b000		
+mediatek,disp_smi_2x1_sub_common_u1	fallback-ruby	/disp_smi_2x1_sub_common_u1@1401c000		
+mediatek,dramc-rk0	reserved-memory	/reserved-memory/mblock-1-dramc-rk0		
+mediatek,dramc-rk1	reserved-memory	/reserved-memory/mblock-2-dramc-rk1		
+mediatek,drdi_memory	reserved-memory	/reserved-memory/mblock-30-drdi_memory		
+mediatek,dvfsrc	port-driver	/dvfsrc@10012000		drivers/devfreq/helio-dvfsrc-v2/helio-dvfsrc-opp-mt6768.c;drivers/devfreq/helio-dvfsrc-v2/helio-dvfsrc.c;drivers/devfreq/helio-dvfsrc-v3/helio-dvfsrc-opp-mt6785.c;drivers/devfreq/helio-dvfsrc-v3/helio-dvfsrc-opp-mt6833.c;drivers/devfreq/helio-dvfsrc-v3/helio-dvfsrc-opp-mt6853.c;drivers/devfreq/helio-dvfsrc-v3/helio-dvfsrc-opp-mt6873.c;drivers/devfreq/helio-dvfsrc-v3/helio-dvfsrc-opp-mt6885.c;drivers/devfreq/helio-dvfsrc-v3/helio-dvfsrc-opp-mt6893.c;drivers/devfreq/helio-dvfsrc-v3/helio-dvfsrc-opp-v6781.c;drivers/devfreq/helio-dvfsrc-v3/helio-dvfsrc-opp-v6877.c;drivers/devfreq/helio-dvfsrc-v3/helio-dvfsrc-qos.c
+mediatek,eint	driver-in-a34	/eint@1000b000	kernel_device_modules-6.6/drivers/pinctrl/mediatek/mtk-eint.c	
+mediatek,emi_mbist_buf	reserved-memory	/reserved-memory/mblock-3-emi_mbist_buf		
+mediatek,fdvt	driver-in-a34	/fdvt@1b001000	kernel_device_modules-6.6/drivers/misc/mediatek/cameraisp/fdvt/3.5/camera_fdvt.c;kernel_device_modules-6.6/drivers/misc/mediatek/cameraisp/fdvt/4.0/camera_fdvt.c;kernel_device_modules-6.6/drivers/misc/mediatek/cameraisp/fdvt/5.0/camera_fdvt.c	drivers/misc/mediatek/cameraisp/fdvt/3.5/camera_fdvt.c;drivers/misc/mediatek/cameraisp/fdvt/4.0/camera_fdvt.c;drivers/misc/mediatek/cameraisp/fdvt/5.0/camera_fdvt.c;drivers/misc/mediatek/cameraisp/fdvt/5.1/camera_fdvt.c;drivers/misc/mediatek/cameraisp/fdvt/mt6785/camera_fdvt.c
+mediatek,flashlights_mt6360	driver-in-a34	/flashlights_mt6360	kernel_device_modules-6.6/drivers/misc/mediatek/flashlight/flashlights-mt6360.c	drivers/misc/mediatek/flashlight/flashlights-mt6360.c
+mediatek,fpc1022	port-driver	/fingerprint		drivers/input/fingerprint/fpc/fpc1022_tee.c
+mediatek,framebuffer	reserved-memory	/reserved-memory/mblock-20-framebuffer		
+mediatek,green	dts-only	/odm/led@1		
+mediatek,gz	reserved-memory	/reserved-memory/mblock-4-gz		
+mediatek,gz-log	reserved-memory	/reserved-memory/mblock-5-gz-log	kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/gz-trusty/gz-log.c	drivers/misc/mediatek/geniezone/gz-trusty/gz-log.c
+mediatek,i2c	fallback-a34	/i2c0@11e00000;/i2c10@11280000;/i2c11@11281000;/i2c1@11d20000;/i2c2@11d21000;/i2c3@11cb0000;/i2c4@11d22000;/i2c5@11d00000;/i2c6@11f00000;/i2c7@11d01000;/i2c8@11d02000;/i2c9@11d03000		drivers/i2c/busses/i2c-mtk.c
+mediatek,i2c-leds	driver-in-a34	/i2c_leds	kernel_device_modules-6.6/drivers/leds/leds-mtk-disp.c	drivers/misc/mediatek/leds/leds-mtk-i2c.c
+mediatek,i2c_common	port-driver	/i2c_common		drivers/i2c/busses/i2c-mtk.c
+mediatek,i2c_lcd_bias	driver-in-a34	/i2c6@11f00000/i2c_lcd_bias@11	kernel_device_modules-6.6/drivers/gpu/drm/panel/mtk_drm_panel_i2c.c	
+mediatek,idle-state	port-driver	/cpus/idle-states/clusteroff_b;/cpus/idle-states/clusteroff_l;/cpus/idle-states/cpuoff_b;/cpus/idle-states/cpuoff_l;/cpus/idle-states/mcusysoff;/cpus/idle-states/s2idle		drivers/cpuidle/cpuidle-mediatek.c
+mediatek,img0_smi_2x1_sub_common	fallback-ruby	/img0_smi_2x1_sub_common@1502f000		
+mediatek,img1_smi_2x1_sub_common	fallback-ruby	/img1_smi_2x1_sub_common@1401e000		
+mediatek,ipe_smi_2x1_sub_common	fallback-ruby	/ipe_smi_2x1_sub_common@1b00e000		
+mediatek,jogball-backlight	dts-only	/odm/led@3		
+mediatek,jpgenc	port-driver	/jpgenc@17030000		drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+mediatek,keyboard-backlight	dts-only	/odm/led@4		
+mediatek,lcd-backlight	port-driver	/odm/led@6		drivers/gpu/drm/mediatek/mtk_disp_aal.c;drivers/misc/mediatek/leds/mtk_leds_drv.c;drivers/misc/mediatek/video/common/aal30/ddp_aal.c;drivers/misc/mediatek/video/common/pwm10/ddp_pwm.c
+mediatek,log_store	reserved-memory	/reserved-memory/mblock-6-log_store		
+mediatek,md1_sim1_hot_plug_eint-eint	dts-only	/md1_sim1_hot_plug_eint		
+mediatek,md1_sim2_hot_plug_eint-eint	dts-only	/md1_sim2_hot_plug_eint		
+mediatek,md_attr_node	driver-in-a34	/md_attr_node	kernel_device_modules-6.6/drivers/misc/mediatek/eccci/port/port_rpc.c	drivers/misc/mediatek/eccci/port/port_rpc.c
+mediatek,md_mem_usage	reserved-memory	/reserved-memory/mblock-25-md_mem_usage;/reserved-memory/mblock-26-md_mem_usage;/reserved-memory/mblock-27-md_mem_usage;/reserved-memory/mblock-28-md_mem_usage;/reserved-memory/mblock-29-md_mem_usage		
+mediatek,mediatek,reserve-memory-adsp	reserved-memory	/reserved-memory/mblock-33-mediatek,reserve-memory-adsp		
+mediatek,minirdump	reserved-memory	/reserved-memory/mblock-19-minirdump		
+mediatek,mmdvfs_pmqos	port-driver	/mmdvfs_pmqos		drivers/misc/mediatek/mmdvfs/mmdvfs_pmqos.c
+mediatek,mt-pmic	port-driver	/pwrap@10026000/mt6359-pmic/mt-pmic		drivers/mfd/mt6358-core.c;drivers/misc/mediatek/pmic/common/upmu.c
+mediatek,mt6359-accdet	port-driver	/pwrap@10026000/mt6359-pmic/accdet		drivers/mfd/mt6397-core.c;sound/soc/codecs/mt6359-accdet.c
+mediatek,mt6359-auxadc	port-driver	/pwrap@10026000/mt6359-pmic/mt635x-auxadc		drivers/iio/adc/mt635x-auxadc.c;drivers/iio/adc/mt635x-auxadc_v1.c;drivers/mfd/mt6358-core.c;drivers/mfd/mt6397-core.c
+mediatek,mt6359-efuse	port-driver	/pwrap@10026000/mt6359-pmic/pmic_efuse		drivers/mfd/mt6397-core.c;drivers/nvmem/mt6359-efuse.c
+mediatek,mt6359-keys	driver-in-a34	/pwrap@10026000/mt6359-pmic/keys	kernel-6.6/drivers/mfd/mt6397-core.c	drivers/input/keyboard/mtk-pmic-keys.c;drivers/mfd/mt6397-core.c
+mediatek,mt6359-lbat_service	port-driver	/pwrap@10026000/mt6359-pmic/pmic_lbat_service		drivers/mfd/mt6397-core.c;drivers/misc/mediatek/power_throttling/pmic_lbat_service.c
+mediatek,mt6359-pmic	driver-in-a34	/pwrap@10026000/mt6359-pmic	kernel_device_modules-6.6/drivers/soc/mediatek/mtk-pmic-wrap.c	drivers/mfd/mt6358-core.c;drivers/soc/mediatek/mtk-pmic-wrap_v1.c
+mediatek,mt6359-rtc	port-driver	/pwrap@10026000/mt6359-pmic/mt6359_rtc		drivers/mfd/mt6358-core.c;drivers/mfd/mt6397-core.c;drivers/rtc/rtc-mt6358.c;drivers/rtc/rtc-mt6397.c
+mediatek,mt6359-sound	driver-in-a34	/mt6359_snd	kernel_device_modules-6.6/sound/soc/codecs/mt6359.c	drivers/mfd/mt6397-core.c;sound/soc/codecs/mt6359.c
+mediatek,mt6359_gauge	port-driver	/mt6359_gauge		drivers/misc/mediatek/pmic/mt6359/v1/mt6359_gauge.c;drivers/misc/mediatek/pmic/mt6359p/v1/mt6359_gauge.c
+mediatek,mt6359p-misc	port-driver	/pwrap@10026000/mt6359-pmic/mt6359_misc		drivers/mfd/mt6358-core.c;drivers/mfd/mt6358-misc.c
+mediatek,mt6359p-regulator	driver-in-a34	/pwrap@10026000/mt6359-pmic/mt6359regulator	kernel_device_modules-6.6/drivers/mfd/mt6397-core.c	drivers/mfd/mt6358-core.c;drivers/regulator/mt6359p-regulator.c
+mediatek,mt6577-uart-dma	driver-in-a34	/dma-controller@10220e00	kernel-6.6/drivers/dma/mediatek/mtk-uart-apdma.c;kernel_device_modules-6.6/drivers/dma/mediatek/mtk-uart-apdma.c	drivers/dma/mediatek/mtk-uart-apdma.c
+mediatek,mt6768-auxadc	port-driver	/auxadc@11001000		drivers/iio/adc/mt6577_auxadc.c;drivers/misc/mediatek/thermal/mt6768/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6781/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6833/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6853/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6873/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6877/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6885/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6893/src/mtk_tc_wrapper.c
+mediatek,mt67xx-rng	port-driver	/hwrng		drivers/char/hw_random/mt67xx-rng.c
+mediatek,mt6877	driver-in-a34	/	kernel_device_modules-6.6/drivers/misc/mediatek/scp/rv/scp_dvfs.c	drivers/clk/mediatek/clkchk-mt6853.c;drivers/clk/mediatek/clkchk-mt6877.c
+mediatek,mt6877-apusys-midware	dts-only	/apusys_midware		
+mediatek,mt6877-camera-power-controller	dts-only	/power-controller@10006000/power-controller		
+mediatek,mt6877-disp-ovl-2l	fallback-ruby	/disp_ovl0_2l@14006000;/disp_ovl1_2l@1401f000		
+mediatek,mt6877-fdvt	fallback-a34	/fdvt@1b001000		
+mediatek,mt6877-ion-compat	fallback-a34	/pseudo_m4u-larb2		
+mediatek,mt6877-ion-video	fallback-a34	/pseudo_m4u-larb4		
+mediatek,mt6877-uart	fallback-a34	/serial@11002000;/serial@11003000		
+mediatek,mt8183-ufsphy	driver-in-a34	/ufs-phy@11fa0000	kernel-6.6/drivers/phy/mediatek/phy-mtk-ufs.c;kernel_device_modules-6.6/drivers/phy/mediatek/phy-mtk-ufs.c;kernel_device_modules-6.6/drivers/ufs/ufs-mediatek-dbg.c	drivers/phy/mediatek/phy-mtk-ufs.c
+mediatek,mt_soc_offload_common	driver-in-a34	/mt_soc_playback_offload	kernel_device_modules-6.6/sound/soc/mediatek/common_int/mtk-soc-offload-common.c	sound/soc/mediatek/common_int/mtk-soc-offload-common.c
+mediatek,mtboard-thermistor4	port-driver	/thermal-sensor4		drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_quiet.c
+mediatek,mtboard-thermistor6	port-driver	/thermal-sensor6		drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_ntc.c
+mediatek,mtboard-thermistor7	port-driver	/thermal-sensor7		drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_wifi.c
+mediatek,mtboard-thermistor8	port-driver	/thermal-sensor8		drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_flash.c
+mediatek,mtk_sec_video_path_support	dts-only	/mtee_svp/SecureVideoPath		
+mediatek,mtk_svp_on_mtee_support	dts-only	/mtee_svp/MTEE		
+mediatek,mtk_ts_pmic	driver-in-a34	/pwrap@10026000/mt6359-pmic/mtk_ts_pmic	kernel_device_modules-6.6/drivers/mfd/mt6397-core.c;kernel_device_modules-6.6/drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_pmic.c	drivers/mfd/mt6358-core.c;drivers/mfd/mt6397-core.c;drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_pmic.c
+mediatek,nfc	port-driver	/i2c3@11cb0000/nfc@08;/i2c3@11cb0000/st21nfc@08		drivers/misc/mediatek/nfc/st21nfc/st21nfc.c
+mediatek,nfc-gpio-v2	port-driver	/nfc		drivers/misc/mediatek/nfc/st21nfc/st21nfc.c
+mediatek,pmic_clock_buffer	port-driver	/pmic_clock_buffer_ctrl		drivers/misc/mediatek/base/power/clkbuf_v1/mt6739/mtk_clkbuf_hw.c;drivers/misc/mediatek/base/power/clkbuf_v1/mt6761/mtk_clkbuf_hw.c;drivers/misc/mediatek/base/power/clkbuf_v1/mt6768/mtk_clkbuf_hw.c;drivers/misc/mediatek/base/power/clkbuf_v1/mt6779/mtk_clkbuf_hw.c;drivers/misc/mediatek/base/power/clkbuf_v1/mt6785/mtk_clkbuf_hw.c;drivers/misc/mediatek/base/power/clkbuf_v1/mt6853/mtk_clkbuf_hw.c;drivers/misc/mediatek/base/power/clkbuf_v1/mt6873/mtk_clkbuf_hw.c;drivers/misc/mediatek/base/power/clkbuf_v1/mt6885/mtk_clkbuf_hw.c;drivers/misc/mediatek/base/power/clkbuf_v1/mtk_clkbuf_ctl.c;drivers/misc/mediatek/clkbuf/src/mtk-clkbuf-hw.c
+mediatek,pstore	reserved-memory	/reserved-memory/mblock-18-pstore		
+mediatek,qos-2.0	port-driver	/qos@0011bb00		drivers/misc/mediatek/base/power/qos/mtk_qos_main.c
+mediatek,red	dts-only	/odm/led@0		
+mediatek,scp_dvfs	driver-in-a34	/scp_dvfs	kernel_device_modules-6.6/drivers/misc/mediatek/scp/cm4/scp_dvfs.c	drivers/misc/mediatek/scp/cm4/scp_dvfs.c;drivers/misc/mediatek/scp/rv/scp_dvfs.c
+mediatek,security_tee_ree	reserved-memory	/reserved-memory/tee-reserved-memory	kernel_device_modules-6.6/drivers/tee/teei/510/tee/soter/soter_ffa_abi.c	
+mediatek,smi_common	fallback-a34	/cam0_smi_3x1_sub_common@1a00c000;/cam0_smi_4x1_sub_common@1a00d000;/disp_smi_2x1_sub_common_u0@1401b000;/disp_smi_2x1_sub_common_u1@1401c000;/img0_smi_2x1_sub_common@1502f000;/img1_smi_2x1_sub_common@1401e000;/ipe_smi_2x1_sub_common@1b00e000;/smi_common@14002000		drivers/gpu/drm/mediatek/mtk_disp_color.c;drivers/memory/mtk-smi.c;drivers/misc/mediatek/cmdq/v2/cmdq_device.c;drivers/misc/mediatek/m4u/mt6768/m4u_hw.c;drivers/misc/mediatek/m4u/mt6885/m4u_hw.c;drivers/misc/mediatek/vpu/2.0/vpu_drv.c;drivers/misc/mediatek/vpu/3.0/vpu_drv.c
+mediatek,smi_larb	fallback-a34	/smi_larb0@14003000;/smi_larb10@15030000;/smi_larb11@1582e000;/smi_larb12@15830000;/smi_larb13@1a001000;/smi_larb14@1a002000;/smi_larb15@1a003000;/smi_larb16@1a00f000;/smi_larb17@1a010000;/smi_larb18@1a011000;/smi_larb19@1b10f000;/smi_larb1@14004000;/smi_larb20@1b00f000;/smi_larb2@1f002000;/smi_larb3@1f00f000;/smi_larb4@1602e000;/smi_larb5@16030000;/smi_larb6@16031000;/smi_larb7@17010000;/smi_larb8@17011000;/smi_larb9@1502e000		drivers/memory/mtk-smi.c
+mediatek,smi_larb10	port-driver	/smi_larb10@15030000		drivers/gpu/drm/mediatek/mtk_disp_color.c
+mediatek,smi_larb12	fallback-ruby	/smi_larb12@15830000		
+mediatek,smi_larb15	fallback-ruby	/smi_larb15@1a003000		
+mediatek,smi_larb3	port-driver	/smi_larb3@1f00f000		drivers/gpu/drm/mediatek/mtk_disp_color.c
+mediatek,smi_larb5	port-driver	/smi_larb5@16030000		drivers/gpu/drm/mediatek/mtk_disp_color.c
+mediatek,smi_larb6	port-driver	/smi_larb6@16031000		drivers/gpu/drm/mediatek/mtk_disp_color.c
+mediatek,smi_larb8	port-driver	/smi_larb8@17011000		drivers/gpu/drm/mediatek/mtk_disp_color.c
+mediatek,snd_audio_dsp	port-driver	/snd_audio_dsp		sound/soc/mediatek/audio_dsp/v1/mtk-dsp-pcm.c;sound/soc/mediatek/audio_dsp/v2/mtk-dsp-pcm.c;sound/soc/mediatek/mt6779/mt6779-mt6359.c;sound/soc/mediatek/mt6781/mt6781-mt6366.c;sound/soc/mediatek/mt6785/mt6785-mt6359.c;sound/soc/mediatek/mt6853/mt6853-mt6359.c;sound/soc/mediatek/mt6873/mt6873-mt6359.c;sound/soc/mediatek/mt6877/mt6877-mt6359.c;sound/soc/mediatek/mt6885/mt6885-mt6359.c
+mediatek,snd_scp_ultra	port-driver	/snd_scp_ultra		sound/soc/mediatek/scp_ultra/mtk-scp-ultra-pcm.c
+mediatek,speaker_amp	driver-in-a34	/i2c6@11f00000/speaker_amp@5c	kernel_device_modules-6.6/sound/soc/mediatek/common/mtk-sp-spk-amp.c;kernel_device_modules-6.6/sound/soc/mediatek/common_int/mtk-soc-speaker-amp.c	sound/soc/mediatek/common/mtk-sp-spk-amp.c;sound/soc/mediatek/common_int/mtk-soc-speaker-amp.c
+mediatek,tee-log-reserved	reserved-memory	/reserved-memory/mblock-12-tee-log-reserved		
+mediatek,tee-ree-reserved	reserved-memory	/reserved-memory/mblock-13-tee-ree-reserved		
+mediatek,tee-reserved	reserved-memory	/reserved-memory/mblock-14-tee-reserved		
+mediatek,tee-secmem	reserved-memory	/reserved-memory/mblock-10-tee-secmem		
+mediatek,therm_ctrl	driver-in-a34	/therm_ctrl@1100b000	kernel_device_modules-6.6/drivers/misc/mediatek/thermal/src/mtk_tc.c;kernel_device_modules-6.6/drivers/misc/mediatek/thermal/v2/src/mtk_tc.c;kernel_device_modules-6.6/drivers/misc/mediatek/thermal/v3/src/mtk_tc.c;kernel_device_modules-6.6/drivers/misc/mediatek/thermal/v4/src/mtk_tc.c;kernel_device_modules-6.6/drivers/misc/mediatek/thermal/v5/src/mtk_tc.c;kernel_device_modules-6.6/drivers/misc/mediatek/thermal/v6/src/mtk_tc.c;kernel_device_modules-6.6/drivers/misc/mediatek/thermal/v7/src/mtk_tc.c	drivers/misc/mediatek/thermal/mt6739/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6761/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6765/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6768/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6779/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6779/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6781/src/mtk_lvts_tc.c;drivers/misc/mediatek/thermal/mt6781/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6781/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6785/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6785/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6833/src/mtk_lvts_tc.c;drivers/misc/mediatek/thermal/mt6833/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6833/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6853/src/mtk_lvts_tc.c;drivers/misc/mediatek/thermal/mt6853/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6853/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6873/src/mtk_lvts_tc.c;drivers/misc/mediatek/thermal/mt6873/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6873/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6877/src/mtk_lvts_tc.c;drivers/misc/mediatek/thermal/mt6877/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6877/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6885/src/mtk_lvts_tc.c;drivers/misc/mediatek/thermal/mt6885/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6885/src/mtk_tc_wrapper.c;drivers/misc/mediatek/thermal/mt6893/src/mtk_lvts_tc.c;drivers/misc/mediatek/thermal/mt6893/src/mtk_tc.c;drivers/misc/mediatek/thermal/mt6893/src/mtk_tc_wrapper.c
+mediatek,trusty-gz	port-driver	/trusty/gz-main		drivers/misc/mediatek/geniezone/mtee-kree/tz_system.c
+mediatek,trusty-mtee-v1	driver-in-a34	/trusty/mtee	kernel_device_modules-6.6/drivers/misc/mediatek/cmdq/mailbox/cmdq-sec-mailbox.c;kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/gz_main.c	
+mediatek,usb_boost	dts-only	/usb_boost_manager		
+mediatek,usb_type_c	driver-in-a34	/usb_type_c@4e	kernel_device_modules-6.6/drivers/misc/mediatek/typec/tcpc/tcpc_mt6360.c	drivers/misc/mediatek/typec/tcpc/tcpc_mt6360.c;drivers/misc/mediatek/typec/tcpc/tcpc_mt6370.c;drivers/misc/mediatek/typec/tcpc/tcpc_rt1711h.c
+mediatek,vibrator	port-driver	/odm/vibrator@0		drivers/misc/mediatek/vibrator/vibrator_drv.c
+mediatek,vpu_binary	reserved-memory	/reserved-memory/mblock-21-vpu_binary		
+mediatek,vpu_core0	port-driver	/vpu_core0@19030000		drivers/misc/mediatek/apusys/power/2.0/mt6833/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/power/2.0/mt6853/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/power/2.0/mt6873/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/power/2.0/mt6877/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/power/2.0/mt6885/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/vpu/4.0/vpu_main.c;drivers/misc/mediatek/vpu/2.0/vpu_drv.c;drivers/misc/mediatek/vpu/3.0/vpu_drv.c
+mediatek,vpu_core1	port-driver	/vpu_core1@19031000		drivers/misc/mediatek/apusys/power/2.0/mt6833/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/power/2.0/mt6853/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/power/2.0/mt6873/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/power/2.0/mt6877/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/power/2.0/mt6885/dummy_vpu_driver.c;drivers/misc/mediatek/apusys/vpu/4.0/vpu_main.c;drivers/misc/mediatek/vpu/2.0/vpu_drv.c;drivers/misc/mediatek/vpu/3.0/vpu_drv.c
+mp2762	port-driver	/i2c0@11e00000/mp2762@5c		drivers/power/supply/mps/mp2762.c
+onsemi,fan53870	port-driver	/i2c0@11e00000/onsemi,ldo@35		drivers/regulator/fan53870.c;drivers/regulator/wl2868c.c
+reserve-memory-dram_r0_dummy_read	reserved-memory	/reserved-memory/reserve-memory-dram_r0_dummy_read		drivers/misc/mediatek/dramc/mt6739/mtk_dramc.c;drivers/misc/mediatek/dramc/mt6885/mtk_dramc.c
+reserve-memory-dram_r1_dummy_read	reserved-memory	/reserved-memory/reserve-memory-dram_r1_dummy_read		drivers/misc/mediatek/dramc/mt6739/mtk_dramc.c;drivers/misc/mediatek/dramc/mt6885/mtk_dramc.c
+ruby_charger	port-driver	/ruby_charger		drivers/power/supply/mediatek/charger/mtk_charger.c
+ruby_pd_cp_manager	port-driver	/ruby_pd_cp_manager		drivers/power/supply/xiaomi/pd_cp_manager.c
+rubyplus_charger	port-driver	/rubyplus_charger		drivers/power/supply/mediatek/charger/mtk_charger.c
+rubyplus_pd_cp_manager	port-driver	/rubyplus_pd_cp_manager		drivers/power/supply/xiaomi/pd_cp_manager.c
+rubypro_charger	port-driver	/rubypro_charger		drivers/power/supply/mediatek/charger/mtk_charger.c
+rubypro_pd_cp_manager	port-driver	/rubypro_pd_cp_manager		drivers/power/supply/xiaomi/pd_cp_manager.c
+sc8551_i2c11	port-driver	/i2c11@11281000/sc8551_i2c11@66		drivers/power/supply/southchip/sc8551.c
+sc8551_i2c7	port-driver	/i2c7@11d01000/sc8551_i2c7@66		drivers/power/supply/southchip/sc8551.c
+sc8561_master	port-driver	/i2c7@11d01000/sc8561_master@64		drivers/power/supply/southchip/sc8561.c
+sc8561_slave	port-driver	/i2c11@11281000/sc8561_slave@65		drivers/power/supply/southchip/sc8561.c
+st,st54spi	driver-in-a34	/spi@11010000/st54spi@0	kernel_device_modules-6.6/drivers/misc/mediatek/nfc/st54spi.c	drivers/misc/mediatek/nfc/st54spi.c
+ti,bq28z610	driver-in-a34	/i2c11@11281000/bq28z610@55	kernel-6.6/drivers/power/supply/bq27xxx_battery_i2c.c	
+xiaomi,simtray-status	port-driver	/odm/simtray		drivers/misc/simtray.c
+xiaomi-touch	port-driver	/odm/xiaomi_touch		drivers/input/touchscreen/xiaomi/xiaomi_touch.c
+xmusb350	port-driver	/i2c11@11281000/xmusb350@35		drivers/power/supply/mediatek/charger/mtk_charger.c;drivers/power/supply/mediatek/charger/mtk_chg_type_det.c;drivers/power/supply/xiaomi/qc_cp_manager.c;drivers/power/supply/xiaomi/xmusb350.c
