@@ -36,6 +36,9 @@ jobs:
             bc bison flex cpio libssl-dev libelf-dev lz4 zstd unzip
           git config --global user.name "rubyx-kernel66-lab"
           git config --global user.email "lab@users.noreply.github.com"
+          git clone --depth=1 https://android.googlesource.com/platform/system/tools/mkbootimg /tmp/mkbootimg
+          sudo ln -sf /tmp/mkbootimg/unpack_bootimg.py /usr/local/bin/unpack_bootimg
+          sudo chmod +x /tmp/mkbootimg/unpack_bootimg.py
           python3 --version
 
       - name: Fetch A34 6.6.127 (tag y submódulo fijados)

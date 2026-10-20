@@ -37,14 +37,40 @@ copy_first() { # copy_first <nombre> <patrón find>
   fi
 }
 copy_first Image.gz Image.gz
-copy_first Module.symvers Module.symvers
 copy_first System.map System.map
 copy_first vmlinux vmlinux
+copy_first boot.img boot.img
+copy_first boot-img.tar.gz boot-img.tar.gz
+copy_first gki-info.txt gki-info.txt
+
+# Module.symvers puede quedar en el árbol de Bazel, no en dist
+SYM="$(find "$SRC/out" -type f -name Module.symvers | head -1)"
+if [ -n "$SYM" ]; then
+  cp "$SYM" "$OUT/Module.symvers"
+  log "Module.symvers: $SYM"
+else
+  log "AVISO: no se encontró Module.symvers en $SRC/out"
+fi
 
 # DTB/DTBO si el build los produce
+found_dtb=0
 while IFS= read -r -d '' f; do
   cp "$f" "$OUT/$(basename "$f")"
+  found_dtb=1
 done < <(find "$DIST" "$SRC/out" -type f \( -name '*.dtb' -o -name '*.dtbo' -o -name 'dtbo.img' -o -name 'dtb.img' \) -print0)
+
+# Si no hay DTB suelto, extraerlo del boot.img del build
+if [ "$found_dtb" = 0 ] && [ -f "$OUT/boot.img" ]; then
+  if command -v unpack_bootimg >/dev/null 2>&1; then
+    unpack_bootimg --boot_img "$OUT/boot.img" --out "$OUT/boot_unpacked" > "$OUT/boot-header.txt"
+    if [ -f "$OUT/boot_unpacked/dtb" ]; then
+      cp "$OUT/boot_unpacked/dtb" "$OUT/dtb"
+      log "DTB extraído de boot.img"
+    fi
+  else
+    log "AVISO: falta unpack_bootimg para extraer el DTB de boot.img"
+  fi
+fi
 
 # Inventario de módulos y sus hashes (sin duplicar cientos de MB)
 mapfile -d '' KOS < <(find "$DIST" -type f -name '*.ko' -print0)
@@ -56,12 +82,15 @@ else
   log "AVISO: el build no produjo .ko"
 fi
 
-: > "$OUT/sha256sums.txt"
-for f in Image Image.gz config Module.symvers System.map vmlinux sample.ko; do
-  if [ -f "$OUT/$f" ]; then
-    sha256sum "$OUT/$f" >> "$OUT/sha256sums.txt"
-  fi
-done
+(
+  cd "$OUT"
+  : > sha256sums.txt
+  for f in Image Image.gz config Module.symvers System.map vmlinux sample.ko boot.img dtb; do
+    if [ -f "$f" ]; then
+      sha256sum "$f" >> sha256sums.txt
+    fi
+  done
+)
 
 log "artefactos en $OUT"
 ls -lh "$OUT"

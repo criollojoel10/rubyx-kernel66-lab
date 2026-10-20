@@ -75,7 +75,8 @@ def main():
     check("toolchain r536225 presente", tc.is_file(), str(tc))
 
     dtbs = sorted(list(ART.glob("*.dtb")) + list(ART.glob("*.dtbo")) +
-                  list(ART.glob("dtbo.img")) + list(ART.glob("dtb.img")))
+                  list(ART.glob("dtbo.img")) + list(ART.glob("dtb.img")) +
+                  list(ART.glob("dtb")))
     if dtbs:
         ok = True
         for d in dtbs:
