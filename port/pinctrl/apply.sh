@@ -2,9 +2,8 @@
 # Aplica el piloto pinctrl-mt6877 a un kernel-6.6 ya clonado.
 # Uso: ./port/pinctrl/apply.sh /ruta/a/kernel-6.6
 set -euo pipefail
+K="$(realpath -m "${1:?falta la ruta del kernel-6.6}")"
 cd "$(dirname "$0")"
-
-K="${1:?falta la ruta del kernel-6.6}"
 D="$K/drivers/pinctrl/mediatek"
 [ -d "$D" ] || { echo "no existe $D" >&2; exit 1; }
 
