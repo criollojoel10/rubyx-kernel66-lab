@@ -96,5 +96,29 @@
     "pstore_console_bytes": 36365,
     "return_path": "bootloader_slot_b_tries_1_fallback",
     "device_restored": true
+  },
+  "test2": {
+    "date_utc": "2026-10-20T23:30:26Z",
+    "result": "booted_b_all_modules_and_returned_to_a",
+    "kernel": "6.6.127-android15-8-abogkiA346BXXSEEZB6-4k",
+    "modules_ok": [
+      "aee_aed.ko",
+      "clk-common.ko",
+      "clk-mt6877.ko",
+      "mt6359p-regulator.ko",
+      "mtk-pmic-wrap.ko",
+      "mtk-spmi-pmic.ko",
+      "mtk_wdt.ko",
+      "pinctrl-mtk-v2.ko",
+      "pinctrl-mt6877.ko",
+      "rtc-mt6397.ko",
+      "spmi-mtk-mpu.ko"
+    ],
+    "pmsg_bytes": 1058,
+    "console_bytes": 36562,
+    "watchdog": "armed timeout=60",
+    "return_path": "bootloader_slot_b_tries_1_fallback",
+    "misc_write": "failed ENXIO (block device absent in initramfs)",
+    "device_restored": true
   }
 }
