@@ -17,7 +17,9 @@ DTB = ROOT / "dts/ruby-minimal.dtb"
 
 BOOTARGS = (
     "console=ttyS0,921600n8 earlycon loglevel=8 ignore_loglevel "
-    "nokaslr clk_ignore_unused pd_ignore_unused"
+    "nokaslr clk_ignore_unused pd_ignore_unused "
+    "ramoops.mem_address=0x48090000 ramoops.mem_size=0xe0000 "
+    "ramoops.pmsg_size=0x10000 ramoops.console_size=0x40000"
 )
 
 

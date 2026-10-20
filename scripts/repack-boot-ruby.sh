@@ -9,6 +9,7 @@ OUT="${2:?falta imagen de salida}"
 KERNEL="${3:-$UNPACKED/kernel}"
 DTB="${4:-$UNPACKED/dtb}"
 RAMDISK="${5:-$UNPACKED/ramdisk}"
+CMDLINE="${6:-bootopt=64S3,32N2,64N2 androidboot.tee_type=2}"
 
 [ -f "$KERNEL" ] || { echo "falta kernel: $KERNEL" >&2; exit 1; }
 [ -f "$RAMDISK" ] || { echo "falta ramdisk: $RAMDISK" >&2; exit 1; }
@@ -26,7 +27,7 @@ mkbootimg \
   --ramdisk_offset 0x11088000 \
   --tags_offset 0x07c08000 \
   --dtb_offset 0x07c08000 \
-  --cmdline "bootopt=64S3,32N2,64N2 androidboot.tee_type=2" \
+  --cmdline "$CMDLINE" \
   --os_version 17.0.0 \
   --os_patch_level 2026-10 \
   --output "$OUT"
