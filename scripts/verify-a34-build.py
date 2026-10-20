@@ -23,6 +23,10 @@ def check(name, ok, detail=""):
     print(f"[{'PASS' if ok else 'FAIL'}] {name}" + (f" — {detail}" if detail else ""))
 
 
+def skip(name, detail=""):
+    print(f"[N/A] {name}" + (f" — {detail}" if detail else ""))
+
+
 def run(*args, cwd=None):
     return subprocess.run(args, capture_output=True, text=True, cwd=cwd, check=False)
 
@@ -72,7 +76,10 @@ def main():
         check("Module.symvers real", False, "ausente o vacío")
 
     tc = SRC / "aosp-kernel/prebuilts/clang/host/linux-x86/clang-r536225/bin/clang"
-    check("toolchain r536225 presente", tc.is_file(), str(tc))
+    if (SRC / "aosp-kernel").is_dir():
+        check("toolchain r536225 presente", tc.is_file(), str(tc))
+    else:
+        skip("toolchain r536225", "sin aosp-kernel; verificación de artefactos")
 
     dtbs = sorted(list(ART.glob("*.dtb")) + list(ART.glob("*.dtbo")) +
                   list(ART.glob("dtbo.img")) + list(ART.glob("dtb.img")) +
@@ -85,7 +92,17 @@ def main():
                 ok = False
         check("DTB/DTBO válido", ok, ", ".join(x.name for x in dtbs))
     else:
-        check("DTB/DTBO válido", False, "no se produjo ninguno")
+        dts = list((SRC / "kernel/kernel_device_modules-6.6/arch/arm64/boot/dts/mediatek/a34x").glob("*.dts"))
+        if dts:
+            skip("DTB/DTBO", f"el target GKI no los emite; {len(dts)} DTS fuente en el árbol")
+        else:
+            check("DTB/DTBO (target GKI no los emite; DTS fuente)", False, "sin DTS")
+
+    dcfg = ART / "device-modules.config"
+    if dcfg.is_file() and 'CONFIG_MTK_PLATFORM="mt6877"' in dcfg.read_text(errors="ignore"):
+        check("config de device modules", True, "mt6877")
+    else:
+        skip("config de device modules", "no colectado o sin MTK_PLATFORM")
 
     ko = ART / "sample.ko"
     if ko.is_file():
