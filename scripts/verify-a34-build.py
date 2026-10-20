@@ -99,8 +99,8 @@ def main():
             check("DTB/DTBO (target GKI no los emite; DTS fuente)", False, "sin DTS")
 
     dcfg = ART / "device-modules.config"
-    if dcfg.is_file() and 'CONFIG_MTK_PLATFORM="mt6877"' in dcfg.read_text(errors="ignore"):
-        check("config de device modules", True, "mt6877")
+    if dcfg.is_file() and 'CONFIG_COMMON_CLK_MT6877' in dcfg.read_text(errors="ignore"):
+        check("config de device modules", True, "clk-mt6877")
     else:
         skip("config de device modules", "no colectado o sin MTK_PLATFORM")
 

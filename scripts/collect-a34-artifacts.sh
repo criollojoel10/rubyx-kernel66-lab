@@ -54,7 +54,7 @@ fi
 
 DCFG=""
 while IFS= read -r f; do
-  if grep -q 'CONFIG_MTK_PLATFORM="mt6877"' "$f" 2>/dev/null; then
+  if grep -q 'CONFIG_COMMON_CLK_MT6877' "$f" 2>/dev/null; then
     DCFG="$f"
     break
   fi
