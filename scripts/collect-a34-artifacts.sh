@@ -132,6 +132,16 @@ if [ -f "$LIST" ]; then
   log "bundle: $OUT/a34-boot-modules.tar.zst"
 fi
 
+# Bundle completo para calcular el cierre de dependencias
+if [ "${#KOS[@]}" -gt 0 ]; then
+  REL=()
+  for f in "${KOS[@]}"; do
+    REL+=("${f#"$DIST"/}")
+  done
+  tar --zstd -cf "$OUT/a34-all-modules.tar.zst" -C "$DIST" "${REL[@]}"
+  log "todos los módulos: $OUT/a34-all-modules.tar.zst"
+fi
+
 (
   cd "$OUT"
   : > sha256sums.txt
