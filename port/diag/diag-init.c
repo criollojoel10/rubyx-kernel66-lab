@@ -71,9 +71,31 @@ static int make_chr(const char *name, const char *sysdev) {
     return mknode(name, S_IFCHR | 0600, maj, min);
 }
 
+static int cmdline_misc(char *out, size_t outsz) {
+    FILE *f = fopen("/proc/cmdline", "r");
+    if (!f) return -1;
+    char line[2048];
+    if (!fgets(line, sizeof(line), f)) { fclose(f); return -1; }
+    fclose(f);
+    char *p = strstr(line, "ruby.misc=");
+    if (!p) return -1;
+    unsigned int maj = 0, min = 0;
+    if (sscanf(p, "ruby.misc=%u:%u", &maj, &min) != 2) return -1;
+    if (mknode("/dev/misc", S_IFBLK | 0600, maj, min) < 0) return -1;
+    snprintf(out, outsz, "/dev/misc");
+    return 0;
+}
+
 static int find_partition(const char *part, char *out, size_t outsz) {
+    if (!strcmp(part, "misc") && access("/dev/block/by-name/misc", F_OK) == 0) {
+        snprintf(out, outsz, "/dev/block/by-name/misc");
+        return 0;
+    }
     DIR *d = opendir("/sys/class/block");
-    if (!d) return -1;
+    if (!d) {
+        logmsg("SYSFS_BLOCK_OPENDIR_FAIL errno=%d", errno);
+        return -1;
+    }
     struct dirent *e;
     while ((e = readdir(d))) {
         if (e->d_name[0] == '.') continue;
@@ -96,7 +118,10 @@ static int find_partition(const char *part, char *out, size_t outsz) {
         unsigned int maj = dev_major(devf), min = dev_minor(devf);
         if (!maj && !min) continue;
         closedir(d);
-        if (mknode(out, S_IFBLK | 0600, maj, min) < 0) return -1;
+        if (mknode(out, S_IFBLK | 0600, maj, min) < 0) {
+            logmsg("MISC_MKNOD_FAIL maj=%u min=%u errno=%d", maj, min, errno);
+            return -1;
+        }
         (void)outsz;
         return 0;
     }
@@ -117,8 +142,11 @@ static uint32_t crc32_le(const uint8_t *p, size_t n) {
 static int set_active_a(void) {
     char misc[64] = "/dev/misc";
     if (find_partition("misc", misc, sizeof(misc)) < 0) {
-        logmsg("MISC_NODE_FAIL errno=%d", errno);
-        return -1;
+        if (cmdline_misc(misc, sizeof(misc)) < 0) {
+            logmsg("MISC_NODE_FAIL errno=%d", errno);
+            return -1;
+        }
+        logmsg("MISC_CMDLINE_NODE %s", misc);
     }
     int fd = open(misc, O_RDWR | O_CLOEXEC);
     if (fd < 0) {
@@ -162,6 +190,7 @@ static int set_active_a(void) {
 }
 
 static void load_modules(void) {
+    logmsg("MODULES_BEGIN");
     FILE *f = fopen("/lib/modules/modules.load", "r");
     if (!f) {
         logmsg("MODULES_LIST_MISSING errno=%d", errno);
@@ -171,6 +200,7 @@ static void load_modules(void) {
     while (fgets(line, sizeof(line), f)) {
         line[strcspn(line, "\r\n")] = 0;
         if (!line[0]) continue;
+        logmsg("MODULE_BEGIN %s", line);
         char path[320];
         snprintf(path, sizeof(path), "/lib/modules/%s", line);
         int fd = open(path, O_RDONLY | O_CLOEXEC);
@@ -185,6 +215,7 @@ static void load_modules(void) {
         else logmsg("MODULE_FAIL %s errno=%d", line, err);
     }
     fclose(f);
+    logmsg("MODULES_END");
 }
 
 static void arm_hardware_watchdog(void) {
@@ -223,24 +254,28 @@ int main(void) {
     mkdir("/dev", 0755);
     mkdir("/proc", 0755);
     mkdir("/sys", 0755);
-    mount("devtmpfs", "/dev", "devtmpfs", 0, NULL);
-    mount("proc", "/proc", "proc", 0, NULL);
-    mount("sysfs", "/sys", "sysfs", 0, NULL);
+    int mr = mount("devtmpfs", "/dev", "devtmpfs", 0, NULL);
+    logmsg("MOUNT_DEVTMPFS rc=%d errno=%d", mr, errno);
+    mr = mount("proc", "/proc", "proc", 0, NULL);
+    logmsg("MOUNT_PROC rc=%d errno=%d", mr, errno);
+    mr = mount("sysfs", "/sys", "sysfs", 0, NULL);
+    logmsg("MOUNT_SYSFS rc=%d errno=%d", mr, errno);
 
     mknode("/dev/console", S_IFCHR | 0600, 5, 1);
     mknode("/dev/null", S_IFCHR | 0666, 1, 3);
     mknode("/dev/kmsg", S_IFCHR | 0600, 1, 11);
     klog = open("/dev/kmsg", O_WRONLY | O_CLOEXEC);
-    if (make_chr("/dev/pmsg0", "/sys/class/misc/pmsg0/dev") == 0)
+    if (make_chr("/dev/pmsg0", "/sys/class/pmsg/pmsg0/dev") == 0 ||
+        make_chr("/dev/pmsg0", "/sys/devices/virtual/pmsg/pmsg0/dev") == 0)
         pmsg = open("/dev/pmsg0", O_WRONLY | O_CLOEXEC);
 
     logmsg("PID1_START");
     logmsg("PSTORE kmsg=%d pmsg=%d", klog, pmsg);
-    arm_hardware_watchdog();
     signal(SIGALRM, on_alarm);
     alarm(90);
 
     load_modules();
+    arm_hardware_watchdog();
     logmsg("MODULES_DONE");
 
     // Margen para que pstore/console drenen antes de volver.

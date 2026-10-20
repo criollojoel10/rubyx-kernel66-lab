@@ -56,7 +56,7 @@ def main():
         "bootopt=64S3,32N2,64N2 androidboot.tee_type=2 "
         "console=ttyS0,921600n8 console=ttyMT3,921600n1 earlycon "
         "loglevel=8 ignore_loglevel nokaslr clk_ignore_unused pd_ignore_unused "
-        "root=/dev/ram rdinit=/init panic=10 panic_on_oops=1 selinux=0 "
+        "root=/dev/ram rdinit=/init panic=10 panic_on_oops=1 selinux=0 ruby.misc=8:33 "
         "ramoops.mem_address=0x48090000 ramoops.mem_size=0xe0000 "
         "ramoops.pmsg_size=0x10000 ramoops.console_size=0x40000"
     )
