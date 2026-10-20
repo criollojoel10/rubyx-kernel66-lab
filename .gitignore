@@ -9,3 +9,4 @@ __pycache__/
 device/live/
 dts/*.dtb
 port/modules/closure/
+device/backups/

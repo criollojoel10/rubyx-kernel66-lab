@@ -1,0 +1,68 @@
+{
+  "boot_b_stock": {
+    "path": "device/backups/boot_b-stock.img",
+    "size": 134217728,
+    "sha256": "c9d6ad0d7e8921f708de65cbc71817d9bfb88f82c0768d87672f29a8000252aa"
+  },
+  "misc_stock": {
+    "path": "device/backups/misc-stock.img",
+    "size": 4194304,
+    "sha256": "a1a43d22c5667c8a1c37266e71dc868daab3dff4700425ac8715e3b9057ae207"
+  },
+  "misc_bcb_stock": {
+    "path": "device/backups/misc-bcb-stock.bin",
+    "size": 32,
+    "sha256": "ebcec16f41aa6bc1495ccea87b286f26f1a2e8da58041d51bf3e99b2157cb3f6"
+  },
+  "diag_stockdtb": {
+    "path": "/tmp/ruby-diag-stockdtb.img",
+    "size": 134217728,
+    "sha256": "1c557cd307aa15e33835549c14a9518db57ae73855d437f18dbd6cdb74453d4a"
+  },
+  "diag_rubydtb": {
+    "path": "/tmp/ruby-diag-rubydtb.img",
+    "size": 134217728,
+    "sha256": "e912c0766f0383caccf0927461d99e599fb79ff79d838bbcde5e68b8f2d0ee93"
+  },
+  "kernel_gz": {
+    "path": "/tmp/a34-fast6-art/a34-6.6.127/Image.gz",
+    "size": 15676922,
+    "sha256": "b135740dbf5089175b3726273bf25f260af1348ad3e9ebf5858865f1245dea36"
+  },
+  "initramfs": {
+    "path": "/tmp/ruby-diag-initramfs.cpio.gz",
+    "size": 2326432,
+    "sha256": "29d4ac5726f09013bde7afac062b864d116604bed3ac8b49986b9a58dbb77af8"
+  },
+  "init": {
+    "path": "/tmp/ruby-diag-init",
+    "size": 848568,
+    "sha256": "ef3746324db1e078f7a8149ad27a1b9be6555c66aa4a8774edb019771efadbf9"
+  },
+  "slot_bcb_before": {
+    "suffix": "_a",
+    "A": {
+      "prio": 15,
+      "tries": 1,
+      "ok": 1
+    },
+    "B": {
+      "prio": 14,
+      "tries": 1,
+      "ok": 1
+    }
+  },
+  "modules_closure": [
+    "aee_aed",
+    "clk-common",
+    "clk-mt6877",
+    "mt6359p-regulator",
+    "mtk-pmic-wrap",
+    "mtk-spmi-pmic",
+    "mtk_wdt",
+    "pinctrl-mt6877",
+    "pinctrl-mtk-v2",
+    "rtc-mt6397",
+    "spmi-mtk-mpu"
+  ]
+}
