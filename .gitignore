@@ -6,3 +6,5 @@ out/
 *.zip
 __pycache__/
 *.pyc
+device/live/
+dts/*.dtb

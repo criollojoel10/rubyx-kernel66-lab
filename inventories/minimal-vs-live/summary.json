@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-10-20T14:59:18.124251+00:00",
+  "ruby_tree": "/tmp/ruby-minimal.dts",
+  "ruby_head": null,
+  "ruby_dts_files": 1,
+  "ruby_compatibles": 587,
+  "a34_tree": "dts/ruby-live.dts",
+  "a34_head": "833d6c9ada41d85d91bb08876e09a62581dbacc1",
+  "a34_dts_files": 1,
+  "a34_compatibles": 603,
+  "common": 436,
+  "ruby_only": 151,
+  "a34_only": 167
+}
