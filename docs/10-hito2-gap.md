@@ -25,10 +25,11 @@ Un driver presente en 4.19 puede requerir cambios para 6.6.
 |---|---:|
 | `reserved-memory` (solo DTS) | 33 |
 | `driver-in-a34` (reutilizable) | 34 |
-| `fallback-a34` (cubierto por compatible genérico) | 7 |
-| `port-driver` (existe en 4.19, falta en A34) | 71 |
+| `fallback-a34` (cubierto por compatible genérico) | 5 |
+| `alias-a34` (mismo driver, variante `p`/guion) | 11 |
+| `port-driver` (existe en 4.19, falta en A34) | 63 |
 | `fallback-ruby` (cubierto por genérico de 4.19) | 10 |
-| `dts-only` (sin driver identificado) | 16 |
+| `dts-only` (sin driver identificado) | 15 |
 | **Total** | **171** |
 
 ## Port-driver por subsistema
@@ -75,9 +76,16 @@ o con un driver ya existente bajo otro `compatible`.
 
 ## Fallbacks que reducen el trabajo
 
-`fallback-a34` (7): `mediatek,mt6877-uart` cae en `mt6577-uart`; `mt6877-fdvt`
-en el driver FDVT; `mt6877-ion-*` en el IOMMU/LARB; `i2c`, `smi_common`,
-`smi_larb` tienen driver genérico en el A34.
+`fallback-a34` (5): `mediatek,mt6877-uart` cae en `mt6577-uart`;
+`mt6877-fdvt` en el driver FDVT; `mt6877-ion-*` en el IOMMU/LARB.
+
+`alias-a34` (11) es el hallazgo importante: el A34 ya tiene el driver, pero con
+la variante `mt6359p` o con guion en vez de guion bajo. Cubre
+`mt6359-accdet/auxadc/efuse/lbat_service/rtc/gauge`, `smi_common`, `smi_larb`,
+`snd_audio_dsp`, `snd_scp_ultra` y `usb_boost`. No requieren portar código:
+requieren alias de `compatible` o ajuste del DTS.
+
+Eso deja el PMIC de arranque cubierto por alias, no por código nuevo.
 
 `fallback-ruby` (10): SMI/LARB de cámara/display y `mt6877-disp-ovl-2l`, que
 tienen driver genérico en 4.19.
@@ -133,7 +141,7 @@ No se decide todavía. Primero hay que medir el Image y el DTB mínimo.
 
 ## Siguiente paso
 
-1. Auditar API de los 71 port-drivers contra 6.6 (no solo presencia).
+1. Auditar API de los 63 port-drivers contra 6.6 (no solo presencia).
 2. Crear `configs/ruby-6.6-minimal/` con el mínimo P0.
 3. Escribir el DTS mínimo ruby 6.6 (CPU, GIC, timer, UART, PMIC, storage,
    watchdog, reserved-memory).

@@ -1,0 +1,64 @@
+compatible	subsystem	driver	loc	kconfig	a34_dir	missing_includes	missing
+mediatek,apusys_mnoc	apu	drivers/misc/mediatek/apusys/mnoc/1.0/mnoc_drv.c	366		no	5	apusys_power.h;apusys_power_cust.h;apusys_dbg.h;mnoc_hw.h;mnoc_option.h
+mediatek,vpu_core0	apu	drivers/misc/mediatek/apusys/power/2.0/mt6833/dummy_vpu_driver.c	169		no	2	apusys_power.h;apu_log.h
+mediatek,vpu_core1	apu	drivers/misc/mediatek/apusys/power/2.0/mt6833/dummy_vpu_driver.c	169		no	2	apusys_power.h;apu_log.h
+mediatek,apusys_reviser	apu	drivers/misc/mediatek/apusys/reviser/1.0/reviser_drv.c	877		no	1	apusys_power.h
+awinic,aw882xx_smartpa	audio	sound/soc/codecs/aw882xx/aw882xx.c	2492	SND_SMARTPA_AW882XX	no	1	linux/hwid.h
+mediatek,mmdvfs_pmqos	camera/video	drivers/misc/mediatek/mmdvfs/mmdvfs_pmqos.c	2824		yes	13	mtk_freqhopping_drv.h;memory/mediatek/emi.h;memory/mediatek/dramc.h;mtk_dramc.h;mt-plat/aee.h;mt6779_clkmgr.h;smi_pmqos.h;smi_public.h;dvfsrc-exp.h;mmprofile.h;mmprofile_function.h;helio-dvfsrc-opp.h;mtk_qos_bound.h
+mediatek,trusty-gz	camera/video	drivers/misc/mediatek/geniezone/mtee-kree/tz_system.c	1461		yes	9	gz-trusty/trusty_ipc.h;gz-trusty/smcall.h;gz-trusty/trusty.h;kree/system.h;kree/mem.h;tz_cross/trustzone.h;tz_cross/ta_system.h;tee_client_api.h;tz_cross/tz_error_strings.h
+mediatek,jpgenc	camera/video	drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c	2256		yes	7	smi_public.h;mach/mt_iommu.h;mach/pseudo_m4u.h;smi_port.h;mmdvfs_pmqos.h;ion_drv.h;linux/soc/mediatek/mtk-pm-qos.h
+mediatek,qos-2.0	camera/video	drivers/misc/mediatek/base/power/qos/mtk_qos_main.c	88		no	6	mtk_qos_ipi.h;mtk_qos_bound.h;mtk_qos_prefetch.h;mtk_qos_sram.h;mtk_qos_sysfs.h;mtk_qos_share.h
+mediatek,mtboard-thermistor4	camera/video	drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_quiet.c	1560	THERMAL	yes	5	mt-plat/aee.h;mt-plat/mtk_thermal_monitor.h;mach/mtk_thermal.h;mtk_thermal_timer.h;tmp_bts.h
+mediatek,mtboard-thermistor6	camera/video	drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_ntc.c	1561	THERMAL	yes	5	mt-plat/aee.h;mt-plat/mtk_thermal_monitor.h;mach/mtk_thermal.h;mtk_thermal_timer.h;tmp_bts.h
+mediatek,mtboard-thermistor7	camera/video	drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_wifi.c	1560	THERMAL	yes	5	mt-plat/aee.h;mt-plat/mtk_thermal_monitor.h;mach/mtk_thermal.h;mtk_thermal_timer.h;tmp_bts.h
+mediatek,mtboard-thermistor8	camera/video	drivers/misc/mediatek/thermal/common/thermal_zones/mtk_ts_flash.c	1560	THERMAL	yes	5	mt-plat/aee.h;mt-plat/mtk_thermal_monitor.h;mach/mtk_thermal.h;mtk_thermal_timer.h;tmp_bts.h
+mediatek,adc_channel	camera/video	drivers/misc/mediatek/auxadc/mtk_auxadc.c	2002	MTK_AUXADC	no	3	mt-plat/sync_write.h;mt-plat/mtk_devinfo.h;mtk_auxadc_hw.h
+mediatek,pmic_clock_buffer	camera/video	drivers/misc/mediatek/base/power/clkbuf_v1/mt6739/mtk_clkbuf_hw.c	1205		no	3	mtk_spm.h;mtk_clkbuf_ctl.h;mtk_clkbuf_common.h
+mediatek,vibrator	camera/video	drivers/misc/mediatek/vibrator/vibrator_drv.c	420		no	3	vibrator.h;vibrator_hal.h;mt-plat/upmu_common.h
+mediatek,nfc	camera/video	drivers/misc/mediatek/nfc/st21nfc/st21nfc.c	1535	NFC_CHIP_SUPPORT	yes	2	mt_clkbuf_ctl.h;mtk-clkbuf-bridge.h
+mediatek,nfc-gpio-v2	camera/video	drivers/misc/mediatek/nfc/st21nfc/st21nfc.c	1535	NFC_CHIP_SUPPORT	yes	2	mt_clkbuf_ctl.h;mtk-clkbuf-bridge.h
+mediatek,idle-state	camera/video	drivers/cpuidle/cpuidle-mediatek.c	163	ARM_MTK_NEW_ARCH_CPUIDLE	yes	0	
+ruby_charger	charger	drivers/power/supply/mediatek/charger/mtk_charger.c	4702		no	7	linux/hwid.h;mt-plat/v1/charger_type.h;mt-plat/v1/mtk_battery.h;mt-plat/mtk_boot.h;pmic.h;mtk_gauge_time_service.h;tcpm.h
+rubyplus_charger	charger	drivers/power/supply/mediatek/charger/mtk_charger.c	4702		no	7	linux/hwid.h;mt-plat/v1/charger_type.h;mt-plat/v1/mtk_battery.h;mt-plat/mtk_boot.h;pmic.h;mtk_gauge_time_service.h;tcpm.h
+rubypro_charger	charger	drivers/power/supply/mediatek/charger/mtk_charger.c	4702		no	7	linux/hwid.h;mt-plat/v1/charger_type.h;mt-plat/v1/mtk_battery.h;mt-plat/mtk_boot.h;pmic.h;mtk_gauge_time_service.h;tcpm.h
+xmusb350	charger	drivers/power/supply/mediatek/charger/mtk_charger.c	4702		no	7	linux/hwid.h;mt-plat/v1/charger_type.h;mt-plat/v1/mtk_battery.h;mt-plat/mtk_boot.h;pmic.h;mtk_gauge_time_service.h;tcpm.h
+ruby_pd_cp_manager	charger	drivers/power/supply/xiaomi/pd_cp_manager.c	1717		no	5	linux/pmic_voter.h;mt-plat/v1/mtk_charger.h;mtk_intf.h;adapter_class.h;linux/hwid.h
+rubyplus_pd_cp_manager	charger	drivers/power/supply/xiaomi/pd_cp_manager.c	1717		no	5	linux/pmic_voter.h;mt-plat/v1/mtk_charger.h;mtk_intf.h;adapter_class.h;linux/hwid.h
+rubypro_pd_cp_manager	charger	drivers/power/supply/xiaomi/pd_cp_manager.c	1717		no	5	linux/pmic_voter.h;mt-plat/v1/mtk_charger.h;mtk_intf.h;adapter_class.h;linux/hwid.h
+mp2762	charger	drivers/power/supply/mps/mp2762.c	1422		no	4	linux/hwid.h;linux/pmic_voter.h;mt-plat/v1/charger_type.h;mt-plat/v1/charger_class.h
+bq25980_standalone1	charger	drivers/power/supply/ti/bq25980.c	1751		no	2	linux/hwid.h;mt-plat/v1/charger_class.h
+bq25980_standalone2	charger	drivers/power/supply/ti/bq25980.c	1751		no	2	linux/hwid.h;mt-plat/v1/charger_class.h
+bq25980_standalone3	charger	drivers/power/supply/ti/bq25980.c	1751		no	2	linux/hwid.h;mt-plat/v1/charger_class.h
+ln8410_master	charger	drivers/power/supply/ln/ln8410.c	1410		no	2	linux/hwid.h;mt-plat/v1/charger_class.h
+ln8410_slave	charger	drivers/power/supply/ln/ln8410.c	1410		no	2	linux/hwid.h;mt-plat/v1/charger_class.h
+max77932	charger	drivers/power/supply/maxim/max77932.c	505		no	2	linux/param.h;linux/hwid.h
+sc8551_i2c11	charger	drivers/power/supply/southchip/sc8551.c	1124	CHARGER_SC8551	no	2	linux/hwid.h;mt-plat/v1/charger_class.h
+sc8551_i2c7	charger	drivers/power/supply/southchip/sc8551.c	1124	CHARGER_SC8551	no	2	linux/hwid.h;mt-plat/v1/charger_class.h
+sc8561_master	charger	drivers/power/supply/southchip/sc8561.c	1580		no	2	linux/hwid.h;mt-plat/v1/charger_class.h
+sc8561_slave	charger	drivers/power/supply/southchip/sc8561.c	1580		no	2	linux/hwid.h;mt-plat/v1/charger_class.h
+lionsemi,ln8000	charger	drivers/power/supply/ln/ln8000.c	2326		no	1	linux/hwid.h
+lionsemi,ln8000-secondary	charger	drivers/power/supply/ln/ln8000.c	2326		no	1	linux/hwid.h
+mediatek,disp-pwm-leds	display/backlight	drivers/misc/mediatek/leds/leds-mtk-pwm.c	621	LEDS_MTK_PWM	no	1	linux/leds_pwm.h
+mediatek,lcd-backlight	display/mediatek	drivers/gpu/drm/mediatek/mtk_disp_aal.c	3207		yes	5	drm/drmP.h;mtk_leds_drv.h;leds-mtk-disp.h;leds-mtk-pwm.h;leds-mtk-i2c.h
+mediatek,smi_larb10	display/mediatek	drivers/gpu/drm/mediatek/mtk_disp_color.c	3720		yes	1	drm/drmP.h
+mediatek,smi_larb3	display/mediatek	drivers/gpu/drm/mediatek/mtk_disp_color.c	3720		yes	1	drm/drmP.h
+mediatek,smi_larb5	display/mediatek	drivers/gpu/drm/mediatek/mtk_disp_color.c	3720		yes	1	drm/drmP.h
+mediatek,smi_larb6	display/mediatek	drivers/gpu/drm/mediatek/mtk_disp_color.c	3720		yes	1	drm/drmP.h
+mediatek,smi_larb8	display/mediatek	drivers/gpu/drm/mediatek/mtk_disp_color.c	3720		yes	1	drm/drmP.h
+m16_36_02_0b_dsc_vdo,lcm	display/panel	drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.c	2192	DRM_PANEL_M16_36_02_0B_DSC_VDO	yes	2	drm/drmP.h;uapi/drm/mi_disp.h
+m16_42_0d_0a_dsc_vdo,lcm	display/panel	drivers/gpu/drm/panel/panel-m16-42-0d-0a-dsc-vdo.c	2151	DRM_PANEL_M16_42_0D_0A_DSC_VDO	yes	2	drm/drmP.h;uapi/drm/mi_disp.h
+m16_45_02_0c_dsc_vdo,lcm	display/panel	drivers/gpu/drm/panel/panel-m16-45-02-0c-dsc-vdo.c	1834	DRM_PANEL_M16_45_02_0C_DSC_VDO	yes	2	drm/drmP.h;uapi/drm/mi_disp.h
+mediatek,dvfsrc	dvfs	drivers/devfreq/helio-dvfsrc-v2/helio-dvfsrc-opp-mt6768.c	242		no	3	mt-plat/mtk_devinfo.h;mtk_spm_internal.h;helio-dvfsrc-opp.h
+goodix,goodix-fp	fingerprint	drivers/input/fingerprint/goodix_cap/gf_spi_tee.c	2617		no	9	teei_fp.h;tee_client_api.h;linux/earlysuspend.h;mach/mt_clkmgr.h;linux/spi/spidev.h;mtk_spi.h;mtk_spi_hal.h;mtk_gpio.h;mach/gpio_const.h
+mediatek,fpc1022	fingerprint	drivers/input/fingerprint/fpc/fpc1022_tee.c	1143		no	8	teei_fp.h;mtk_spi.h;mtk_spi_hal.h;mtk_gpio.h;mach/gpio_const.h;linux/hqsysfs.h;teei_fp.h;tee_client_api.h
+awinic,awinic_haptic	haptics	drivers/input/misc/aw8697_haptic/aw_haptic.c	1151		no	0	
+mediatek,i2c_common	i2c	drivers/i2c/busses/i2c-mtk.c	2136	I2C_MTK	yes	1	mtk_kbase_spm.h
+mediatek,mt6768-auxadc	other	drivers/iio/adc/mt6577_auxadc.c	564	MEDIATEK_MT6577_AUXADC	yes	0	
+xiaomi,simtray-status	other	drivers/misc/simtray.c	92	SIMTRAY_STATUS	yes	0	
+mediatek,mt-pmic	pmic	drivers/mfd/mt6358-core.c	555	MFD_MT6358	yes	5	linux/mfd/mt6358/irq.h;linux/mfd/mt6359/irq.h;linux/mfd/mt6359p/irq.h;linux/mfd/mt6390/irq.h;linux/mfd/mt6390/registers.h
+mediatek,mt6359p-misc	pmic	drivers/mfd/mt6358-core.c	555	MFD_MT6358	yes	5	linux/mfd/mt6358/irq.h;linux/mfd/mt6359/irq.h;linux/mfd/mt6359p/irq.h;linux/mfd/mt6390/irq.h;linux/mfd/mt6390/registers.h
+onsemi,fan53870	regulator	drivers/regulator/fan53870.c	493	REGULATOR_FAN53870	yes	1	linux/param.h
+mediatek,mt67xx-rng	rng	drivers/char/hw_random/mt67xx-rng.c	104	HW_RANDOM_MT67XX	yes	0	
+focaltech,3680-spi	touch	drivers/input/touchscreen/focaltech_3680/focaltech_core.c	3308		no	2	linux/msm_drm_notify.h;linux/earlysuspend.h
+goodix,9916r-spi	touch	drivers/input/touchscreen/goodix_9916r/goodix_brl_spi.c	326		no	0	
+xiaomi-touch	touch	drivers/input/touchscreen/xiaomi/xiaomi_touch.c	1399	TOUCHSCREEN_XIAOMI_TOUCHFEATURE	no	0	

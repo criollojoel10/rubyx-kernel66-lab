@@ -1,15 +1,16 @@
 {
-  "generated_at": "2026-10-20T14:29:41.935164+00:00",
+  "generated_at": "2026-10-20T14:40:38.132621+00:00",
   "ruby_only": 171,
   "a34_c_files_scanned": 8020,
   "ruby419_c_files_scanned": 6202,
   "categories": {
-    "dts-only": 16,
+    "dts-only": 15,
     "driver-in-a34": 34,
-    "port-driver": 71,
+    "port-driver": 63,
     "reserved-memory": 33,
     "fallback-ruby": 10,
-    "fallback-a34": 7
+    "fallback-a34": 5,
+    "alias-a34": 11
   },
   "port_drivers": [
     "awinic,aw882xx_smartpa",
@@ -40,12 +41,6 @@
     "mediatek,lcd-backlight",
     "mediatek,mmdvfs_pmqos",
     "mediatek,mt-pmic",
-    "mediatek,mt6359-accdet",
-    "mediatek,mt6359-auxadc",
-    "mediatek,mt6359-efuse",
-    "mediatek,mt6359-lbat_service",
-    "mediatek,mt6359-rtc",
-    "mediatek,mt6359_gauge",
     "mediatek,mt6359p-misc",
     "mediatek,mt6768-auxadc",
     "mediatek,mt67xx-rng",
@@ -62,8 +57,6 @@
     "mediatek,smi_larb5",
     "mediatek,smi_larb6",
     "mediatek,smi_larb8",
-    "mediatek,snd_audio_dsp",
-    "mediatek,snd_scp_ultra",
     "mediatek,trusty-gz",
     "mediatek,vibrator",
     "mediatek,vpu_core0",
@@ -89,9 +82,7 @@
     "mediatek,mt6877-fdvt",
     "mediatek,mt6877-ion-compat",
     "mediatek,mt6877-ion-video",
-    "mediatek,mt6877-uart",
-    "mediatek,smi_common",
-    "mediatek,smi_larb"
+    "mediatek,mt6877-uart"
   ],
   "fallback_ruby": [
     "mediatek,cam0_smi_3x1_sub_common",
@@ -104,6 +95,19 @@
     "mediatek,mt6877-disp-ovl-2l",
     "mediatek,smi_larb12",
     "mediatek,smi_larb15"
+  ],
+  "alias_a34": [
+    "mediatek,mt6359-accdet",
+    "mediatek,mt6359-auxadc",
+    "mediatek,mt6359-efuse",
+    "mediatek,mt6359-lbat_service",
+    "mediatek,mt6359-rtc",
+    "mediatek,mt6359_gauge",
+    "mediatek,smi_common",
+    "mediatek,smi_larb",
+    "mediatek,snd_audio_dsp",
+    "mediatek,snd_scp_ultra",
+    "mediatek,usb_boost"
   ],
   "dts_only": [
     "android,firmware",
@@ -120,7 +124,6 @@
     "mediatek,mt6877-camera-power-controller",
     "mediatek,mtk_sec_video_path_support",
     "mediatek,mtk_svp_on_mtee_support",
-    "mediatek,red",
-    "mediatek,usb_boost"
+    "mediatek,red"
   ]
 }

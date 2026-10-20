@@ -1,0 +1,147 @@
+{
+  "generated_at": "2026-10-20T14:43:17.217961+00:00",
+  "drivers": 63,
+  "no_missing_includes": 7,
+  "with_missing_includes": 56,
+  "by_subsystem": {
+    "apu": 4,
+    "audio": 1,
+    "camera/video": 14,
+    "charger": 20,
+    "display/backlight": 1,
+    "display/mediatek": 6,
+    "display/panel": 3,
+    "dvfs": 1,
+    "fingerprint": 2,
+    "haptics": 1,
+    "i2c": 1,
+    "other": 2,
+    "pmic": 2,
+    "regulator": 1,
+    "rng": 1,
+    "touch": 3
+  },
+  "top_missing_includes": [
+    [
+      "linux/hwid.h",
+      21
+    ],
+    [
+      "mt-plat/v1/charger_class.h",
+      10
+    ],
+    [
+      "drm/drmP.h",
+      9
+    ],
+    [
+      "mt-plat/aee.h",
+      5
+    ],
+    [
+      "mt-plat/v1/charger_type.h",
+      5
+    ],
+    [
+      "apusys_power.h",
+      4
+    ],
+    [
+      "mt-plat/mtk_thermal_monitor.h",
+      4
+    ],
+    [
+      "mach/mtk_thermal.h",
+      4
+    ],
+    [
+      "mtk_thermal_timer.h",
+      4
+    ],
+    [
+      "tmp_bts.h",
+      4
+    ],
+    [
+      "linux/pmic_voter.h",
+      4
+    ],
+    [
+      "mt-plat/v1/mtk_battery.h",
+      4
+    ],
+    [
+      "mt-plat/mtk_boot.h",
+      4
+    ],
+    [
+      "pmic.h",
+      4
+    ],
+    [
+      "mtk_gauge_time_service.h",
+      4
+    ],
+    [
+      "tcpm.h",
+      4
+    ],
+    [
+      "teei_fp.h",
+      3
+    ],
+    [
+      "tee_client_api.h",
+      3
+    ],
+    [
+      "uapi/drm/mi_disp.h",
+      3
+    ],
+    [
+      "mt-plat/v1/mtk_charger.h",
+      3
+    ],
+    [
+      "mtk_intf.h",
+      3
+    ],
+    [
+      "adapter_class.h",
+      3
+    ],
+    [
+      "linux/earlysuspend.h",
+      2
+    ],
+    [
+      "mtk_spi.h",
+      2
+    ],
+    [
+      "mtk_spi_hal.h",
+      2
+    ],
+    [
+      "mtk_gpio.h",
+      2
+    ],
+    [
+      "mach/gpio_const.h",
+      2
+    ],
+    [
+      "linux/param.h",
+      2
+    ],
+    [
+      "mt-plat/mtk_devinfo.h",
+      2
+    ],
+    [
+      "helio-dvfsrc-opp.h",
+      2
+    ]
+  ],
+  "driver_dir_missing_in_a34": 37
+}
