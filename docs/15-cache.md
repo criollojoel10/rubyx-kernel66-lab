@@ -34,14 +34,20 @@ Workflow: `build-a34-fast.yml`.
 
 ## Qué esperar
 
-| Run | Clang | Bazel | Comentario |
-|---|---|---|---|
-| 1 (frío) | descarga | cold | guarda caché |
-| 2 | cache hit | claves estables | debería bajar varios minutos |
-| 3+ | cache hit | acción reutilizada | objetivo |
+## Resultados medidos
 
-No se puede prometer un tiempo hasta medir el run 2. El caché no cambia el
-resultado del kernel, solo evita repetir trabajo.
+| Run | Clang | Bazel | Total | Nota |
+|---|---|---|---|---|
+| Referencia 5 | descarga | 42m 56s | 56m 19s | `DEBUG_ARGS` vacío |
+| Fast 3 | **miss** (descargó) | 25m 01s | 37m 33s | primera caché escrita |
+| Fast 4 | **hit** | **32.6 s** (78 disk hits) | **9m 00s** | caché caliente |
+
+El run 4 restauró la clave exacta y hizo 78 *disk cache hits* de 524 acciones;
+las 444 restantes son internas (config/generación) y tardan ~30 s.
+
+Mejora real: **56m 19s → 9m 00s** con el mismo `Image` (hash idéntico al run 3).
+
+El caché no cambia el resultado del kernel, solo evita repetir trabajo.
 
 ## Límites
 
