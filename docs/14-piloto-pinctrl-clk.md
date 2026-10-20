@@ -72,3 +72,31 @@ Image 6.6.127 incluye el driver
 
 Si falla, el log dirá exactamente qué API de `pinctrl-paris` falta; no se
 oculta con parches a ciegas.
+
+## Resultado del piloto
+
+Run `39448787698`: el parche aplica y el driver llega a compilar, pero falla
+contra el núcleo de pinctrl del GKI:
+
+```
+pinctrl-mt6877.c:715: use of undeclared identifier 'PINCTRL_PIN_REG_DRV_EH'
+pinctrl-mt6877.c:718: array has incomplete element type
+                      'const struct mtk_eh_pin_pinmux'
+pinctrl-mt6877.c:754: use of undeclared identifier 'FLAG_RACE_FREE_ACCESS'
+pinctrl-mt6877.c:755: use of undeclared identifier 'FLAG_DRIVE_SET_RAW'
+```
+
+No son 45 líneas: el A34 añade al core `pinctrl-mtk-common-v2.c/h`:
+
+- registro `PINCTRL_PIN_REG_DRV_EH`;
+- `struct mtk_eh_pin_pinmux` y `eh_pin_pinmux/neh_pins`;
+- flags `FLAG_RACE_FREE_ACCESS` y `FLAG_DRIVE_SET_RAW`;
+- lógica de acceso race-free y drive raw.
+
+Portar eso es portar el **core** de pinctrl MTK, no solo el driver del SoC.
+
+### Decisión
+
+Para el primer arranque se usa `pinctrl-mt6877.ko` del A34 (ya compilado en
+los 978 módulos) en lugar de intentar built-in. El piloto built-in queda
+documentado como trabajo posterior, cuando se aborde el core extendido.

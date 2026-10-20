@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help fetch build collect verify inventory classify audit audit-pilot check-config build-pilot clean
+.PHONY: help fetch build build-fast collect verify inventory classify audit audit-pilot check-config build-pilot clean
 
 help:
 	@echo "make fetch    clona UN1CA/kernel_samsung_a34x @ 6.6.127 y su submódulo"
@@ -20,6 +20,9 @@ fetch:
 
 build:
 	./scripts/build-a34-reference.sh
+
+build-fast:
+	./scripts/build-a34-fast.sh
 
 collect:
 	./scripts/collect-a34-artifacts.sh
