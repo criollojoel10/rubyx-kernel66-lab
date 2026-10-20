@@ -12,9 +12,9 @@ mkdir -p "$OUT"
 
 log() { printf '[collect] %s\n' "$*" >&2; }
 
-IMAGE="$(find "$DIST" -type f -path '*mgk_64_k66_kernel_aarch64.user/Image' | head -1)"
+IMAGE="$(find "$DIST" -type f -path '*mgk_64_k66_kernel_aarch64.user/Image' -print -quit)"
 if [ -z "$IMAGE" ]; then
-  IMAGE="$(find "$SRC/out" -type f -name Image -size +1M | head -1)"
+  IMAGE="$(find "$SRC/out" -type f -name Image -size +1M -print -quit)"
 fi
 [ -n "$IMAGE" ] || { echo "no se encontró Image" >&2; exit 1; }
 cp "$IMAGE" "$OUT/Image"
@@ -30,7 +30,7 @@ fi
 
 copy_first() { # copy_first <nombre> <patrón find>
   local name=$1 pattern=$2 f
-  f="$(find "$DIST" -type f -name "$pattern" | head -1)"
+  f="$(find "$DIST" -type f -name "$pattern" -print -quit)"
   if [ -n "$f" ]; then
     cp "$f" "$OUT/$name"
     log "$name: $f"
@@ -44,12 +44,18 @@ copy_first boot-img.tar.gz boot-img.tar.gz
 copy_first gki-info.txt gki-info.txt
 
 # Module.symvers puede quedar en el árbol de Bazel, no en dist
-SYM="$(find "$SRC/out" -type f -name Module.symvers | head -1)"
+SYM="$(find "$SRC/out" -type f -name Module.symvers -print -quit)"
 if [ -n "$SYM" ]; then
   cp "$SYM" "$OUT/Module.symvers"
   log "Module.symvers: $SYM"
 else
   log "AVISO: no se encontró Module.symvers en $SRC/out"
+fi
+
+DCFG="$(find "$SRC/out" -type f -path '*KLEAF_OBJ*' -name '.config' -print -quit)"
+if [ -n "$DCFG" ]; then
+  cp "$DCFG" "$OUT/device-modules.config"
+  log "device-modules.config: $DCFG"
 fi
 
 # DTB/DTBO si el build los produce
@@ -85,7 +91,7 @@ fi
 (
   cd "$OUT"
   : > sha256sums.txt
-  for f in Image Image.gz config Module.symvers System.map vmlinux sample.ko boot.img dtb; do
+  for f in Image Image.gz config device-modules.config Module.symvers System.map vmlinux sample.ko boot.img dtb; do
     if [ -f "$f" ]; then
       sha256sum "$f" >> sha256sums.txt
     fi
