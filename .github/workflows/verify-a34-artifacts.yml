@@ -1,0 +1,44 @@
+name: Verify A34 artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Run que produjo a34-6.6.127-reference"
+        required: true
+        default: "39364610513"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout laboratorio
+        uses: actions/checkout@v4
+
+      - name: Fetch fuentes fijadas
+        run: make fetch
+
+      - name: Descargar artefactos del run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          mkdir -p dl artifacts logs
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" -D dl
+          if [ ! -d dl/a34-6.6.127-reference/a34-6.6.127 ]; then
+            echo "falta el artefacto de referencia"; exit 1
+          fi
+          cp -a dl/a34-6.6.127-reference/a34-6.6.127 artifacts/
+          if [ ! -d dl/a34-6.6.127-logs ]; then
+            echo "faltan los logs"; exit 1
+          fi
+          cp -a dl/a34-6.6.127-logs/. logs/
+          find artifacts logs -maxdepth 2 -type f -printf '%s %p\n' | sort -nr | head -20
+
+      - name: Verificar
+        run: make verify
