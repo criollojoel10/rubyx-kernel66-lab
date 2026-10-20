@@ -8,15 +8,16 @@ UNPACKED="${1:?falta directorio desempaquetado}"
 OUT="${2:?falta imagen de salida}"
 KERNEL="${3:-$UNPACKED/kernel}"
 DTB="${4:-$UNPACKED/dtb}"
+RAMDISK="${5:-$UNPACKED/ramdisk}"
 
 [ -f "$KERNEL" ] || { echo "falta kernel: $KERNEL" >&2; exit 1; }
-[ -f "$UNPACKED/ramdisk" ] || { echo "falta ramdisk" >&2; exit 1; }
+[ -f "$RAMDISK" ] || { echo "falta ramdisk: $RAMDISK" >&2; exit 1; }
 [ -f "$DTB" ] || { echo "falta dtb: $DTB" >&2; exit 1; }
 command -v mkbootimg >/dev/null || { echo "falta mkbootimg" >&2; exit 1; }
 
 mkbootimg \
   --kernel "$KERNEL" \
-  --ramdisk "$UNPACKED/ramdisk" \
+  --ramdisk "$RAMDISK" \
   --dtb "$DTB" \
   --header_version 2 \
   --pagesize 2048 \

@@ -1,0 +1,22 @@
+{
+  "roots": 8,
+  "total_modules": 881,
+  "closure": 11,
+  "missing_from_set": [],
+  "vermagic_unique": [
+    "6.6.127-android15-8-abogkiA346BXXSEEZB6-4k SMP preempt mod_unload modversions aarch64"
+  ],
+  "modules": [
+    "aee_aed",
+    "clk-common",
+    "clk-mt6877",
+    "mt6359p-regulator",
+    "mtk-pmic-wrap",
+    "mtk-spmi-pmic",
+    "mtk_wdt",
+    "pinctrl-mt6877",
+    "pinctrl-mtk-v2",
+    "rtc-mt6397",
+    "spmi-mtk-mpu"
+  ]
+}

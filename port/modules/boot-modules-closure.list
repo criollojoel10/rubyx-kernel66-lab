@@ -1,0 +1,11 @@
+aee_aed
+clk-common
+clk-mt6877
+mt6359p-regulator
+mtk-pmic-wrap
+mtk-spmi-pmic
+mtk_wdt
+pinctrl-mt6877
+pinctrl-mtk-v2
+rtc-mt6397
+spmi-mtk-mpu

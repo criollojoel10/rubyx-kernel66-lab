@@ -41,7 +41,7 @@ def main():
         depends[name] = [x for x in d.split(",") if x]
         vermagic[name] = modinfo("vermagic", ko)
 
-    roots = [l.strip() for l in rootlist.read_text().splitlines() if l.strip()]
+    roots = [Path(l.strip()).stem for l in rootlist.read_text().splitlines() if l.strip()]
     seen = set()
     missing = set()
     q = deque(roots)
