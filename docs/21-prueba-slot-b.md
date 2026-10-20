@@ -186,3 +186,22 @@ RUBYDIAG RETURN_SLOT_A_OK
 ```
 
 y Android A arranca solo. Sin esas marcas, no se declara nada.
+
+## Resultado de la primera ejecución (2026-10-20)
+
+La prueba se ejecutó y el kernel arrancó en B. El detalle está en
+`docs/22-resultado-test1.md`.
+
+Resumen:
+
+- 7 módulos cargaron: `aee_aed`, `clk-common`, `clk-mt6877`,
+  `mt6359p-regulator`, `mtk-pmic-wrap`, `mtk-spmi-pmic`, `mtk_wdt`;
+- `pwrap probe success` y `clk_mt6877_top_probe init end`;
+- pstore de consola: 36 365 B;
+- el init no pudo escribir `misc`, pero el bootloader volvió a A porque B
+  tenía `tries=1`;
+- dispositivo restaurado a `boot_b`/`misc` stock.
+
+La siguiente imagen (`/tmp/ruby-diag2-stockdtb.img`, sha256
+`55e5b815...`) corrige pmsg, watchdog, fallback de `misc` y logs de módulos.
+No se ha flasheado.

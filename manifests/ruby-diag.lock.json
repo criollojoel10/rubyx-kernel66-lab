@@ -64,5 +64,37 @@
     "pinctrl-mtk-v2",
     "rtc-mt6397",
     "spmi-mtk-mpu"
-  ]
+  ],
+  "diag2_stockdtb": {
+    "path": "/tmp/ruby-diag2-stockdtb.img",
+    "size": 134217728,
+    "sha256": "55e5b8152f3e6b42aa54e94cfe7ddab35bf3eeb33dbf24cc6798c7e719fd6e22"
+  },
+  "init2": {
+    "path": "/tmp/ruby-diag-init2",
+    "size": 848880,
+    "sha256": "1900d4e92128d2eae838c474a40d58b3cdd1580f632544e34fb75a9f1a7f4eff"
+  },
+  "initramfs2": {
+    "path": "/tmp/ruby-diag2-initramfs.cpio.gz",
+    "size": 2327282,
+    "sha256": "95e4ec6188a32196490f235d4c47c6852e720bd356d707fb0b48d6053e112a53"
+  },
+  "test1": {
+    "date_utc": "2026-10-20T23:20:21Z",
+    "result": "booted_b_and_returned_to_a",
+    "kernel": "6.6.127-android15-8-abogkiA346BXXSEEZB6-4k",
+    "modules_ok": [
+      "aee_aed.ko",
+      "clk-common.ko",
+      "clk-mt6877.ko",
+      "mt6359p-regulator.ko",
+      "mtk-pmic-wrap.ko",
+      "mtk-spmi-pmic.ko",
+      "mtk_wdt.ko"
+    ],
+    "pstore_console_bytes": 36365,
+    "return_path": "bootloader_slot_b_tries_1_fallback",
+    "device_restored": true
+  }
 }
