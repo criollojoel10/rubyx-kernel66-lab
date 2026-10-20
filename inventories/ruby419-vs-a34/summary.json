@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-10-20T14:22:02.239107+00:00",
+  "ruby_tree": "sources/ruby-4.19",
+  "ruby_head": "d15fffb90a19156d87afd83bee31fdfa97ea5424",
+  "ruby_dts_files": 14,
+  "ruby_compatibles": 527,
+  "a34_tree": "sources/a34x/kernel/kernel_device_modules-6.6",
+  "a34_head": "f1a63bfb4bc3a93aefee99308535c3c1c39b0776",
+  "a34_dts_files": 27,
+  "a34_compatibles": 597,
+  "common": 400,
+  "ruby_only": 127,
+  "a34_only": 197
+}

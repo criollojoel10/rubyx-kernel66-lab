@@ -28,21 +28,30 @@ STR_RE = re.compile(r'"([^"]+)"')
 
 
 def git_head(path: Path):
-    if not (path / ".git").exists():
-        return None
-    r = subprocess.run(["git", "-C", str(path), "rev-parse", "HEAD"],
-                       capture_output=True, text=True, check=False)
-    return r.stdout.strip() or None
+    cur = path
+    while True:
+        if (cur / ".git").exists():
+            r = subprocess.run(["git", "-C", str(cur), "rev-parse", "HEAD"],
+                               capture_output=True, text=True, check=False)
+            return r.stdout.strip() or None
+        if cur.parent == cur:
+            return None
+        cur = cur.parent
 
 
-def collect(tree: Path):
+def collect(tree: Path, pattern: str = ""):
     values = set()
     files = 0
-    for path in tree.rglob("*"):
+    paths = [tree] if tree.is_file() else [p for p in tree.rglob("*") if p.is_file()]
+    for path in paths:
         if not path.is_file():
             continue
         if path.suffix not in (".dts", ".dtsi"):
             continue
+        if pattern:
+            rel = str(path.relative_to(tree)) if tree.is_dir() else path.name
+            if not re.search(pattern, rel):
+                continue
         files += 1
         try:
             text = path.read_text(errors="ignore")
@@ -59,6 +68,8 @@ def main():
     ap.add_argument("--ruby", default=str(ROOT / "sources/ruby-4.19"))
     ap.add_argument("--a34", default=str(ROOT / "sources/a34x/kernel/kernel_device_modules-6.6"))
     ap.add_argument("--out", default=str(ROOT / "inventories"))
+    ap.add_argument("--filter-ruby", default="")
+    ap.add_argument("--filter-a34", default="")
     args = ap.parse_args()
 
     ruby = Path(args.ruby)
@@ -66,13 +77,13 @@ def main():
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    if not ruby.is_dir():
+    if not ruby.exists():
         raise SystemExit(f"falta {ruby} (clona RubyxLabs 4.19)")
-    if not a34.is_dir():
+    if not a34.exists():
         raise SystemExit(f"falta {a34} (fetch A34)")
 
-    rset, rfiles = collect(ruby)
-    aset, afiles = collect(a34)
+    rset, rfiles = collect(ruby, args.filter_ruby)
+    aset, afiles = collect(a34, args.filter_a34)
 
     common = rset & aset
     ronly = rset - aset
