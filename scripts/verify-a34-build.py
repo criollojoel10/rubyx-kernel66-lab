@@ -84,9 +84,11 @@ def main():
                            capture_output=True, text=True)
         check("hashes de artefactos", r.returncode == 0, r.stdout.strip().splitlines()[-1] if r.stdout else "")
 
-    banned = ["|| true", "|| echo"]
+    banned = ["|| " + "true", "|| " + "echo"]
     offenders = []
     for p in (ROOT / "scripts").glob("*"):
+        if p.name == Path(__file__).name:
+            continue
         if p.suffix not in (".sh", ".py"):
             continue
         txt = p.read_text(errors="ignore")

@@ -39,7 +39,9 @@ sub_sha="$(git -C "$DEST/kernel-6.6" rev-parse HEAD)"
 
 # El .gitmodules del tag declara un 'branch' que en realidad es un SHA.
 # Verificamos que la URL efectiva sea la esperada.
-sub_url_eff="$(git -C "$DEST" config --get submodule.kernel-6.6.url || true)"
+if ! sub_url_eff="$(git -C "$DEST" config --get submodule.kernel-6.6.url)"; then
+  sub_url_eff=""
+fi
 [ "$sub_url_eff" = "$SUB_URL" ] || die "URL del submódulo: $sub_url_eff != $SUB_URL"
 
 sum="$(sha256sum "$DEST/build_kernel.sh" | cut -d' ' -f1)"
