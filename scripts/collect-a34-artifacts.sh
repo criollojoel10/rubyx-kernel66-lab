@@ -65,6 +65,21 @@ while IFS= read -r -d '' f; do
   found_dtb=1
 done < <(find "$DIST" "$SRC/out" -type f \( -name '*.dtb' -o -name '*.dtbo' -o -name 'dtbo.img' -o -name 'dtb.img' \) -print0)
 
+# Si no hay DTB suelto, mirar dentro de boot-img.tar.gz
+if [ "$found_dtb" = 0 ] && [ -f "$OUT/boot-img.tar.gz" ]; then
+  mkdir -p "$OUT/boot_tar"
+  tar xzf "$OUT/boot-img.tar.gz" -C "$OUT/boot_tar"
+  while IFS= read -r -d '' img; do
+    if command -v unpack_bootimg >/dev/null 2>&1; then
+      unpack_bootimg --boot_img "$img" --out "$OUT/boot_tar/$(basename "$img" .img)_unpacked" >/dev/null
+    fi
+  done < <(find "$OUT/boot_tar" -type f -name '*.img' -print0)
+  while IFS= read -r -d '' f; do
+    cp "$f" "$OUT/$(basename "$f")"
+    found_dtb=1
+  done < <(find "$OUT/boot_tar" -type f \( -name '*.dtb' -o -name 'dtbo' -o -name 'dtb' \) -print0)
+fi
+
 # Si no hay DTB suelto, extraerlo del boot.img del build
 if [ "$found_dtb" = 0 ] && [ -f "$OUT/boot.img" ]; then
   if command -v unpack_bootimg >/dev/null 2>&1; then
