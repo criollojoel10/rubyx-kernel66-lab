@@ -51,6 +51,21 @@ s = s.replace('mkdir aosp-kernel && cd aosp-kernel',
 open(p, "w").write(s)
 PY
 
+# 4. Overlay opcional (p. ej. UFS upstream para ruby).
+if [ -n "${RUBY_OVERLAY:-}" ]; then
+  cp "$RUBY_OVERLAY" "$SRC/kernel/kernel_device_modules-6.6/kernel/configs/ruby_overlay.config"
+  python3 - "$SRC/build_kernel_fast.sh" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p).read()
+old = 'mt6877_teegris_5_overlay.config"'
+new = 'mt6877_teegris_5_overlay.config ruby_overlay.config"'
+if old not in s:
+    raise SystemExit("no se encontró la lista de overlays")
+open(p, "w").write(s.replace(old, new, 1))
+PY
+fi
+
 cd "$SRC"
 set -o pipefail
 bash build_kernel_fast.sh 2>&1 | tee "../../$LOG"
