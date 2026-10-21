@@ -67,11 +67,11 @@ jobs:
       - name: Herramientas mkbootimg
         run: |
           git clone --depth 1 https://android.googlesource.com/platform/system/tools/mkbootimg /tmp/mkbootimg
-          cat > /usr/local/bin/mkbootimg <<'SH'
+          sudo tee /usr/local/bin/mkbootimg >/dev/null <<'SH'
           #!/bin/sh
           exec python3 /tmp/mkbootimg/mkbootimg.py "$@"
           SH
-          chmod +x /usr/local/bin/mkbootimg
+          sudo chmod +x /usr/local/bin/mkbootimg
           mkbootimg --help | head -5
 
       - name: DTB stock con pstore/probe
