@@ -39,6 +39,43 @@ def parse_header_v2(image):
     }
 
 
+def pack_boot_v2(kernel, ramdisk, dtb, page, kernel_addr, ramdisk_addr,
+                 tags_addr, dtb_addr, cmdline, os_version):
+    """Empaqueta un boot image header v2 sin depender de mkbootimg."""
+    align = lambda n: (n + page - 1) // page * page
+    header = bytearray(page)
+    header[0:8] = b"ANDROID!"
+    struct.pack_into("<I", header, 8, len(kernel))
+    struct.pack_into("<I", header, 12, kernel_addr)
+    struct.pack_into("<I", header, 16, len(ramdisk))
+    struct.pack_into("<I", header, 20, ramdisk_addr)
+    struct.pack_into("<I", header, 24, 0)
+    struct.pack_into("<I", header, 28, 0)
+    struct.pack_into("<I", header, 32, tags_addr)
+    struct.pack_into("<I", header, 36, page)
+    struct.pack_into("<I", header, 40, 2)
+    struct.pack_into("<I", header, 44, os_version)
+    cmd = cmdline.encode("utf-8")
+    if len(cmd) >= 512:
+        raise SystemExit("cmdline demasiado largo para header v2")
+    header[64:64 + len(cmd)] = cmd
+    struct.pack_into("<I", header, 1632, 0)
+    struct.pack_into("<Q", header, 1636, 0)
+    struct.pack_into("<I", header, 1644, 1660)
+    struct.pack_into("<I", header, 1648, len(dtb))
+    struct.pack_into("<Q", header, 1652, dtb_addr)
+    out = bytearray()
+    out += header
+    out += b"\0" * (align(len(header)) - len(header))
+    out += kernel
+    out += b"\0" * (align(len(kernel)) - len(kernel))
+    out += ramdisk
+    out += b"\0" * (align(len(ramdisk)) - len(ramdisk))
+    out += dtb
+    out += b"\0" * (align(len(dtb)) - len(dtb))
+    return bytes(out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--original", required=True, type=Path)
@@ -54,23 +91,10 @@ def main():
 
     cmdline = "bootopt=64S3,32N2,64N2 androidboot.tee_type=2"
 
-    with tempfile.TemporaryDirectory() as td:
-        td = Path(td)
-        dtb_file = td / "dtb"
-        dtb_file.write_bytes(dtb)
-        raw_file = td / "raw.img"
-        cmd = [
-            "mkbootimg", "--header_version", "2", "--pagesize", str(h["page"]),
-            "--base", "0", "--kernel_offset", hex(h["kernel_addr"]),
-            "--ramdisk_offset", hex(h["ramdisk_addr"]),
-            "--tags_offset", hex(h["tags_addr"]),
-            "--dtb_offset", hex(h["dtb_addr"]),
-            "--os_version", "17.0.0", "--os_patch_level", "2026-10",
-            "--kernel", str(args.kernel), "--ramdisk", str(args.initramfs),
-            "--dtb", str(dtb_file), "--cmdline", cmdline, "--output", str(raw_file),
-        ]
-        subprocess.run(cmd, check=True)
-        raw = raw_file.read_bytes()
+    raw = pack_boot_v2(
+        args.kernel.read_bytes(), args.initramfs.read_bytes(), dtb,
+        h["page"], h["kernel_addr"], h["ramdisk_addr"], h["tags_addr"],
+        h["dtb_addr"], cmdline, h["os_version"])
 
     # Conservar tamaño y AVB footer de la imagen original.
     footer = struct.unpack(">4sIIQQQ", orig[-64:-28])

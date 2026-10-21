@@ -64,16 +64,6 @@ jobs:
             https://github.com/RubyxLabs/releases/releases/download/rubyx-20261015/boot.img
           echo "c9d6ad0d7e8921f708de65cbc71817d9bfb88f82c0768d87672f29a8000252aa  /tmp/stock-boot.img" | sha256sum -c -
 
-      - name: Herramientas mkbootimg
-        run: |
-          git clone --depth 1 https://android.googlesource.com/platform/system/tools/mkbootimg /tmp/mkbootimg
-          sudo tee /usr/local/bin/mkbootimg >/dev/null <<'SH'
-          #!/bin/sh
-          exec python3 /tmp/mkbootimg/mkbootimg.py "$@"
-          SH
-          sudo chmod +x /usr/local/bin/mkbootimg
-          mkbootimg --help | head -5
-
       - name: DTB stock con pstore/probe
         run: |
           ./scripts/make-stock-dtb.py \
