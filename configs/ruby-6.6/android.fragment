@@ -1,0 +1,6 @@
+# Ruby 6.6 — base Android para el core GKI
+# Solo símbolos del core. No mezclar con device-modules.
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_TMPFS_XATTR=y
+CONFIG_TMPFS_POSIX_ACL=y
