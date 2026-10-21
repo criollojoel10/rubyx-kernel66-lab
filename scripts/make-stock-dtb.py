@@ -7,10 +7,18 @@ existan en el DTB resultante.
 import re, struct, subprocess, sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent.parent
+import argparse
 BOOT=ROOT/'device/backups/boot_b-stock.img'
 OUT=ROOT/'dts/ruby-stock-base.dtb'
 DTS=ROOT/'dts/ruby-stock-base.dts'
-DTBO=Path('/root/ruby-gki/extracted/dts/ruby-dtbo.dts')
+DTBO=ROOT/'dts/ruby-dtbo.dts'
+ap=argparse.ArgumentParser()
+ap.add_argument('--boot', default=str(BOOT))
+ap.add_argument('--out', default=str(OUT))
+ap.add_argument('--dts', default=str(DTS))
+ap.add_argument('--dtbo', default=str(DTBO))
+a=ap.parse_args()
+BOOT=Path(a.boot); OUT=Path(a.out); DTS=Path(a.dts); DTBO=Path(a.dtbo)
 
 def u32(b,o): return struct.unpack_from('<I',b,o)[0]
 def u64(b,o): return struct.unpack_from('<Q',b,o)[0]

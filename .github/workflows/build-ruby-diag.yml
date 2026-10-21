@@ -1,0 +1,129 @@
+name: Build ruby diag boot
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout laboratorio
+        uses: actions/checkout@v4
+
+      - name: Liberar espacio
+        run: |
+          set +e
+          sudo apt-get remove --purge -y 'php*' 'dotnet*' 'mysql*' 'nodejs*' 'clang*' 'google*'
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          for d in /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                   /opt/hostedtoolcache/CodeQL /usr/local/share/boost; do
+            sudo rm -rf "$d"
+          done
+          set -e
+          df -h
+
+      - name: Dependencias
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl wget ca-certificates gnupg python3 python3-pip \
+            bc bison flex cpio libssl-dev libelf-dev lz4 zstd unzip patch \
+            gcc-aarch64-linux-gnu device-tree-compiler android-sdk-libsparse-utils
+          git config --global user.name "rubyx-kernel66-lab"
+          git config --global user.email "lab@users.noreply.github.com"
+
+      - name: Caché Bazel + Clang
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
+            ~/.cache/ruby/clang-r536225
+          key: diag-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            fast-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            diag-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+
+      - name: Fetch A34
+        run: make fetch
+
+      - name: Build A34 fast
+        run: make build-fast
+
+      - name: Recolectar
+        run: make collect
+
+      - name: Descargar boot stock de la release
+        run: |
+          curl -L --fail -o /tmp/stock-boot.img \
+            https://github.com/RubyxLabs/releases/releases/download/rubyx-20261015/boot.img
+          echo "c9d6ad0d7e8921f708de65cbc71817d9bfb88f82c0768d87672f29a8000252aa  /tmp/stock-boot.img" | sha256sum -c -
+
+      - name: Herramientas mkbootimg
+        run: |
+          git clone --depth 1 https://android.googlesource.com/platform/system/tools/mkbootimg /tmp/mkbootimg
+          cat > /usr/local/bin/mkbootimg <<'SH'
+          #!/bin/sh
+          exec python3 /tmp/mkbootimg/mkbootimg.py "$@"
+          SH
+          chmod +x /usr/local/bin/mkbootimg
+          mkbootimg --help | head -5
+
+      - name: DTB stock con pstore/probe
+        run: |
+          ./scripts/make-stock-dtb.py \
+            --boot /tmp/stock-boot.img \
+            --out /tmp/ruby-stock-base.dtb \
+            --dts /tmp/ruby-stock-base.dts \
+            --dtbo dts/ruby-dtbo.dts
+
+      - name: Init de diagnóstico
+        run: |
+          aarch64-linux-gnu-gcc -static -Os -o /tmp/ruby-diag-init3 port/diag/diag-init.c
+
+      - name: Cierre de 11 módulos
+        run: |
+          rm -rf /tmp/a34-allmods
+          mkdir -p /tmp/a34-allmods
+          tar --zstd -xf artifacts/a34-6.6.127/a34-all-modules.tar.zst -C /tmp/a34-allmods
+          ./scripts/close-module-deps.py /tmp/a34-allmods port/modules/console-min.list
+          ./scripts/make-module-bundle.py /tmp/a34-allmods
+
+      - name: Initramfs
+        run: |
+          ./scripts/build-diag-initramfs.py /tmp/ruby-diag-init3 port/modules/closure /tmp/ruby-diag-initramfs.cpio.gz
+
+      - name: Boot image
+        run: |
+          IMG_GZ="$(find artifacts/a34-6.6.127 -type f -name Image.gz -print -quit)"
+          test -n "$IMG_GZ"
+          ./scripts/build-diag-boot.py \
+            --original /tmp/stock-boot.img \
+            --kernel "$IMG_GZ" \
+            --initramfs /tmp/ruby-diag-initramfs.cpio.gz \
+            --dtb /tmp/ruby-stock-base.dtb \
+            --out /tmp/ruby-diag-boot.img
+          sha256sum /tmp/ruby-diag-boot.img /tmp/ruby-stock-base.dtb > /tmp/ruby-diag.sha256
+          mkdir -p out
+          cp /tmp/ruby-diag-boot.img /tmp/ruby-stock-base.dtb /tmp/ruby-diag-initramfs.cpio.gz /tmp/ruby-diag.sha256 out/
+
+      - name: Subir artefactos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-diag-boot
+          path: out/
+          if-no-files-found: warn
+
+      - name: Subir logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-diag-logs
+          path: logs/
+          if-no-files-found: warn
