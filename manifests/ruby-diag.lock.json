@@ -132,5 +132,26 @@
     "pmsg_sha256": "26d3e517935f8eecc801195a381a1540923bfaf0bbc58da2abe23d255a8efa6b",
     "identical_to_test2": true,
     "device_restored": true
+  },
+  "test4_probe": {
+    "date_utc": "2026-10-20T23:52:17Z",
+    "image": "/tmp/ruby-diag2-probe.img",
+    "image_sha256": "a6c98fb7d13f1466abbfbe3ef561652a87fa82700abef571dd950851b6e78237",
+    "dtb": "stock ruby DTB + ruby-dtb-probe@48000000",
+    "result": "probe_visible_in_pstore",
+    "probe_log": "OF: reserved mem ... ruby-dtb-probe"
+  },
+  "test5_ruby_dtb": {
+    "date_utc": "2026-10-20T23:57:24Z",
+    "image": "/tmp/ruby-diag2-rubydtb-pstore.img",
+    "image_sha256": "e01a283db1f56f6bcdc44640c9904af27392109bfe27c0ebb25513e582eb2bc1",
+    "dtb": "/tmp/ruby-minimal-pstore.dtb",
+    "dtb_sha256": "62a3c1a36d186165eb9adc09c96d757a705cf22800991d608c8eba3554aef37f",
+    "result": "ruby_dtb_boots_and_pstore_captures_logs",
+    "modules_ok": 11,
+    "watchdog": "armed timeout=60",
+    "misc_write": "failed ENXIO",
+    "return_path": "bootloader_slot_b_tries_1_fallback",
+    "device_restored": true
   }
 }
