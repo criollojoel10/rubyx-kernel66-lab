@@ -35,4 +35,27 @@ HDR=sources/a34x/kernel/kernel_device_modules-6.6/block/blk-sec.h
 [ -f "$HDR" ] || { echo "falta $HDR" >&2; exit 1; }
 sed -i 's/^static struct gendisk \*blk_sec_internal_disk/static __attribute__((unused)) struct gendisk *blk_sec_internal_disk/' "$HDR"
 grep -q '__attribute__((unused)) struct gendisk \*blk_sec_internal_disk' "$HDR"
-echo "defconfigs UFS: Samsung features desactivadas; blk-sec fuera"
+# Listas de empaquetado: no intentar instalar módulos que ya no se compilan.
+python3 - <<'PY'
+from pathlib import Path
+removals = {
+ "sources/a34x/kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_64.bzl": [
+   '    "drivers/misc/mediatek/blocktag/blocktag.ko",',
+   '    "drivers/ufs/ufs-mediatek-dbg.ko",',
+ ],
+ "sources/a34x/kernel/kernel_device_modules-6.6/kernel/kleaf/samsung_modules.bzl": [
+   '    "block/blk-sec-common.ko",',
+   '    "block/blk-sec-stats.ko",',
+   '    "block/blk-sec-wb.ko",',
+   '    "block/ssg.ko",',
+ ],
+}
+for f, lines in removals.items():
+    p=Path(f); s=p.read_text()
+    for line in lines:
+        if line not in s:
+            raise SystemExit(f"falta {line} en {f}")
+        s=s.replace(line+"\n", "")
+    p.write_text(s)
+PY
+echo "defconfigs UFS: Samsung features desactivadas; blk-sec fuera; listas limpias"
