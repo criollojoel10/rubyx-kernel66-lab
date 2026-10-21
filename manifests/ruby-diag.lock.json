@@ -193,5 +193,15 @@
     "result": "success",
     "duration_seconds": 62,
     "kernel_artifact_run": 39480753110
+  },
+  "test7_dtb_dtbo": {
+    "date_utc": "2026-10-21T03:20:04Z",
+    "image_sha256": "b8b5b29fe0442d171438b62f861fbcdc37d097e3721950a941eec3fbd2c487d6",
+    "dtb": "stock ruby + ruby-dtb-probe (no duplicate pstore)",
+    "result": "booted_11_modules_watchdog_pstore_and_returned_a",
+    "modules_ok": 11,
+    "misc": "ENXIO (no storage driver)",
+    "return_path": "slot_b_tries_1_fallback",
+    "device_restored": true
   }
 }
