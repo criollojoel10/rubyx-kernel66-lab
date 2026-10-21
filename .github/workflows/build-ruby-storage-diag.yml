@@ -1,0 +1,60 @@
+name: Build ruby storage diag boot
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencias
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl python3 cpio lz4 zstd device-tree-compiler \
+            gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+      - name: Descargar Image/módulos de storage
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 39627025334 --repo "$GITHUB_REPOSITORY" -n a34-storage -D art
+          test -f art/a34-6.6.127/Image.gz
+          test -f art/a34-6.6.127/a34-all-modules.tar.zst
+      - name: Boot stock
+        run: |
+          curl -L --fail -o /tmp/stock-boot.img \
+            https://github.com/RubyxLabs/releases/releases/download/rubyx-20261015/boot.img
+          echo "c9d6ad0d7e8921f708de65cbc71817d9bfb88f82c0768d87672f29a8000252aa  /tmp/stock-boot.img" | sha256sum -c -
+      - name: DTB stock + probe
+        run: |
+          ./scripts/make-stock-dtb.py --boot /tmp/stock-boot.img \
+            --out /tmp/ruby-stock-base.dtb --dts /tmp/ruby-stock-base.dts \
+            --dtbo dts/ruby-dtbo.dts
+      - name: Init
+        run: aarch64-linux-gnu-gcc --sysroot=/usr/aarch64-linux-gnu -static -Os -o /tmp/init port/diag/diag-init.c
+      - name: Módulos storage
+        run: |
+          rm -rf /tmp/all; mkdir -p /tmp/all
+          tar --zstd -xf art/a34-6.6.127/a34-all-modules.tar.zst -C /tmp/all
+          ./scripts/close-module-deps.py /tmp/all port/modules/storage.list
+          ./scripts/make-module-bundle.py /tmp/all
+          cat port/modules/closure.json
+      - name: Initramfs
+        run: ./scripts/build-diag-initramfs.py /tmp/init port/modules/closure /tmp/initramfs.cpio.gz
+      - name: Boot image
+        run: |
+          ./scripts/build-diag-boot.py --original /tmp/stock-boot.img \
+            --kernel art/a34-6.6.127/Image.gz --initramfs /tmp/initramfs.cpio.gz \
+            --dtb /tmp/ruby-stock-base.dtb --out /tmp/ruby-storage-boot.img
+          sha256sum /tmp/ruby-storage-boot.img > /tmp/sha
+          mkdir -p out; cp /tmp/ruby-storage-boot.img /tmp/ruby-stock-base.dtb /tmp/initramfs.cpio.gz /tmp/sha out/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ruby-storage-boot
+          path: out/
