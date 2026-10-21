@@ -13,7 +13,7 @@ for f in "${FILES[@]}"; do
   python3 - "$f" <<'PY'
 import re, sys
 p=sys.argv[1]; s=open(p).read()
-for sym in ("SEC_UFS_FEATURE","SCSI_UFS_MEDIATEK_DBG","MTK_BLOCK_IO_TRACER","BLK_SEC_COMMON","BLK_SEC_WB","BLK_SEC_STATS"):
+for sym in ("SEC_UFS_FEATURE","SCSI_UFS_MEDIATEK_DBG","MTK_BLOCK_IO_TRACER","BLK_SEC_COMMON","BLK_SEC_WB","BLK_SEC_STATS","MQ_IOSCHED_SSG","MQ_IOSCHED_SSG_CGROUP","MQ_IOSCHED_SSG_WB"):
     s=re.sub(rf'^CONFIG_{sym}=.*$', f'# CONFIG_{sym} is not set', s, flags=re.M)
 open(p,'w').write(s)
 PY
@@ -27,8 +27,10 @@ BLK=sources/a34x/kernel/kernel_device_modules-6.6/block/Makefile
 [ -f "$BLK" ] || { echo "falta $BLK" >&2; exit 1; }
 sed -i 's/^obj-$(CONFIG_BLK_SEC_COMMON)/#&/' "$BLK"
 sed -i 's/^obj-$(CONFIG_BLK_SEC_WB)/#&/' "$BLK"
+sed -i 's/^obj-$(CONFIG_MQ_IOSCHED_SSG)/#&/' "$BLK"
 grep -q '^#obj-$(CONFIG_BLK_SEC_COMMON)' "$BLK"
 grep -q '^#obj-$(CONFIG_BLK_SEC_WB)' "$BLK"
+grep -q '^#obj-$(CONFIG_MQ_IOSCHED_SSG)' "$BLK"
 HDR=sources/a34x/kernel/kernel_device_modules-6.6/block/blk-sec.h
 [ -f "$HDR" ] || { echo "falta $HDR" >&2; exit 1; }
 sed -i 's/^static struct gendisk \*blk_sec_internal_disk/static __attribute__((unused)) struct gendisk *blk_sec_internal_disk/' "$HDR"
