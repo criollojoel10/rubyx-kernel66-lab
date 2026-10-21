@@ -143,10 +143,16 @@ static int set_active_a(void) {
     char misc[64] = "/dev/misc";
     if (find_partition("misc", misc, sizeof(misc)) < 0) {
         if (cmdline_misc(misc, sizeof(misc)) < 0) {
-            logmsg("MISC_NODE_FAIL errno=%d", errno);
-            return -1;
+            if (mknode("/dev/misc", S_IFBLK | 0600, 8, 33) == 0) {
+                snprintf(misc, sizeof(misc), "/dev/misc");
+                logmsg("MISC_HARDCODE_NODE 8:33");
+            } else {
+                logmsg("MISC_NODE_FAIL errno=%d", errno);
+                return -1;
+            }
+        } else {
+            logmsg("MISC_CMDLINE_NODE %s", misc);
         }
-        logmsg("MISC_CMDLINE_NODE %s", misc);
     }
     int fd = open(misc, O_RDWR | O_CLOEXEC);
     if (fd < 0) {

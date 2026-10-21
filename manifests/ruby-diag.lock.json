@@ -153,5 +153,16 @@
     "misc_write": "failed ENXIO",
     "return_path": "bootloader_slot_b_tries_1_fallback",
     "device_restored": true
+  },
+  "test6_storage": {
+    "date_utc": "2026-10-21T00:19:54Z",
+    "image": "/tmp/ruby-diag6-storage-stockcmd.img",
+    "image_sha256": "49481eda27c06627f09cbd192f48a4f161b2b2ab0089af6a3749a04261fc9f14",
+    "modules": 29,
+    "cmdline": "stock boot image cmdline",
+    "result": "kernel_panic_in_sec_ext",
+    "panic": "sysfs_create_svc_ap+0x18 [sec_ext]",
+    "return_path": "bootloader_slot_b_tries_1_fallback",
+    "device_restored": true
   }
 }

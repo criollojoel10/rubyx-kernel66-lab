@@ -1,0 +1,11 @@
+clk-mt6877.ko
+pinctrl-mt6877.ko
+mtk-pmic-wrap.ko
+mtk-spmi-pmic.ko
+spmi-mtk-mpu.ko
+rtc-mt6397.ko
+mtk_wdt.ko
+mt6359p-regulator.ko
+phy-mtk-ufs.ko
+ufs-mediatek-mod.ko
+mtk_iommu.ko
