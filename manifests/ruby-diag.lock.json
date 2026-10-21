@@ -172,5 +172,26 @@
     "symbols": 445,
     "dtbo_targets": 62,
     "missing": 0
+  },
+  "ci_diag_boot": {
+    "path": "/tmp/ruby-diag-art/ruby-diag-boot.img",
+    "size": 134217728,
+    "sha256": "dbb4f66e81337408f018e36fb6e2799a631692e26f2b9d504be4e3cead454ce7"
+  },
+  "ci_stock_dtb": {
+    "path": "/tmp/ruby-diag-art/ruby-stock-base.dtb",
+    "size": 179275,
+    "sha256": "8b1bbb2c2fb70d2adb3562ff2f20f51b4bb1d87e9603173bbbbbda299fdbe111"
+  },
+  "ci_initramfs": {
+    "path": "/tmp/ruby-diag-art/ruby-diag-initramfs.cpio.gz",
+    "size": 2302501,
+    "sha256": "d9b949a97f2a111904dfae81f62c48dc4a18d32361d63c1fb9338fdbe0a5d011"
+  },
+  "ci_run": {
+    "id": 39534664348,
+    "result": "success",
+    "duration_seconds": 62,
+    "kernel_artifact_run": 39480753110
   }
 }
