@@ -1,0 +1,48 @@
+=== TEE real de ruby (capturado en vivo, slot A, 2026-10-21 22:5x)
+
+Particiones relevantes (/dev/block/by-name):
+  tee_a        -> /dev/block/sdc36
+  tee_b        -> /dev/block/sdc60
+  gz_a         -> /dev/block/sdc30
+  gz_b         -> /dev/block/sdc54
+  lk_a/lk_b    -> sdc31 / sdc55
+  preloader_raw_a/b -> mapper/preloader_raw_a/b
+  vendor_boot_a/b -> sdc34 / sdc58
+  metadata     -> sdc13
+  misc         -> sdc1
+  super        -> sdc61
+  userdata     -> sdc76
+  vbmeta_a/b   -> sdc7 / sdc10
+
+Nodos TEE vivos (stock, kernel 6.6 privado de ruby):
+  /dev/teei_client  (248? no: crw 465,0)
+  /dev/teei_config  (crw 460,0)
+  /dev/teei_fp      (crw 461,0)
+  /dev/trusty-ipc-dev0 (crw 248,0)
+  /dev/tz_vfs       (crw 464,0)
+
+Procs/servicios:
+  teei_daemon (system)                      running
+  android.hardware.keymaster@4.1-service.beanpod  running
+  vendor.mediatek.hardware.keymaster_attestation@1.1-service running
+  vendor.microtrust.hardware.soter@1.0-service running
+  keystore2                                running
+  trusty_task_nop / trusty_task_kick / trusty_poll_task (kernel)
+
+Props:
+  ro.boot.tee_type=2
+  ro.vendor.mtk_microtrust_tee_support=1
+  ro.vendor.mtk_tee_gp_support=1
+  ro.hardware.keymaster=beanpod
+  ro.hardware.gatekeeper=beanpod
+  vendor.soter.teei.init=INIT_OK
+  vendor.soter.teei.rpmb.flag=ok
+
+Kernel:
+  /proc/modules no tiene teei/tz/gz => van BUILT-IN en el kernel privado 6.6
+  dmesg: [tz_driver] TEEI UT IRQ367 HANDLED CPU0
+
+Conclusion: el driver Microtrust TEEI 400 es built-in en el kernel privado de
+ruby; en el A34 6.6 solo hay TEEGRIS. Hay que compilar
+drivers/tee/teei/400 (CONFIG_MICROTRUST_TEE_SUPPORT=m, VERSION="400") para
+generar isee.ko y cargarlo con la capa GenieZone (gz_*).
