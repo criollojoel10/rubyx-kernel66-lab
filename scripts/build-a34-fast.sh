@@ -66,6 +66,12 @@ open(p, "w").write(s.replace(old, new, 1))
 PY
 fi
 
+if [ "${RUBY_DRY_RUN:-}" = "1" ]; then
+  echo "[dry] overlay=${RUBY_OVERLAY:-none}"
+  grep -n 'kernel-defconfig-overlays' "$SRC/build_kernel_fast.sh"
+  exit 0
+fi
+
 cd "$SRC"
 set -o pipefail
 bash build_kernel_fast.sh 2>&1 | tee "../../$LOG"
