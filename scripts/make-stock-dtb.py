@@ -35,10 +35,6 @@ tmp=ROOT/'dts/.stock-base.tmp.dtb'; tmp.write_bytes(dtb)
 def has(node, prop):
     return subprocess.run(['fdtget',str(tmp),node,prop],capture_output=True).returncode==0
 
-if not has('/reserved-memory/pstore@48090000','reg'):
-    subprocess.run(['fdtput','-c',str(tmp),'/reserved-memory/pstore@48090000'],check=True)
-    subprocess.run(['fdtput','-t','x',str(tmp),'/reserved-memory/pstore@48090000','reg','0','0x48090000','0','0xe0000'],check=True)
-    subprocess.run(['fdtput','-t','x',str(tmp),'/reserved-memory/pstore@48090000','no-map','1'],check=True)
 if not has('/reserved-memory/ruby-dtb-probe','reg'):
     subprocess.run(['fdtput','-c',str(tmp),'/reserved-memory/ruby-dtb-probe'],check=True)
     subprocess.run(['fdtput','-t','x',str(tmp),'/reserved-memory/ruby-dtb-probe','reg','0','0x48000000','0','0x1000'],check=True)
