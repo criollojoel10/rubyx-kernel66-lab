@@ -59,7 +59,8 @@ jobs:
 
       - name: Verificar UFS en config
         run: |
-          grep -E '^CONFIG_(SCSI_UFS_MEDIATEK|PHY_MTK_UFS|MTK_IOMMU)=y' artifacts/a34-6.6.127/config
+          grep -E '^CONFIG_DEVICE_MODULES_(SCSI_UFS_MEDIATEK|PHY_MTK_UFS|MTK_IOMMU)=m' artifacts/a34-6.6.127/device-modules.config
+          grep -E '^# CONFIG_(SEC_UFS_FEATURE|SCSI_UFS_MEDIATEK_DBG|MTK_BLOCK_IO_TRACER|SEC_DEBUG|SEC_ABC) is not set' artifacts/a34-6.6.127/device-modules.config
 
       - name: Subir artefactos
         if: always()
