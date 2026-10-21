@@ -27,16 +27,20 @@ scripts/pack-stock-modules-ramdisk.sh \
   /tmp/stockboot/rd /tmp/ufs-order /tmp/stock-modules.ramdisk.lz4
 ```
 
-Después:
+El `Image` del A34 (37 MB) no cabe junto al ramdisk stock (20 MB) antes del
+footer AVB de 40 MB. La solución validada es usar `Image.gz` (15 MB):
 
 ```sh
 scripts/build-diag-boot.py \
   --original device/backups/boot_b-stock.img \
-  --kernel /tmp/storage-diag-unpack/kernel \
+  --kernel artifacts/a34-6.6.127/Image.gz \
   --initramfs /tmp/stock-modules.ramdisk.lz4 \
   --dtb /tmp/ruby-regfix.dtb \
-  --out /tmp/stock-modules.img
+  --out /tmp/stock-modules-gz.img
 ```
+
+LK acepta el kernel comprimido: la prueba de diagnóstico con `Image.gz`
+arrancó Linux 6.6.127 y enumeró `sdc1..77`.
 
 ## Criterio
 
