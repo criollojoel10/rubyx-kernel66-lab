@@ -1,0 +1,37 @@
+name: Inspect storage artifact
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencias
+        run: sudo apt-get update && sudo apt-get install -y kmod
+      - name: Descargar artefacto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 39591728145 --repo "$GITHUB_REPOSITORY" -n a34-storage -D art
+      - name: Informe
+        run: |
+          {
+            echo "=== UFS config"
+            grep -E '^CONFIG_(DEVICE_MODULES_SCSI_UFS_MEDIATEK|DEVICE_MODULES_PHY_MTK_UFS|DEVICE_MODULES_MTK_IOMMU|SEC_UFS_FEATURE|SCSI_UFS_MEDIATEK_DBG|MTK_BLOCK_IO_TRACER|SEC_DEBUG|SEC_ABC)' art/a34-6.6.127/device-modules.config || true
+            echo "=== modinfo depends"
+            find art -name 'ufs-mediatek-mod.ko' -print -exec modinfo -F depends {} \;
+            echo "=== modinfo vermagic"
+            find art -name 'ufs-mediatek-mod.ko' -exec modinfo -F vermagic {} \;
+            echo "=== sec symbols in module"
+            find art -name 'ufs-mediatek-mod.ko' -exec sh -c 'strings "$1" | grep -iE "sec_ext|sec_debug|mrdump|blocktag" | head' _ {} \;
+          } | tee report.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: storage-report
+          path: report.txt
