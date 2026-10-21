@@ -1,0 +1,11 @@
+# Microtrust TEEI (TEE de ruby) para el kernel 6.6 propio.
+# El A34 viene con TEEGRIS (Samsung) y sin Microtrust: sin este driver no
+# existen /dev/teei_client, /dev/teei_config, /dev/ut_keymaster ni
+# /dev/tz_vfs, y keymaster falla con -1000 -> cryptfs init_user0 -> recovery.
+# El fuente existe en el árbol: drivers/tee/teei/400 (Microtrust 400 = ruby).
+CONFIG_MICROTRUST_TEE_SUPPORT=m
+CONFIG_MICROTRUST_TEE_VERSION="400"
+CONFIG_MICROTRUST_TZ_DRIVER=y
+CONFIG_MICROTRUST_VFS_DRIVER=y
+CONFIG_MICROTRUST_FP_DRIVER=y
+CONFIG_MICROTRUST_KEYMASTER_DRIVER=y
