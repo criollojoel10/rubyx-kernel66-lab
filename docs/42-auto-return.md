@@ -56,3 +56,25 @@ footer AVB; `unpack_bootimg` lo valida.
 4. Si B no arranca, LK ya vuelve a A por `tries=1`.
 
 No se debe flashear un boot de prueba sin APatch y sin este servicio.
+
+## Resultado real de la primera prueba APatch
+
+Se flasheó `stock-modules-apatch.img` (sha256
+`59b5f01d3fa3f8748be1e79ffd97d2ce7bbb84a0efe28b2cd7264233c18fd8c7`)
+en B con `tries=1`.
+
+El kernel nuevo arrancó y APatch ejecutó `KP event: post-kernel-init`, pero
+el `init` stock abortó antes de Android:
+
+```
+init: LoadWithAliases was unable to load aee_aed, tried: aee_aed
+init: Failed to load kernel modules
+init: InitFatalReboot: signal 6
+```
+
+LK volvió solo al slot A. El dispositivo quedó en Android 17 con
+`sys.boot_completed=1` y slot `_a`, sin usar laptop.
+
+El fallo no es del kernel ni de APatch: es del `modules.load`/carga de módulos
+del ramdisk stock. El bootloader sí demostró la capa de recuperación.
+
