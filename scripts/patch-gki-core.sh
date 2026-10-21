@@ -1,20 +1,34 @@
 #!/usr/bin/env bash
-# Añade al GKI core las opciones que no están en gki_defconfig.
+# Añade al GKI core las opciones de un fragmento (Android o Droidspaces).
 # No toca device_modules. Idempotente.
+#
+# Uso: scripts/patch-gki-core.sh [fragmento]
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+FRAG="${1:-configs/ruby-6.6/android.fragment}"
+[ -f "$FRAG" ] || { echo "falta $FRAG" >&2; exit 1; }
 K="sources/a34x/kernel-6.6/arch/arm64/configs/gki_defconfig"
 [ -f "$K" ] || { echo "falta $K; ejecuta make fetch" >&2; exit 1; }
 
-append() {
-    local opt="$1"
-    grep -qxF "$opt" "$K" || echo "$opt" >> "$K"
-}
+added=0
+while IFS= read -r line; do
+    case "$line" in
+        ''|'#'*) continue ;;
+    esac
+    key="${line%%=*}"
+    if grep -q "^${key}=" "$K"; then
+        # actualiza el valor si difiere
+        if ! grep -qxF "$line" "$K"; then
+            sed -i "s|^${key}=.*|${line}|" "$K"
+            echo "[gki] actualizado $key"
+        fi
+    else
+        echo "$line" >> "$K"
+        echo "[gki] añadido $line"
+        added=$((added + 1))
+    fi
+done < "$FRAG"
 
-append 'CONFIG_DEVTMPFS=y'
-append 'CONFIG_DEVTMPFS_MOUNT=y'
-append 'CONFIG_TMPFS_XATTR=y'
-append 'CONFIG_TMPFS_POSIX_ACL=y'
-
-echo "[gki] opciones Android aplicadas en $K"
-grep -nE 'CONFIG_(DEVTMPFS|TMPFS_XATTR|TMPFS_POSIX_ACL)' "$K"
+echo "[gki] $added líneas nuevas desde $FRAG"
+grep -nE 'CONFIG_(DEVTMPFS|TMPFS_XATTR|TMPFS_POSIX_ACL|SYSVIPC|PID_NS|IPC_NS|USER_NS|POSIX_MQUEUE|CGROUP_PIDS|CGROUP_DEVICE|CFS_BANDWIDTH|MACVLAN|NF_TABLES|NETFILTER_XT_MATCH_ADDRTYPE|CHECKPOINT_RESTORE)' "$K" || true

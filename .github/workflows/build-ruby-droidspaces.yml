@@ -1,0 +1,81 @@
+name: Build ruby core (Droidspaces safe)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout laboratorio
+        uses: actions/checkout@v4
+
+      - name: Liberar espacio
+        run: |
+          set +e
+          sudo apt-get remove --purge -y 'php*' 'dotnet*' 'mysql*' 'nodejs*' 'clang*' 'google*'
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          for d in /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                   /opt/hostedtoolcache/CodeQL /usr/local/share/boost; do
+            sudo rm -rf "$d"
+          done
+          set -e
+          df -h
+
+      - name: Dependencias
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl wget ca-certificates gnupg python3 python3-pip \
+            bc bison flex cpio libssl-dev libelf-dev lz4 zstd unzip patch
+          git config --global user.name "rubyx-kernel66-lab"
+          git config --global user.email "lab@users.noreply.github.com"
+
+      - name: Caché Bazel + Clang
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
+            ~/.cache/ruby/clang-r536225
+          key: ds-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('configs/ruby-6.6/droidspaces-safe.fragment') }}-${{ github.sha }}
+          restore-keys: |
+            ds-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+
+      - name: Fetch A34
+        run: make fetch
+
+      - name: Patch core GKI (Droidspaces seguro)
+        run: ./scripts/patch-gki-core.sh configs/ruby-6.6/droidspaces-safe.fragment
+
+      - name: Build core
+        run: make build-fast
+
+      - name: Recolectar
+        run: make collect
+
+      - name: Verificar namespaces en GKI
+        run: |
+          grep -E '^CONFIG_(PID_NS|IPC_NS|USER_NS|POSIX_MQUEUE|CHECKPOINT_RESTORE)=y' artifacts/a34-6.6.127/config
+          grep -E '^CONFIG_SYSVIPC=y' artifacts/a34-6.6.127/config && exit 1 || echo "SYSVIPC ausente (correcto en el subconjunto seguro)"
+
+      - name: Subir artefactos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-core-droidspaces
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Subir logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-core-droidspaces-logs
+          path: logs/
+          if-no-files-found: warn
