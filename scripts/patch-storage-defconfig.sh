@@ -13,7 +13,7 @@ for f in "${FILES[@]}"; do
   python3 - "$f" <<'PY'
 import re, sys
 p=sys.argv[1]; s=open(p).read()
-for sym in ("SEC_UFS_FEATURE","SCSI_UFS_MEDIATEK_DBG","MTK_BLOCK_IO_TRACER"):
+for sym in ("SEC_UFS_FEATURE","SCSI_UFS_MEDIATEK_DBG","MTK_BLOCK_IO_TRACER","BLK_SEC_COMMON","BLK_SEC_WB"):
     s=re.sub(rf'^CONFIG_{sym}=.*$', f'# CONFIG_{sym} is not set', s, flags=re.M)
 open(p,'w').write(s)
 PY
