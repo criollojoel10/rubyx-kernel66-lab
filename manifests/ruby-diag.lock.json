@@ -164,5 +164,13 @@
     "panic": "sysfs_create_svc_ap+0x18 [sec_ext]",
     "return_path": "bootloader_slot_b_tries_1_fallback",
     "device_restored": true
+  },
+  "stock_base_dtb": {
+    "path": "dts/ruby-stock-base.dtb",
+    "size": 179275,
+    "sha256": "8b1bbb2c2fb70d2adb3562ff2f20f51b4bb1d87e9603173bbbbbda299fdbe111",
+    "symbols": 445,
+    "dtbo_targets": 62,
+    "missing": 0
   }
 }
