@@ -1,0 +1,39 @@
+# Droidspaces en GKI (5.4+), segun la doc oficial:
+# https://www.droidspaces.org/docs/kernel-configuration.html
+# Requiere el parche kABI (scripts/apply-droidspaces-kabi.sh) antes de compilar.
+# El parche se aplica sobre el CORE (kernel-6.6), no sobre device_modules.
+
+# IPC
+CONFIG_SYSVIPC=y
+CONFIG_POSIX_MQUEUE=y
+
+# Namespaces
+CONFIG_IPC_NS=y
+CONFIG_PID_NS=y
+
+# HW access
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+
+# Networking (Enhanced NAT)
+CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y
+
+# Opcionales recomendados
+CONFIG_USER_NS=y
+CONFIG_IP6_NF_NAT=y
+CONFIG_IP6_NF_TARGET_MASQUERADE=y
+CONFIG_MACVLAN=y
+CONFIG_NETFILTER_XT_TARGET_REJECT=y
+CONFIG_NETFILTER_XT_TARGET_LOG=y
+CONFIG_NETFILTER_XT_MATCH_RECENT=y
+CONFIG_IP_SET=y
+CONFIG_IP_SET_HASH_IP=y
+CONFIG_IP_SET_HASH_NET=y
+CONFIG_NETFILTER_XT_SET=y
+CONFIG_TMPFS_POSIX_ACL=y
+CONFIG_TMPFS_XATTR=y
+
+# ROMPEN kABI: no tocar. Con esto, --cpus y --pids-limit quedan
+# deshabilitados en la app, pero el resto funciona.
+# CONFIG_CFS_BANDWIDTH=y
+# CONFIG_CGROUP_PIDS=y

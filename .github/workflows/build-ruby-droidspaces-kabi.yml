@@ -1,0 +1,88 @@
+name: Build ruby core (Droidspaces GKI con parche kABI)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout laboratorio
+        uses: actions/checkout@v4
+
+      - name: Liberar espacio
+        run: |
+          set +e
+          sudo apt-get remove --purge -y 'php*' 'dotnet*' 'mysql*' 'nodejs*' 'clang*' 'google*'
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          for d in /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                   /opt/hostedtoolcache/CodeQL /usr/local/share/boost; do
+            sudo rm -rf "$d"
+          done
+          set -e
+          df -h
+
+      - name: Dependencias
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl wget ca-certificates gnupg python3 python3-pip \
+            bc bison flex cpio libssl-dev libelf-dev lz4 zstd unzip patch
+          git config --global user.name "rubyx-kernel66-lab"
+          git config --global user.email "lab@users.noreply.github.com"
+
+      - name: Caché Bazel + Clang
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
+            ~/.cache/ruby/clang-r536225
+          key: kabi-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('configs/ruby-6.6/droidspaces-gki.fragment') }}-${{ github.sha }}
+          restore-keys: |
+            kabi-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+
+      - name: Fetch A34
+        run: make fetch
+
+      - name: Parche kABI de Droidspaces
+        run: ./scripts/apply-droidspaces-kabi.sh
+
+      - name: Editar gki_defconfig (opciones oficiales GKI)
+        run: ./scripts/patch-gki-core.sh configs/ruby-6.6/droidspaces-gki.fragment
+
+      - name: Build core
+        run: make build-fast
+
+      - name: Recolectar
+        run: make collect
+
+      - name: Verificar opciones Droidspaces
+        run: |
+          grep -E '^CONFIG_(SYSVIPC|POSIX_MQUEUE|IPC_NS|PID_NS|DEVTMPFS|NETFILTER_XT_MATCH_ADDRTYPE)=y' artifacts/a34-6.6.127/config
+
+      - name: Verificar kABI
+        run: |
+          gunzip -c configs/ruby-6.6/kabi-baseline.symvers.gz > /tmp/baseline.symvers
+          python3 scripts/check-kabi.py /tmp/baseline.symvers artifacts/a34-6.6.127/Module.symvers
+
+      - name: Subir artefactos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-core-droidspaces-kabi
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Subir logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-core-droidspaces-kabi-logs
+          path: logs/
+          if-no-files-found: warn
