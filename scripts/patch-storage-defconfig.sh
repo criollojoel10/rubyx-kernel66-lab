@@ -29,4 +29,8 @@ sed -i 's/^obj-$(CONFIG_BLK_SEC_COMMON)/#&/' "$BLK"
 sed -i 's/^obj-$(CONFIG_BLK_SEC_WB)/#&/' "$BLK"
 grep -q '^#obj-$(CONFIG_BLK_SEC_COMMON)' "$BLK"
 grep -q '^#obj-$(CONFIG_BLK_SEC_WB)' "$BLK"
+HDR=sources/a34x/kernel/kernel_device_modules-6.6/block/blk-sec.h
+[ -f "$HDR" ] || { echo "falta $HDR" >&2; exit 1; }
+sed -i 's/^static struct gendisk \*blk_sec_internal_disk/static __attribute__((unused)) struct gendisk *blk_sec_internal_disk/' "$HDR"
+grep -q '__attribute__((unused)) struct gendisk \*blk_sec_internal_disk' "$HDR"
 echo "defconfigs UFS: Samsung features desactivadas; blk-sec fuera"
