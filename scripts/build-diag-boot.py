@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Construye un boot.img de diagnóstico conservando el layout del boot_b stock."""
 import argparse
+import hashlib
 import struct
 import subprocess
 import tempfile
@@ -59,6 +60,16 @@ def pack_boot_v2(kernel, ramdisk, dtb, page, kernel_addr, ramdisk_addr,
     if len(cmd) >= 512:
         raise SystemExit("cmdline demasiado largo para header v2")
     header[64:64 + len(cmd)] = cmd
+    # id = SHA1(kernel||len(kernel)||ramdisk||len(ramdisk)||0||0||dtb||len(dtb))
+    sha = hashlib.sha1()
+    for blob in (kernel, ramdisk):
+        sha.update(blob)
+        sha.update(struct.pack("<I", len(blob)))
+    sha.update(struct.pack("<I", 0))  # second
+    sha.update(struct.pack("<I", 0))  # recovery_dtbo
+    sha.update(dtb)
+    sha.update(struct.pack("<I", len(dtb)))
+    header[576:608] = sha.digest()
     struct.pack_into("<I", header, 1632, 0)
     struct.pack_into("<Q", header, 1636, 0)
     struct.pack_into("<I", header, 1644, 1660)
