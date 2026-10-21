@@ -2,6 +2,11 @@ name: Inspect storage artifact
 
 on:
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: Run ID to inspect
+        required: true
+        default: "39627025334"
 
 permissions:
   contents: read
@@ -18,18 +23,20 @@ jobs:
       - name: Descargar artefacto
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh run download 39591728145 --repo "$GITHUB_REPOSITORY" -n a34-storage -D art
+        run: gh run download "${{ inputs.run_id }}" --repo "$GITHUB_REPOSITORY" -n a34-storage -D art
       - name: Informe
         run: |
+          mkdir -p /tmp/all
+          tar --zstd -xf art/a34-6.6.127/a34-all-modules.tar.zst -C /tmp/all
           {
             echo "=== UFS config"
             grep -E '^CONFIG_(DEVICE_MODULES_SCSI_UFS_MEDIATEK|DEVICE_MODULES_PHY_MTK_UFS|DEVICE_MODULES_MTK_IOMMU|SEC_UFS_FEATURE|SCSI_UFS_MEDIATEK_DBG|MTK_BLOCK_IO_TRACER|SEC_DEBUG|SEC_ABC)' art/a34-6.6.127/device-modules.config || true
             echo "=== modinfo depends"
-            find art -name 'ufs-mediatek-mod.ko' -print -exec modinfo -F depends {} \;
+            find /tmp/all -name 'ufs-mediatek-mod.ko' -print -exec modinfo -F depends {} \;
             echo "=== modinfo vermagic"
-            find art -name 'ufs-mediatek-mod.ko' -exec modinfo -F vermagic {} \;
+            find /tmp/all -name 'ufs-mediatek-mod.ko' -exec modinfo -F vermagic {} \;
             echo "=== sec symbols in module"
-            find art -name 'ufs-mediatek-mod.ko' -exec sh -c 'strings "$1" | grep -iE "sec_ext|sec_debug|mrdump|blocktag" | head' _ {} \;
+            find /tmp/all -name 'ufs-mediatek-mod.ko' -exec sh -c 'strings "$1" | grep -iE "sec_ext|sec_debug|mrdump|blocktag" | head' _ {} \;
           } | tee report.txt
       - uses: actions/upload-artifact@v4
         with:
