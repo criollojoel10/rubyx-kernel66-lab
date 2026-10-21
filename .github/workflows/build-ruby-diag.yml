@@ -5,58 +5,33 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 360
+    timeout-minutes: 120
     steps:
       - name: Checkout laboratorio
         uses: actions/checkout@v4
-
-      - name: Liberar espacio
-        run: |
-          set +e
-          sudo apt-get remove --purge -y 'php*' 'dotnet*' 'mysql*' 'nodejs*' 'clang*' 'google*'
-          sudo apt-get autoremove -y
-          sudo apt-get clean
-          for d in /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-                   /opt/hostedtoolcache/CodeQL /usr/local/share/boost; do
-            sudo rm -rf "$d"
-          done
-          set -e
-          df -h
 
       - name: Dependencias
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            git curl wget ca-certificates gnupg python3 python3-pip \
-            bc bison flex cpio libssl-dev libelf-dev lz4 zstd unzip patch \
-            gcc-aarch64-linux-gnu device-tree-compiler android-sdk-libsparse-utils
-          git config --global user.name "rubyx-kernel66-lab"
-          git config --global user.email "lab@users.noreply.github.com"
+            git curl wget ca-certificates python3 python3-pip \
+            cpio lz4 zstd unzip patch device-tree-compiler \
+            gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+          df -h
 
-      - name: Caché Bazel + Clang
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/bazel-disk
-            ~/.cache/bazel-repo
-            ~/.cache/ruby/clang-r536225
-          key: diag-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ github.sha }}
-          restore-keys: |
-            fast-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            diag-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-
-      - name: Fetch A34
-        run: make fetch
-
-      - name: Build A34 fast
-        run: make build-fast
-
-      - name: Recolectar
-        run: make collect
+      - name: Descargar artefacto A34 verificado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 39480753110 --repo "$GITHUB_REPOSITORY" -n a34-fast -D a34-artifact
+          test -f a34-artifact/a34-6.6.127/Image.gz
+          test -f a34-artifact/a34-6.6.127/a34-all-modules.tar.zst
+          sha256sum a34-artifact/a34-6.6.127/Image.gz a34-artifact/a34-6.6.127/a34-all-modules.tar.zst
 
       - name: Descargar boot stock de la release
         run: |
@@ -74,13 +49,14 @@ jobs:
 
       - name: Init de diagnóstico
         run: |
-          aarch64-linux-gnu-gcc -static -Os -o /tmp/ruby-diag-init3 port/diag/diag-init.c
+          aarch64-linux-gnu-gcc --sysroot=/usr/aarch64-linux-gnu \
+            -static -Os -o /tmp/ruby-diag-init3 port/diag/diag-init.c
 
       - name: Cierre de 11 módulos
         run: |
           rm -rf /tmp/a34-allmods
           mkdir -p /tmp/a34-allmods
-          tar --zstd -xf artifacts/a34-6.6.127/a34-all-modules.tar.zst -C /tmp/a34-allmods
+          tar --zstd -xf a34-artifact/a34-6.6.127/a34-all-modules.tar.zst -C /tmp/a34-allmods
           ./scripts/close-module-deps.py /tmp/a34-allmods port/modules/console-min.list
           ./scripts/make-module-bundle.py /tmp/a34-allmods
 
@@ -90,11 +66,9 @@ jobs:
 
       - name: Boot image
         run: |
-          IMG_GZ="$(find artifacts/a34-6.6.127 -type f -name Image.gz -print -quit)"
-          test -n "$IMG_GZ"
           ./scripts/build-diag-boot.py \
             --original /tmp/stock-boot.img \
-            --kernel "$IMG_GZ" \
+            --kernel a34-artifact/a34-6.6.127/Image.gz \
             --initramfs /tmp/ruby-diag-initramfs.cpio.gz \
             --dtb /tmp/ruby-stock-base.dtb \
             --out /tmp/ruby-diag-boot.img
@@ -108,12 +82,4 @@ jobs:
         with:
           name: ruby-diag-boot
           path: out/
-          if-no-files-found: warn
-
-      - name: Subir logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ruby-diag-logs
-          path: logs/
           if-no-files-found: warn
