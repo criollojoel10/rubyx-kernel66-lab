@@ -33,6 +33,10 @@
 // audio add start
 /* ruby: linux/hwid.h no existe en 6.6 */
 #include <linux/extcon.h>
+#ifndef get_hw_sku
+static inline const char *get_hw_sku(void)
+{ return "ruby"; }
+#endif
 // audio add end
 
 #include "aw882xx.h"
@@ -2457,8 +2461,7 @@ static struct of_device_id aw882xx_dt_match[] = {
 static struct i2c_driver aw882xx_i2c_driver = {
 	.driver = {
 		.name = AW882XX_I2C_NAME,
-		.owner = THIS_MODULE,
-		.of_match_table = of_match_ptr(aw882xx_dt_match),
+			.of_match_table = of_match_ptr(aw882xx_dt_match),
 	},
 	.probe = aw882xx_i2c_probe,
 	.remove = aw882xx_i2c_remove,

@@ -38,10 +38,22 @@ def port_aw882xx() -> None:
     for c in list(dst.glob("*.c")) + list(dst.glob("*.h")):
         t = c.read_text(errors="ignore")
         orig = t
-        # hwid.h no existe en 6.6: el codigo de hwid se deja en stub
+        # hwid.h no existe en 6.6: get_hw_sku() se sustituye por un stub
         t = t.replace('#include <linux/hwid.h>',
                       '/* ruby: linux/hwid.h no existe en 6.6 */\n'
-                      '#include <linux/extcon.h>')
+                      '#include <linux/extcon.h>\n'
+                      '#ifndef get_hw_sku\n'
+                      'static inline const char *get_hw_sku(void)\n'
+                      '{ return "ruby"; }\n'
+                      '#endif')
+        # 6.4+: las clases usan device_attribute y ya no tienen .owner
+        t = t.replace('struct class_attribute', 'struct device_attribute')
+        t = t.replace('\t.owner = THIS_MODULE,\n', '')
+        # 5.10+: get_fs/set_fs/KERNEL_DS ya no existen
+        t = t.replace('\tmm_segment_t fs;\n', '')
+        t = t.replace('\tfs = get_fs();\n\tset_fs(KERNEL_DS);\n\n', '')
+        t = t.replace('\tset_fs(fs);\n\n', '')
+        t = t.replace('\tset_fs(fs);\n', '')
         # class_create() sin THIS_MODULE desde 6.4
         t = re.sub(r'class_create\(THIS_MODULE,\s*', 'class_create(', t)
         if t != orig:

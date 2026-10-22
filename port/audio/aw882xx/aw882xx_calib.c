@@ -78,8 +78,7 @@ static void aw_fs_read(struct file *file, char *buf, size_t count, loff_t *pos)
 // 	struct file *fp = NULL;
 // 	char buf[50] = {0};
 // 	loff_t pos = 0;
-// 	mm_segment_t fs;
-
+// 
 // 	fp = filp_open(AWINIC_CALI_FILE, O_RDWR | O_CREAT, 0644);
 // 	if (IS_ERR(fp)) {
 // 		pr_err("%s:channel:%d open %s failed!\n",
@@ -96,9 +95,7 @@ static void aw_fs_read(struct file *file, char *buf, size_t count, loff_t *pos)
 
 // 	aw_fs_write(fp, buf, strlen(buf), &pos);
 
-// 	set_fs(fs);
-
-// 	pr_info("%s: channel:%d buf:%s cali_re:%d\n",
+// // 	pr_info("%s: channel:%d buf:%s cali_re:%d\n",
 // 		__func__, channel, buf, cali_re);
 
 // 	filp_close(fp, NULL);
@@ -113,7 +110,6 @@ static int aw_cali_get_read_cali_re(int32_t *cali_re, int channel)
 	char *buf = NULL;
 	int32_t int_cali_re = 0;
 	loff_t pos = 0;
-	mm_segment_t fs;
 	fp = filp_open(AWINIC_CALI_FILE, O_RDONLY, 0);
 	if (IS_ERR(fp)) {
 		pr_err("%s:channel:%d open %s failed!\n",
@@ -141,12 +137,7 @@ static int aw_cali_get_read_cali_re(int32_t *cali_re, int channel)
 		return -EINVAL;
 	}
 
-	fs = get_fs();
-	set_fs(KERNEL_DS);
-
 	aw_fs_read(fp, buf, f_size, &pos);
-
-	set_fs(fs);
 
 	if (sscanf(buf, "%d", &int_cali_re) == 1){
 		pr_info("%s: *cali_re = %d \n", __func__,*cali_re);
@@ -1272,7 +1263,7 @@ static void aw_cali_attr_deinit(struct aw_device *aw_dev)
 /*****************************attr   end***************************************************/
 
 /*****************************class node******************************************************/
-static ssize_t aw_cali_class_time_show(struct  class *class, struct class_attribute *attr, char *buf)
+static ssize_t aw_cali_class_time_show(struct  class *class, struct device_attribute *attr, char *buf)
 {
 	ssize_t len = 0;
 
@@ -1283,7 +1274,7 @@ static ssize_t aw_cali_class_time_show(struct  class *class, struct class_attrib
 }
 
 static ssize_t aw_cali_class_time_store(struct class *class,
-					struct class_attribute *attr, const char *buf, size_t len)
+					struct device_attribute *attr, const char *buf, size_t len)
 {
 	int ret;
 	uint32_t time;
@@ -1307,7 +1298,7 @@ static ssize_t aw_cali_class_time_store(struct class *class,
 	return len;
 }
 
-static ssize_t aw_cali_class_cali_re_show(struct  class *class, struct class_attribute *attr, char *buf)
+static ssize_t aw_cali_class_cali_re_show(struct  class *class, struct device_attribute *attr, char *buf)
 {
 	int ret, i;
 	struct list_head *dev_list = NULL;
@@ -1343,7 +1334,7 @@ static ssize_t aw_cali_class_cali_re_show(struct  class *class, struct class_att
 }
 
 static ssize_t aw_cali_class_cali_re_store(struct class *class,
-					struct class_attribute *attr, const char *buf, size_t len)
+					struct device_attribute *attr, const char *buf, size_t len)
 {
 	int ret;
 	struct list_head *dev_list = NULL;
@@ -1366,7 +1357,7 @@ static ssize_t aw_cali_class_cali_re_store(struct class *class,
 	return len;
 }
 
-static ssize_t aw_cali_class_cali_f0_show(struct  class *class, struct class_attribute *attr, char *buf)
+static ssize_t aw_cali_class_cali_f0_show(struct  class *class, struct device_attribute *attr, char *buf)
 {
 	int ret, i;
 	struct list_head *dev_list = NULL;
@@ -1402,7 +1393,7 @@ static ssize_t aw_cali_class_cali_f0_show(struct  class *class, struct class_att
 }
 
 static ssize_t aw_cali_class_cali_f0_store(struct class *class,
-				struct class_attribute *attr, const char *buf, size_t len)
+				struct device_attribute *attr, const char *buf, size_t len)
 {
 	int ret;
 	struct list_head *dev_list = NULL;
@@ -1421,7 +1412,7 @@ static ssize_t aw_cali_class_cali_f0_store(struct class *class,
 	return len;
 }
 
-static ssize_t aw_cali_class_f0_show(struct  class *class, struct class_attribute *attr, char *buf)
+static ssize_t aw_cali_class_f0_show(struct  class *class, struct device_attribute *attr, char *buf)
 {
 	int ret, i;
 	struct list_head *dev_list = NULL;
@@ -1449,7 +1440,7 @@ static ssize_t aw_cali_class_f0_show(struct  class *class, struct class_attribut
 	return len;
 }
 
-static ssize_t aw_cali_class_re_show(struct  class *class, struct class_attribute *attr, char *buf)
+static ssize_t aw_cali_class_re_show(struct  class *class, struct device_attribute *attr, char *buf)
 {
 	int ret, i;
 	struct list_head *dev_list = NULL;
@@ -1477,7 +1468,7 @@ static ssize_t aw_cali_class_re_show(struct  class *class, struct class_attribut
 	return len;
 }
 
-static ssize_t aw_class_re_range_show(struct  class *class, struct class_attribute *attr, char *buf)
+static ssize_t aw_class_re_range_show(struct  class *class, struct device_attribute *attr, char *buf)
 {
 	int ret, i;
 	ssize_t len = 0;
@@ -1510,33 +1501,32 @@ static ssize_t aw_class_re_range_show(struct  class *class, struct class_attribu
 	return len;
 }
 
-static struct class_attribute class_attr_cali_time = \
+static struct device_attribute class_attr_cali_time = \
 		__ATTR(cali_time, S_IWUSR | S_IRUGO, \
 		aw_cali_class_time_show, aw_cali_class_time_store);
 
-static struct class_attribute class_attr_re25_calib =  \
+static struct device_attribute class_attr_re25_calib =  \
 		__ATTR(re25_calib, S_IWUSR | S_IRUGO,	\
 		aw_cali_class_cali_re_show, aw_cali_class_cali_re_store);
 
-static struct class_attribute class_attr_f0_calib = \
+static struct device_attribute class_attr_f0_calib = \
 		__ATTR(f0_calib, S_IWUSR | S_IRUGO, \
 		aw_cali_class_cali_f0_show, aw_cali_class_cali_f0_store);
 
-static struct class_attribute class_attr_re_show = \
+static struct device_attribute class_attr_re_show = \
 		__ATTR(re_show, S_IRUGO, \
 		aw_cali_class_re_show, NULL);
 
-static struct class_attribute class_attr_f0_show = \
+static struct device_attribute class_attr_f0_show = \
 		__ATTR(f0_show, S_IRUGO, \
 		aw_cali_class_f0_show, NULL);
 
-static struct class_attribute class_att_re_range = \
+static struct device_attribute class_att_re_range = \
 		__ATTR(re_range, S_IRUGO, \
 		aw_class_re_range_show, NULL);
 
 static struct class aw_cali_class = {
 	.name = "smartpa",
-	.owner = THIS_MODULE,
 };
 
 static void aw_cali_class_attr_init(struct aw_device *aw_dev)
@@ -2264,7 +2254,6 @@ exit:
 }
 
 static const struct file_operations aw_cali_misc_fops = {
-	.owner = THIS_MODULE,
 	.open = aw_cali_misc_open,
 	.read = aw_cali_misc_read,
 	.write = aw_cali_misc_write,
