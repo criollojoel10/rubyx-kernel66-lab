@@ -12,12 +12,11 @@ CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=m
 CONFIG_TOUCHSCREEN_FOCALTECH_3680=m
 
 # --- carga ---
-CONFIG_RUBY_MP2762=m
-CONFIG_RUBY_LN8410=m
-CONFIG_RUBY_BQ25980=m
-CONFIG_RUBY_SC8561=m
-CONFIG_RUBY_MAX77932=m
-CONFIG_RUBY_XMUSB350=m
+# ruby carga por el cargador del PMIC auxiliar mt6360: mismo SoC que el A34,
+# que ya lo trae (CONFIG_DEVICE_MODULES_CHARGER_MT6360=m en el config del
+# build). Los chips externos del dtbo (mp2762, ln8000, xmusb350...) NO son los
+# que usa el kernel stock de ruby, asi que sus ports quedan como referencia
+# y no se compilan.
 
 # --- TEE (Microtrust TEEI 400) ---
 CONFIG_MICROTRUST_TEE_SUPPORT=m
