@@ -11,7 +11,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-GKI="sources/a34x/kernel-6.6"
+GKI="$(cd "$(dirname "$0")/.." && pwd)/sources/a34x/kernel-6.6"
 DM="sources/a34x/kernel/kernel_device_modules-6.6"
 REF="artifacts/a34-6.6.127/device-modules.config"
 
@@ -59,6 +59,10 @@ echo "== 1. aplicando los ports al arbol"
 ./port/apply-all.sh sources/a34x >/dev/null || { echo "apply-all fallo" >&2; exit 1; }
 
 echo "== 2. preparando el .config (merge real del build)"
+if [ ! -e "$GKI/kernel_device_modules-6.6" ]; then
+  ln -sfn "$(cd "$GKI/.." && pwd)/kernel/kernel_device_modules-6.6" \
+          "$GKI/kernel_device_modules-6.6"
+fi
 cd "$GKI"
 export KCONFIG_EXT_PREFIX=../kernel/kernel_device_modules-6.6/
 # el build real exporta esto; el .config lo usa para el path de la clave de
@@ -69,10 +73,6 @@ export DEVICE_MODULES_PATH="$(cd ../kernel/kernel_device_modules-6.6 && pwd)"
 export MTK_PLATFORM="mt6877"
 # el .config apunta la clave de firma a $(DEVICE_MODULES_REL_DIR)/certs/..., que
 # se resuelve desde el GKI: hace falta el enlace al arbol de device modules
-if [ ! -e "$GKI/kernel_device_modules-6.6" ]; then
-  ln -sfn "$(cd "$GKI/.." && pwd)/kernel/kernel_device_modules-6.6" \
-          "$GKI/kernel_device_modules-6.6"
-fi
 cp "$OLDPWD/$REF" .config
 ./scripts/kconfig/merge_config.sh -m .config \
   ../kernel/kernel_device_modules-6.6/arch/arm64/configs/mediatek-bazel_defconfig \
