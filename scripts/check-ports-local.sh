@@ -80,6 +80,11 @@ fi
 make -s olddefconfig $TC >/dev/null 2>&1
 echo "   .config listo ($(wc -l < .config) lineas)"
 
+# Con --full compila el kernel entero (que es lo que hace el CI): mucho mas
+# lento que ir target a target, pero es la validacion definitiva.
+FULL=0
+[ "${1:-}" = "--full" ] && FULL=1
+
 echo "== 3. compilando los ports"
 fallos=0
 for o in "${OBJETIVOS[@]}"; do
@@ -119,6 +124,20 @@ for o in "${OBJETIVOS[@]}"; do
       | head -12 | sed 's/^/        /'
   fi
 done
+
+if [ "$FULL" = "1" ]; then
+  echo
+  echo "== 4. compilando el kernel entero (como el CI)"
+  out=$(timeout 7200 make -j"$(nproc)" CC=clang HOSTCC=clang 2>&1)
+  if [ $? -eq 0 ] && ! echo "$out" | grep -qE '(^|:) error:'; then
+    echo "   kernel completo: OK"
+  else
+    echo "   kernel completo: FALLO"
+    fallos=$((fallos + 1))
+    echo "$out" | grep -E '(^|:) error:|Error [0-9]|undefined reference|No rule to make|fatal error' \
+      | head -20 | sed 's/^/        /'
+  fi
+fi
 
 echo
 if [ "$fallos" -eq 0 ]; then
