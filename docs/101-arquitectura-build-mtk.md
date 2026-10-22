@@ -92,3 +92,22 @@ definen `mtk_dsi_*` y `mtk_disp_*`.
 | `scripts/patch-kleaf-outs.py` | declara los `.ko` en la lista de Kleaf |
 | `scripts/patch-mtk-tee-config.sh` | cambia TEEGRIS por Microtrust 400 y arregla el include path de `geniezone` |
 | `port/apply-all.sh` | aplica display, tactil, carga, TEE y config de una vez |
+
+## El DTB de ruby casa con esos drivers
+
+El overlay (`dtbo`) de ruby define los tres paneles y el tactil:
+
+```
+panel1@0  compatible = "m16_42_0d_0a_dsc_vdo,lcm"
+panel2@0  compatible = "m16_36_02_0b_dsc_vdo,lcm"   <-- el panel de ruby
+panel3@0  compatible = "m16_45_02_0c_dsc_vdo,lcm"
+m16-touch@0 compatible = "focaltech,3680-spi", "goodix,9916r-spi"
+```
+
+Son exactamente los compatibles que usan los drivers del A34 (`m16_36_02_0b`
+y `focaltech,3680-spi`), asi que **el DTB 6.6 que ya extraimos de ruby sirve
+tal cual**: no hay que portar el Device Tree.
+
+Los cargadores tambien estan en el overlay: `mp2762@5c`, `bq25980_standalone1..3`,
+`sc8551_i2c7/11`, `sc8561_master/slave`, `ln8410_master/slave`, `max77932@68`,
+`xmusb350@35` y `bq28z610@55` (fuel gauge).
