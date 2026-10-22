@@ -51,12 +51,15 @@ set_block() {
   ' "$file" > "$tmp"
   local psym
   for psym in $prev_syms; do
-    grep -v "^${psym}=" "$tmp" > "$tmp.2" && mv "$tmp.2" "$tmp"
+    # grep -v devuelve 1 si no queda nada: con set -e abortaria el script
+    grep -v "^${psym}=" "$tmp" > "$tmp.2" || true
+    mv "$tmp.2" "$tmp"
   done
   # 2) fuera los valores viejos de los simbolos del fragment (por si cambiaron)
   local sym
   for sym in $(printf '%s\n' "$lines" | grep -oE '^CONFIG_[A-Za-z0-9_]+' | sort -u); do
-    grep -v "^${sym}=" "$tmp" > "$tmp.2" && mv "$tmp.2" "$tmp"
+    grep -v "^${sym}=" "$tmp" > "$tmp.2" || true
+    mv "$tmp.2" "$tmp"
   done
   # 3) el bloque nuevo
   { echo; echo "$mark"; echo "$lines"; } >> "$tmp"
