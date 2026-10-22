@@ -1,47 +1,42 @@
 #!/usr/bin/env bash
-# Aplica el panel m16 de ruby al árbol 6.6 (mediatek_v2) del A34.
-# Uso: ./port/display/apply.sh /ruta/a/kernel_device_modules-6.6
+# Aplica el panel m16 42-0d-0a de ruby al arbol 6.6 (API mediatek_v2).
+#
+# El panel lo declara el cmdline del kernel stock de ruby:
+#   panel-m16-42-0d-0a-dsc-vdo.oled_wp=...
+# y el dtbo lo instancia como panel2@0 con "m16_42_0d_0a_dsc_vdo,lcm".
+#
+# Uso: ./port/display/apply.sh [raiz/del/arbol-con-drivers/gpu/drm/panel]
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-DM="${1:-sources/a34x/kernel-6.6}"
-[ -d "$DM/drivers/gpu/drm/panel" ] || { echo "no existe $DM/drivers/gpu/drm/panel" >&2; exit 1; }
+PANELDIR="${1:-sources/a34x/kernel-6.6/drivers/gpu/drm/panel}"
+[ -d "$PANELDIR" ] || { echo "no existe $PANELDIR" >&2; exit 1; }
 
-SRC="port/display/panel-m16-36-02-0b-dsc-vdo.c"
-[ -f "$SRC" ] || { echo "falta $SRC (panel todavia no portado)" >&2; exit 1; }
+SRC="port/display"
+[ -f "$SRC/panel-m16-42-0d-0a-dsc-vdo.c" ] || {
+  echo "falta el port; ejecuta scripts/port-m16-panel.py" >&2; exit 1; }
 
-cp "$SRC" "$DM/drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.c"
-mkdir -p "$DM/drivers/gpu/drm/panel/include"
-cp "port/display/include/panel-m16-36-02-0b-dsc-vdo.h" \
-   "$DM/drivers/gpu/drm/panel/include/panel-m16-36-02-0b-dsc-vdo.h"
-cp "port/display/m16-36-02-0b-init.inc" \
-   "$DM/drivers/gpu/drm/panel/m16-36-02-0b-init.inc"
+cp "$SRC/panel-m16-42-0d-0a-dsc-vdo.c" "$PANELDIR/"
+cp "$SRC/m16-42-0d-0a-init.inc"      "$PANELDIR/"
+mkdir -p "$PANELDIR/include"
+cp "$SRC/include/panel-m16-42-0d-0a-dsc-vdo.h" "$PANELDIR/include/"
 
-# Los drivers de display/input/power se compilan desde el GKI (en los device
-# modules no hay Makefiles intermedios), asi que el simbolo va en el Kconfig
-# del GKI.
-K="$DM/drivers/gpu/drm/panel/Kconfig"
-if ! grep -q '^config DRM_PANEL_M16_36_02_0B_DSC_VDO' "$K"; then
+K="$PANELDIR/Kconfig"
+if ! grep -q '^config DRM_PANEL_M16_42_0D_0A_DSC_VDO' "$K"; then
   cat >> "$K" <<'EOF'
 
-# --- ruby: panel m16 36-02-0b (DSC VDO 1080x2400) ---
-config DRM_PANEL_M16_36_02_0B_DSC_VDO
-	tristate "Xiaomi m16 36-02-0b DSC VDO panel"
-	depends on OF
-	depends on DRM_MIPI_DSI
-	depends on BACKLIGHT_CLASS_DEVICE
+config DRM_PANEL_M16_42_0D_0A_DSC_VDO
+	tristate "Xiaomi m16 42-0d-0a DSC VDO panel"
 	depends on DRM_MEDIATEK_V2
 	help
-	  Xiaomi m16 36-02-0b panel (1080x2400, DSC VDO) ported from
-	  ruby 4.19 to mediatek_v2.
+	  Panel m16 42-0d-0a de ruby (1080x2400, DSC VDO). El DCS sale del
+	  driver 4.19 de ruby (scripts/port-m16-panel.py).
 EOF
 fi
 
-M="$DM/drivers/gpu/drm/panel/Makefile"
-if ! grep -q 'panel-m16-36-02-0b-dsc-vdo.o' "$M"; then
-  echo 'obj-$(CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO) += panel-m16-36-02-0b-dsc-vdo.o' >> "$M"
+M="$PANELDIR/Makefile"
+if ! grep -q 'panel-m16-42-0d-0a-dsc-vdo.o' "$M"; then
+  echo 'obj-$(CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO) += panel-m16-42-0d-0a-dsc-vdo.o' >> "$M"
 fi
 
-./scripts/apply-ruby-fragment.sh configs/ruby-6.6/panel.fragment
-
-echo "[display] panel m16 36-02-0b aplicado en $DM"
+echo "[display] panel m16 42-0d-0a aplicado en $PANELDIR"

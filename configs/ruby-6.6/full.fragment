@@ -3,7 +3,7 @@
 # Display y tactil: el GKI del A34 (mismo SoC MT6877, mismo panel m16) ya
 # trae portados a 6.6 el panel m16 36-02-0b y el tactil Focaltech FT3680.
 # Se compilan built-in (=y), igual que en el kernel stock de ruby.
-CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=y
+CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO=y
 CONFIG_TOUCHSCREEN_FOCALTECH_3680=y
 
 # Display: se usa la API mediatek_v2 (device modules) y se apaga la v1 del

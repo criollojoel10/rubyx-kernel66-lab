@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # Aplica TODOS los ports de ruby al arbol 6.6 (kernel de producto).
 #
-#   display : panel m16 36-02-0b (mediatek_v2)
-#   touch   : Focaltech FT3680 por SPI3
-#   charger : mp2762, ln8410, bq25980, sc8561, max77932, xmusb350
-#   tee     : Microtrust TEEI 400 (el TEE real de ruby)
+#   display : panel m16 42-0d-0a (mediatek_v2)  -> port/display (GKI)
+#   touch   : Focaltech FT3680 por SPI3           -> port/touch   (GKI)
+#   tee     : Microtrust TEEI 400 + mediatek_v2   -> port/mtk-drivers (GKI)
+#   carga   : la hace el cargador del PMIC mt6360, que el A34 ya trae
 #
 # Los drivers de display/input/power se compilan desde el GKI
-# (sources/a34x/kernel-6.6); el TEE, desde los device modules.
+# (sources/a34x/kernel-6.6); el TEE y la mediatek_v2 viven en los device
+# modules, que no se compilan por si solos (ALLOW_BUILTIN=n), asi que se
+# copian al GKI.
 #
 # Uso: ./port/apply-all.sh [raiz/del/arbol]
 set -euo pipefail
@@ -24,40 +26,33 @@ fi
 [ -d "$GKI/drivers/gpu/drm/panel" ] || { echo "falta $GKI" >&2; exit 1; }
 [ -d "$DM/drivers/tee/teei" ] || { echo "falta $DM" >&2; exit 1; }
 
-# El GKI del A34 (mismo SoC MT6877, mismo panel m16) YA trae portados a 6.6
-# el panel m16 36-02-0b y el tactil Focaltech FT3680:
-#   kernel-6.6/drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.c
-#   kernel-6.6/drivers/input/touchscreen/focaltech_3680/
-# con los compatibles que usa el dtbo de ruby ("m16_36_02_0b_dsc_vdo,lcm" y
-# "focaltech,3680-spi"). Solo hay que activarlos en el config.
-echo "== drivers de MTK que ruby necesita (TEEI 400 y mediatek_v2)"
+echo "== display: panel m16 42-0d-0a (el A34 no lo trae)"
+./port/display/apply.sh "$GKI"
+
+echo "== touch: Focaltech FT3680 por SPI3 (el A34 no lo trae)"
+./port/touch/apply.sh "$GKI"
+
+echo "== parche del GKI: /vendor/firmware en fw_path[]"
+./port/kernel-patches/firmware-path.sh "$GKI"
+
+echo "== TEEI 400 y mediatek_v2 (vienen de los device modules)"
 ./port/mtk-drivers/apply.sh "${1:-sources/a34x}"
 
-echo "== display y touch: drivers del GKI (ya portados por el A34)"
+echo "== carga: el cargador del PMIC mt6360 ya esta en el A34 (no hay nada que portar)"
 
-echo "== charger (drivers de Xiaomi, hay que portarlos)"
-./port/charger/apply.sh "$DM"
-
-echo "== tee (Microtrust TEEI 400)"
+echo "== tee (overlay de Microtrust TEEI 400)"
 ./scripts/patch-mtk-tee-config.sh
 
 echo "== config (fragmento combinado)"
 FRAG="${RUBY_FRAGMENT:-configs/ruby-6.6/full.fragment}"
 ./scripts/apply-ruby-fragment.sh "$FRAG"
 
-echo "== lista de Kleaf sin los .ko de TEEGRIS (el TEE va built-in)"
+echo "== lista de Kleaf sin los .ko de TEEGRIS (el TEE de ruby va built-in)"
 ./scripts/patch-kleaf-tee-builtin.py "${1:-sources/a34x}"
 
-echo "== modulos declarados en Kleaf"
-# El panel y el tactil van built-in (=y) como en el kernel stock de ruby, asi
-# que no producen .ko. Los cargadores y el TEE si son modulos.
-./scripts/patch-kleaf-outs.py --dm \
-  drivers/power/supply/mps/mp2762.ko \
-  drivers/power/supply/ln/ln8410.ko \
-  drivers/power/supply/ti/bq25980.ko \
-  drivers/power/supply/southchip/sc8561.ko \
-  drivers/power/supply/maxim/max77932.ko \
-  drivers/power/supply/xiaomi/xmusb350.ko \
-  drivers/tee/teei/400/isee.ko
+# El panel, el tactil y el TEE van BUILT-IN (=y), igual que en el kernel stock
+# de ruby: no producen .ko y no hay que declararlos en las listas de Kleaf.
+# (La lista de device modules ya queda sin los .ko de TEEGRIS, que es lo que
+# hace patch-kleaf-tee-builtin.py.)
 
 echo "[apply-all] listo"

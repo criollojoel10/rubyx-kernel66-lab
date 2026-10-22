@@ -28,7 +28,7 @@
 #include "../mediatek/mediatek_v2/mtk_panel_ext.h"
 #include "../mediatek/mediatek_v2/mtk_drm_graphics_base.h"
 #endif
-#include "include/panel-m16-36-02-0b-dsc-vdo.h"
+#include "include/panel-m16-42-0d-0a-dsc-vdo.h"
 
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT
 #include "../mediatek/mediatek_v2/mtk_corner_pattern/mtk_data_hw_roundedpattern.h"
@@ -245,8 +245,8 @@ static void lcm_panel_init(struct lcm *ctx)
 	udelay(5000);
 	devm_gpiod_put(ctx->dev, ctx->reset_gpio);
 
-	/* m16 36-02-0b: secuencia DCS real del panel de ruby */
-#include "m16-36-02-0b-init.inc"
+	/* m16 42-0d-0a: secuencia DCS real del panel de ruby */
+#include "m16-42-0d-0a-init.inc"
 
 }
 
@@ -405,7 +405,7 @@ static const struct drm_display_mode default_mode = {
 };
 
 static const struct drm_display_mode performance_mode_1 = {
-	.clock = 325201,
+	.clock = 327759,
 	.hdisplay = FRAME_WIDTH,
 	.hsync_start = FRAME_WIDTH + MODE_1_HFP,
 	.hsync_end = FRAME_WIDTH + MODE_1_HFP + HSA,
@@ -836,7 +836,7 @@ static void lcm_remove(struct mipi_dsi_device *dsi)
 }
 
 static const struct of_device_id lcm_of_match[] = {
-	{ .compatible = "m16_36_02_0b_dsc_vdo,lcm", },
+	{ .compatible = "m16_42_0d_0a_dsc_vdo,lcm", },
 	{ }
 };
 
@@ -846,7 +846,7 @@ static struct mipi_dsi_driver lcm_driver = {
 	.probe = lcm_probe,
 	.remove = lcm_remove,
 	.driver = {
-		.name = "panel-m16-36-02-0b-dsc-vdo",
+		.name = "panel-m16-42-0d-0a-dsc-vdo",
 		.owner = THIS_MODULE,
 		.of_match_table = lcm_of_match,
 	},
@@ -855,5 +855,5 @@ static struct mipi_dsi_driver lcm_driver = {
 module_mipi_dsi_driver(lcm_driver);
 
 MODULE_AUTHOR("MEDIATEK");
-MODULE_DESCRIPTION("m16-36-02-0b fhdp VDO DSC LCD Panel Driver");
+MODULE_DESCRIPTION("m16-42-0d-0a fhdp VDO DSC LCD Panel Driver");
 MODULE_LICENSE("GPL v2");
