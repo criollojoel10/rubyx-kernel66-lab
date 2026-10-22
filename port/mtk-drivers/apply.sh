@@ -36,6 +36,27 @@ EOF
   grep -q 'CONFIG_MICROTRUST_TEE_SUPPORT' "$K" ||
     echo 'obj-$(CONFIG_MICROTRUST_TEE_SUPPORT) += teei/' >> "$K"
   echo "[mtk-drivers] TEEI 400 copiado al GKI"
+
+  # El arbol de device modules TAMBIEN tiene tee/teei, pero su config trae
+  # CONFIG_MICROTRUST_TEE_SUPPORT=m: Kleaf lo compila como modulo y el build
+  # muere con "isee.ko built but not copied" (y antes con
+  # modpost: bootprof_log_boot undefined). Aqui el driver ya va built-in.
+  DMT="$DM/drivers/tee/Makefile"
+  if [ -f "$DMT" ]; then
+    python3 - "$DMT" <<'PY'
+import sys
+from pathlib import Path
+
+p = Path(sys.argv[1])
+t = p.read_text()
+viejo = "obj-$(CONFIG_MICROTRUST_TEE_SUPPORT) += teei/\n"
+if viejo in t:
+    t = t.replace(viejo,
+                  "# ruby: TEEI va built-in en el GKI, no como modulo\n# " + viejo, 1)
+    p.write_text(t)
+    print("[mtk-drivers] teei desenganchado del arbol de device modules")
+PY
+  fi
 fi
 
 # limpiar K para que no se arrastre al bloque del display

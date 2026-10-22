@@ -38,6 +38,8 @@ CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
 # engancha el dai_link del altavoz. El port del aw882xx ya compila.
 CONFIG_SND_SOC_MT6877=y
 CONFIG_SND_SOC_MT6877_MT6359P=y
+# el codec sale del driver vendor de los device modules, colgado del simbolo
+# de la card (los CONFIG_DEVICE_MODULES_* no existen en la config del GKI)
 CONFIG_SND_SMARTPA_AW882XX=y
 
 # El vibrador (aw8697) sigue pendiente: no compila todavia.

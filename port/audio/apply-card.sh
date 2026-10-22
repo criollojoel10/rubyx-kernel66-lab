@@ -31,15 +31,47 @@ for d in mt6877 common_int codec; do
   echo "   sound/soc/mediatek/$d"
 done
 
-# 2) common: el GKI tiene su version; se fusiona la de los device modules
-#    (mtk-sp-spk-amp.h, mtk-afe-external.c, mtk-sram-manager.c...)
+# 2) common: se sustituye ENTERA por la de los device modules. La version del
+#    GKI es la upstream y no sirve para la card: le faltan use_dram_only,
+#    using_sram, ack(), mtk_sp_*, mtk_audio_sram_*... (el stock tampoco compila
+#    la common del GKI: su config no tiene CONFIG_SND_SOC_MEDIATEK).
 if [ -d "$DM/sound/soc/mediatek/common" ]; then
-  for f in "$DM/sound/soc/mediatek/common"/*; do
-    b="$(basename "$f")"
-    [ -e "$GKI/sound/soc/mediatek/common/$b" ] && continue
-    cp -a "$f" "$GKI/sound/soc/mediatek/common/$b"
-  done
-  echo "   sound/soc/mediatek/common (ficheros que faltaban)"
+  rm -rf "$GKI/sound/soc/mediatek/common"
+  cp -a "$DM/sound/soc/mediatek/common" "$GKI/sound/soc/mediatek/common"
+  echo "   sound/soc/mediatek/common"
+
+  # El Makefile vendor usa CONFIG_DEVICE_MODULES_* y DEVICE_MODULES_PATH, que
+  # no existen en la config del GKI: se reescribe con simbolos del GKI y con
+  # los objetos que la card necesita siempre.
+  cat > "$GKI/sound/soc/mediatek/common/Makefile" <<'EOF'
+# ruby: common de los device modules, adaptada al GKI
+# (los simbolos CONFIG_DEVICE_MODULES_* no existen fuera del arbol vendor)
+obj-$(CONFIG_SND_SOC_MEDIATEK) += snd-soc-mtk-common.o
+snd-soc-mtk-common-objs := mtk-afe-platform-driver.o mtk-afe-fe-dai.o \
+			   mtk-mmap-ion.o mtk-usb-offload-ops.o \
+			   mtk-sram-manager.o mtk-sp-pcm-ops.o mtk-afe-debug.o
+obj-$(CONFIG_SND_SOC_MEDIATEK) += mtk-afe-external.o mtk-sp-spk-amp.o
+EOF
+
+  # el header de los device modules no define MTK_SIP_AUDIO_CONTROL, pero la
+  # AFE de mt6877 lo usa (SMC 0x517); el header del GKI si lo tenia.
+  python3 - "$GKI/sound/soc/mediatek/common/mtk-base-afe.h" <<'PY'
+import sys
+from pathlib import Path
+
+p = Path(sys.argv[1])
+t = p.read_text()
+if "MTK_SIP_AUDIO_CONTROL" not in t:
+    ancla = "#define MTK_STREAM_NUM"
+    if ancla not in t:
+        sys.exit(f"falta '{ancla}' en {p}")
+    t = t.replace(ancla,
+                  "#include <linux/soc/mediatek/mtk_sip_svc.h>\n"
+                  "#define MTK_SIP_AUDIO_CONTROL MTK_SIP_SMC_CMD(0x517)\n\n"
+                  + ancla, 1)
+    p.write_text(t)
+    print("   mtk-base-afe.h: MTK_SIP_AUDIO_CONTROL")
+PY
 fi
 
 # 3) headers mt-plat que usa la AFE
@@ -58,6 +90,11 @@ from pathlib import Path
 
 p = Path(sys.argv[1])
 t = p.read_text()
+
+# el simbolo del codec es de los device modules y el GKI no lo conoce: se usa
+# el de la propia card, que si esta en la config del GKI
+t = t.replace("#if IS_ENABLED(CONFIG_DEVICE_MODULES_SND_SOC_MT6359P)",
+              "#if IS_ENABLED(CONFIG_SND_SOC_MT6877_MT6359P)")
 
 BLOQUE = '''/* ruby: altavoz aw882xx (dos chips: 0x34 y 0x35) */
 struct snd_soc_dai_link_component awinic_codecs[] = {
@@ -110,13 +147,20 @@ if "skip_spk_node" in t:
     print("[audio] el dai_link ya esta patcheado")
 elif viejo in t:
     t = t.replace(viejo, nuevo_bloque, 1)
-    t = t.replace("""\tfor_each_card_prelinks(card, i, dai_link) {
-\t\tif (!dai_link->platforms->name)""",
+    # la etiqueta va DESPUES del bucle que llama a
+    # snd_soc_of_get_dai_link_codecs(): esa funcion reserva dai_link->codecs
+    # por su cuenta, asi que el bucle tiene que saltarse entero cuando
+    # usamos los codecs del aw882xx (si no, pisa los nuestros y ademas
+    # usa un spk_node sin inicializar)
+    ancla_dev = "\tcard->dev = &pdev->dev;"
+    if t.count(ancla_dev) != 1:
+        sys.exit("no encuentro 'card->dev = &pdev->dev;' (o no es unico); "
+                 "sin el ancla no se puede poner skip_spk_node")
+    t = t.replace(ancla_dev,
 """#ifdef CONFIG_SND_SMARTPA_AW882XX
 skip_spk_node:
 #endif
-\tfor_each_card_prelinks(card, i, dai_link) {
-\t\tif (!dai_link->platforms->name)""", 1)
+\tcard->dev = &pdev->dev;""", 1)
     print("[audio] dai_link del aw882xx anadido")
 else:
     print("[audio] AVISO: no encuentro el bloque del spk_node; el altavoz "
@@ -126,28 +170,84 @@ p.write_text(t)
 PY
 fi
 
-# 5) Kconfig y Makefile del GKI
+# 5) Kconfig del GKI: la card necesita la common (CONFIG_SND_SOC_MEDIATEK,
+#    que es un tristate oculto: solo se activa con select) y los dos helpers.
 K="$GKI/sound/soc/mediatek/Kconfig"
-if [ -f "$K" ] && ! grep -q 'SND_SOC_MT6877$' "$K"; then
-  cat >> "$K" <<'EOF'
+if [ -f "$K" ]; then
+  python3 - "$K" <<'PY'
+import re
+import sys
+from pathlib import Path
 
-config SND_SOC_MT6877
-	tristate "ASoC support for Mediatek MT6877 chip"
-	depends on ARCH_MEDIATEK
-	select SND_SOC_MTK_SRAM
-	select SND_SOC_MTK_SMART_PHONE
-	help
-	  This adds ASoC driver for Mediatek MT6877 boards
-	  that can be used with other codecs.
+p = Path(sys.argv[1])
+t = p.read_text()
+
+BLOQUE = '''config SND_SOC_MT6877
+\ttristate "ASoC support for Mediatek MT6877 chip"
+\tdepends on ARCH_MEDIATEK
+\tselect SND_SOC_MEDIATEK
+\thelp
+\t  This adds ASoC driver for Mediatek MT6877 boards
+\t  that can be used with other codecs.
 
 config SND_SOC_MT6877_MT6359P
-	tristate "ASoc Audio driver for MT6877 with MT6359P codec"
-	depends on SND_SOC_MT6877
-	help
-	  This adds ASoC driver for MT6877 boards
-	  with the MT6359P codecs.
-EOF
-  echo "   Kconfig: SND_SOC_MT6877"
+\ttristate "ASoc Audio driver for MT6877 with MT6359P codec"
+\tdepends on SND_SOC_MT6877
+\thelp
+\t  This adds ASoC driver for MT6877 boards
+\t  with the MT6359P codecs.
+'''
+
+# idempotente: se quitan las definiciones previas y se pone la canonica
+for sym in ("SND_SOC_MT6877", "SND_SOC_MT6877_MT6359P"):
+    t = re.sub(r"(?ms)^config %s\n(?:\t.*\n|\n)*" % sym, "", t)
+
+p.write_text(t.rstrip("\n") + "\n\n" + BLOQUE)
+print("   Kconfig: SND_SOC_MT6877 (+ select SND_SOC_MEDIATEK)")
+PY
+fi
+
+# 5b) codec MT6359P: el driver de los device modules. El del GKI es el
+#     upstream y depende de MTK_PMIC_WRAP, que esta apagado.
+CODECS="$GKI/sound/soc/codecs"
+if [ -d "$DM/sound/soc/codecs" ] && [ -d "$CODECS" ]; then
+  for f in mt6359.c mt6359.h mt6359p.h; do
+    [ -f "$DM/sound/soc/codecs/$f" ] && cp -a "$DM/sound/soc/codecs/$f" "$CODECS/$f"
+  done
+  # el codigo vendor incluye su cabecera privada solo si esta el simbolo de
+  # los device modules; en el GKI ese simbolo no existe, asi que se incluye
+  # siempre (el codec solo se compila con la card, ver Makefile)
+  python3 - "$CODECS/mt6359.c" <<'PY'
+import sys
+from pathlib import Path
+
+p = Path(sys.argv[1])
+t = p.read_text()
+viejo = """#if IS_ENABLED(CONFIG_DEVICE_MODULES_SND_SOC_MT6359P)
+#include "mt6359p.h"
+#elif IS_ENABLED(CONFIG_DEVICE_MODULES_SND_SOC_MT6359)
+#include "mt6359.h"
+#endif"""
+if viejo in t:
+    t = t.replace(viejo, '#include "mt6359p.h"', 1)
+    p.write_text(t)
+    print("   mt6359.c: include de mt6359p.h")
+PY
+  python3 - "$CODECS/Makefile" <<'PY'
+import sys
+from pathlib import Path
+
+p = Path(sys.argv[1])
+t = p.read_text()
+linea = "obj-$(CONFIG_SND_SOC_MT6877_MT6359P)\t+= snd-soc-mt6359.o\n"
+# quitar cualquier variante previa (incluida la del simbolo vendor)
+t = "".join(l for l in t.splitlines(keepends=True)
+            if "snd-soc-mt6359.o" not in l)
+t = t.rstrip("\n") + "\n" + linea
+p.write_text(t)
+print("   sound/soc/codecs/Makefile: snd-soc-mt6359.o")
+PY
+  echo "   sound/soc/codecs/mt6359 (vendor)"
 fi
 
 M="$GKI/sound/soc/mediatek/Makefile"
