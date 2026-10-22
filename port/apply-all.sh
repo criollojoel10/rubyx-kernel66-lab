@@ -30,6 +30,9 @@ fi
 #   kernel-6.6/drivers/input/touchscreen/focaltech_3680/
 # con los compatibles que usa el dtbo de ruby ("m16_36_02_0b_dsc_vdo,lcm" y
 # "focaltech,3680-spi"). Solo hay que activarlos en el config.
+echo "== drivers de MTK que ruby necesita (TEEI 400 y mediatek_v2)"
+./port/mtk-drivers/apply.sh "${1:-sources/a34x}"
+
 echo "== display y touch: drivers del GKI (ya portados por el A34)"
 
 echo "== charger (drivers de Xiaomi, hay que portarlos)"

@@ -52,8 +52,8 @@ jobs:
       - name: Habilitar Microtrust TEEI 400 en el overlay de TEE
         run: ./scripts/patch-mtk-tee-config.sh
 
-      - name: Conectar los device modules con el kbuild del GKI
-        run: ./scripts/patch-gki-mtk-drm.sh sources/a34x tee
+      - name: Copiar el TEEI 400 y la mediatek_v2 al GKI
+        run: ./port/mtk-drivers/apply.sh sources/a34x
 
       - name: Declarar los modulos nuevos en Kleaf
         # El TEEI se compila built-in (=y) como en el kernel stock de ruby:
