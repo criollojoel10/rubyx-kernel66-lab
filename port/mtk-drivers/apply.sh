@@ -62,4 +62,12 @@ if [ -d "$DM/drivers/gpu/drm/mediatek/mediatek_v2" ]; then
   echo "[mtk-drivers] mediatek_v2 copiada al GKI"
 fi
 
+# 3) cabeceros UAPI de MTK (los usa la mediatek_v2 y el panel m16) --------
+# El GKI del A34 no los tiene; estan en los device modules.
+if [ -f "$DM/include/uapi/drm/mediatek_drm.h" ]; then
+  mkdir -p "$GKI/include/uapi/drm"
+  cp -a "$DM/include/uapi/drm/mediatek_drm.h" "$GKI/include/uapi/drm/"
+  echo "[mtk-drivers] include/uapi/drm/mediatek_drm.h copiado al GKI"
+fi
+
 echo "[mtk-drivers] listo"
