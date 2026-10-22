@@ -6,6 +6,11 @@
 CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=y
 CONFIG_TOUCHSCREEN_FOCALTECH_3680=y
 
+# Display: se usa la API mediatek_v2 (device modules) y se apaga la v1 del
+# GKI para no duplicar simbolos (mtk_dsi_*, mtk_disp_*).
+CONFIG_DRM_MEDIATEK_V2=y
+CONFIG_DRM_MEDIATEK=n
+
 # Carga: drivers de chip de ruby portados desde el 4.19 (modulos).
 CONFIG_RUBY_MP2762=m
 CONFIG_RUBY_LN8410=m

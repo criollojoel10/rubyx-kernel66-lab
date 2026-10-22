@@ -17,7 +17,7 @@ with open(path, "r", encoding="utf-8") as f:
     lines = f.read().splitlines()
 
 wanted = [
-    "CONFIG_MICROTRUST_TEE_SUPPORT=m",
+    "CONFIG_MICROTRUST_TEE_SUPPORT=y",
     'CONFIG_MICROTRUST_TEE_VERSION="400"',
     "CONFIG_MICROTRUST_TZ_DRIVER=y",
     "CONFIG_MICROTRUST_VFS_DRIVER=y",

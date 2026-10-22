@@ -53,6 +53,9 @@ jobs:
       - name: Aplicar todos los ports de ruby
         run: ./port/apply-all.sh
 
+      - name: Conectar los device modules con el kbuild del GKI
+        run: ./scripts/patch-gki-mtk-drm.sh sources/a34x full
+
       - name: Build del kernel de producto
         run: make build-fast
 

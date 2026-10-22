@@ -52,8 +52,24 @@ jobs:
       - name: Habilitar Microtrust TEEI 400 en el overlay de TEE
         run: ./scripts/patch-mtk-tee-config.sh
 
+      - name: Conectar los device modules con el kbuild del GKI
+        run: ./scripts/patch-gki-mtk-drm.sh sources/a34x tee
+
       - name: Declarar los modulos nuevos en Kleaf
-        run: python3 scripts/patch-kleaf-outs.py --dm drivers/tee/teei/400/isee.ko
+        # El TEEI se compila built-in (=y) como en el kernel stock de ruby:
+        # el GKI lo incluye con obj-y += ../$(DEVICE_MODULES_REL_DIR)/drivers/tee/
+        # Por eso no se declara ningun .ko: el isee.ko de TEEGRIS 510 se
+        # sustituye por la v2 del GKI.
+        run: |
+          python3 - <<'PY'
+          import re, pathlib
+          p = pathlib.Path("sources/a34x/kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_64.bzl")
+          t = p.read_text()
+          t = re.sub(r'^\s*"drivers/tee/teei/510/isee\.ko",\n', '', t, flags=re.M)
+          t = re.sub(r'^\s*"drivers/tee/teei/515/isee\.ko",\n', '', t, flags=re.M)
+          p.write_text(t)
+          print("[kleaf] isee.ko de TEEGRIS retirado de la lista")
+          PY
 
       - name: Build con Microtrust TEEI 400
         env:
@@ -67,8 +83,7 @@ jobs:
         run: |
           grep -E '^CONFIG_MICROTRUST_TEE_SUPPORT=m' artifacts/a34-6.6.127/device-modules.config
           grep -E '^CONFIG_MICROTRUST_TEE_VERSION="400"' artifacts/a34-6.6.127/device-modules.config
-          tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst | grep -E '(^|/)isee\.ko$' | tee /tmp/isee-path.txt
-          test -s /tmp/isee-path.txt
+          grep -E ' isee|tz_driver|teei' artifacts/a34-6.6.127/System.map | head -5
 
       - name: Subir artefactos
         if: always()
