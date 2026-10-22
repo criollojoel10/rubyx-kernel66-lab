@@ -37,6 +37,31 @@ frio de Bazel.
    limite de 10 GB de GitHub, lo que provoca **evictions** (el cache mas
    antiguo, `fast-` del 2026-10-20, es el primero en caer).
 
+## Segundo fallo: los prefijos de respaldo no casaban
+
+Unificar los prefijos no basto: los caches historicos se llaman
+`<workflow>-a34-<hash manifest>-<sha>` (p. ej. `ds-a34-951210ca…-ed77ffa…-7192c85…`)
+pero los `restore-keys` que generaba el script eran `ds-<hash manifest>-`,
+`core-<hash manifest>-`… es decir **les faltaba el infijo `a34-`**, asi que
+ningun prefijo podia coincidir con ninguna clave real.
+
+Se comprobo con un workflow de diagnostico (`diagnose-cache.yml`) que imprime
+el resultado de la busqueda: con los prefijos mal escritos la accion decia
+
+```
+Cache not found for input keys: diag-a34-<hash>-<sha>
+```
+
+y con los prefijos correctos:
+
+```
+Cache Size: ~1606 MB (1683932674 B)
+Cache restored successfully
+Cache restored from key: ds-a34-<hash manifest>-ed77ffa…
+1.2G    /home/runner/.cache/bazel-disk
+3.6G    /home/runner/.cache/ruby
+```
+
 ## Arreglo
 
 `scripts/unify-ci-cache.py` reescribe los 9 workflows:
