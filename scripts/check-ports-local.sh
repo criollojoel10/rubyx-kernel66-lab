@@ -79,7 +79,8 @@ cp "$OLDPWD/$REF" .config
   ../kernel/kernel_device_modules-6.6/kernel/configs/sec_ogki_fragment.config \
   ../kernel/kernel_device_modules-6.6/kernel/configs/mt6877_overlay.config \
   ../kernel/kernel_device_modules-6.6/kernel/configs/mt6877_teegris_5_overlay.config \
-  ../kernel/kernel_device_modules-6.6/kernel/configs/sign.config >/dev/null 2>&1
+  ../kernel/kernel_device_modules-6.6/kernel/configs/sign.config \
+  "$OLDPWD/configs/ruby-6.6/full.fragment" >/dev/null 2>&1
 # sin clang/lto en local: se compila con gcc
 sed -i -e 's/^CONFIG_CC_IS_CLANG=y/# CONFIG_CC_IS_CLANG is not set/' \
        -e 's/^CONFIG_LTO_CLANG=y/# CONFIG_LTO_CLANG is not set/' \
@@ -91,6 +92,15 @@ else
 fi
 make -s olddefconfig $TC >/dev/null 2>&1
 echo "   .config listo ($(wc -l < .config) lineas)"
+
+# el .config nuevo no llega a include/config/auto.conf hasta que corre
+# syncconfig: sin modules_prepare los make M= compilan cero objetos en silencio
+echo "== 2b. prepare + modules_prepare (regenera include/config/auto.conf)"
+if ! make -s -j"$(nproc)" prepare modules_prepare $TC >/dev/null 2>&1; then
+  echo "   modules_prepare fallo" >&2
+  make -j"$(nproc)" prepare modules_prepare $TC 2>&1 | grep -E 'error:|Error [0-9]' | head -n 10 >&2
+  exit 1
+fi
 
 # Con --full compila el kernel entero (que es lo que hace el CI): mucho mas
 # lento que ir target a target, pero es la validacion definitiva.
