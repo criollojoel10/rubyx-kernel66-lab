@@ -7,6 +7,7 @@
 #include <linux/mutex.h>
 #include <linux/io.h>
 #include <linux/gpio.h>
+#include <linux/pinctrl/consumer.h>
 #include <linux/fb.h>
 #include <linux/interrupt.h>
 #include <linux/types.h>
@@ -22,6 +23,10 @@
 
 #include "teei_fp.h"
 #include "tee_client_api.h"
+
+/* lo define tz_driver/teei_fp.c; aqui solo declaramos (su cabecera choca */
+/* con teei_fp/teei_fp.h porque las dos usan el mismo guard TEEI_FP_H)     */
+extern struct TEEC_UUID uuid_fp;
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
@@ -70,7 +75,7 @@
 //#define GOODIX_DRM_INTERFACE_WA
 #ifndef GOODIX_DRM_INTERFACE_WA
 #include <drm/drm_bridge.h>
-#include "../../../gpu/drm/mediatek/mi_disp/mi_disp_notifier.h"
+#include "gf_compat_66.h"	/* stubs de mi_disp (FOD/AOD) */
 #endif
 
 #define WAKELOCK_HOLD_TIME 2000	/* in ms */
@@ -825,7 +830,6 @@ static irqreturn_t gf_irq(int irq, void *handle)
 {
 	struct gf_device *gf_dev = (struct gf_device *)handle;
 #ifndef GOODIX_DRM_INTERFACE_WA
-	uint32_t key_input = 0;
 #endif
 
 	FUNC_ENTRY();
@@ -875,12 +879,12 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	 */
 	if (_IOC_DIR(cmd) & _IOC_READ)
 		retval =
-		    !access_ok(VERIFY_WRITE,(void __user *)arg,
+		    !access_ok((void __user *)arg,
 			       _IOC_SIZE(cmd));
 
 	if (retval == 0 && _IOC_DIR(cmd) & _IOC_WRITE)
 		retval =
-		    !access_ok(VERIFY_READ,(void __user *)arg, _IOC_SIZE(cmd));
+		    !access_ok((void __user *)arg, _IOC_SIZE(cmd));
 
 	if (retval)
 		return -EINVAL;
@@ -1342,9 +1346,6 @@ static ssize_t gf_debug_store(struct device *dev,
 	unsigned char rx_test[10] = { 0 };
 
 	u8 flag = 0;
-	struct mt_spi_t *ms = NULL;
-
-	ms = spi_master_get_devdata(gf_dev->spi->master);
 
 	if (!strncmp(buf, "-8", 2)) {
 		gf_debug(INFO_LOG,
@@ -1608,7 +1609,8 @@ int gf_spi_read_bytes_ree(struct gf_device *gf_dev, u16 addr, u32 data_len,
 	*(tmp_buf + 2) = (u8) (addr & 0xFF);
 	xfer[0].tx_buf = tmp_buf;
 	xfer[0].len = 3;
-	xfer[0].delay_usecs = 5;
+	xfer[0].delay.value = 5;
+	xfer[0].delay.unit = SPI_DELAY_UNIT_USECS;
 	spi_message_add_tail(&xfer[0], &msg);
 	spi_sync(gf_dev->spi, &msg);
 
@@ -1624,7 +1626,8 @@ int gf_spi_read_bytes_ree(struct gf_device *gf_dev, u16 addr, u32 data_len,
 	else
 		xfer[1].len = data_len + 1;
 
-	xfer[1].delay_usecs = 5;
+	xfer[1].delay.value = 5;
+	xfer[1].delay.unit = SPI_DELAY_UNIT_USECS;
 	spi_message_add_tail(&xfer[1], &msg);
 	spi_sync(gf_dev->spi, &msg);
 
@@ -1644,7 +1647,8 @@ int gf_spi_read_bytes_ree(struct gf_device *gf_dev, u16 addr, u32 data_len,
 		*(tmp_buf + 2) = (u8) (addr & 0xFF);
 		xfer[2].tx_buf = tmp_buf;
 		xfer[2].len = 3;
-		xfer[2].delay_usecs = 5;
+		xfer[2].delay.value = 5;
+	xfer[2].delay.unit = SPI_DELAY_UNIT_USECS;
 		spi_message_add_tail(&xfer[2], &msg);
 		spi_sync(gf_dev->spi, &msg);
 
@@ -1653,7 +1657,8 @@ int gf_spi_read_bytes_ree(struct gf_device *gf_dev, u16 addr, u32 data_len,
 		xfer[3].tx_buf = tmp_buf + 4;
 		xfer[3].rx_buf = tmp_buf + 4;
 		xfer[3].len = reminder + 1;
-		xfer[3].delay_usecs = 5;
+		xfer[3].delay.value = 5;
+	xfer[3].delay.unit = SPI_DELAY_UNIT_USECS;
 		spi_message_add_tail(&xfer[3], &msg);
 		spi_sync(gf_dev->spi, &msg);
 
@@ -1720,7 +1725,8 @@ int gf_spi_write_bytes_ree(struct gf_device *gf_dev, u16 addr, u32 data_len,
 #ifdef CONFIG_SPI_MT65XX_MODULE
 	xfer[0].speed_hz = gf_spi_speed;
 #endif
-	xfer[0].delay_usecs = 5;
+	xfer[0].delay.value = 5;
+	xfer[0].delay.unit = SPI_DELAY_UNIT_USECS;
 	spi_message_add_tail(&xfer[0], &msg);
 	spi_sync(gf_dev->spi, &msg);
 
@@ -1733,7 +1739,8 @@ int gf_spi_write_bytes_ree(struct gf_device *gf_dev, u16 addr, u32 data_len,
 		memcpy(tmp_buf + 3, (tx_buf + package * 1024 - 3), reminder);
 		xfer[1].tx_buf = tmp_buf;
 		xfer[1].len = reminder + 3;
-		xfer[1].delay_usecs = 5;
+		xfer[1].delay.value = 5;
+	xfer[1].delay.unit = SPI_DELAY_UNIT_USECS;
 #ifdef CONFIG_SPI_MT65XX_MODULE
 		xfer[1].speed_hz = gf_spi_speed;
 #endif
@@ -1777,7 +1784,8 @@ int gf_spi_read_byte_ree(struct gf_device *gf_dev, u16 addr, u8 * value)
 #ifdef CONFIG_SPI_MT65XX_MODULE
 	xfer[0].speed_hz = gf_spi_speed;
 #endif
-	xfer[0].delay_usecs = 5;
+	xfer[0].delay.value = 5;
+	xfer[0].delay.unit = SPI_DELAY_UNIT_USECS;
 	spi_message_add_tail(&xfer[0], &msg);
 	spi_sync(gf_dev->spi, &msg);
 
@@ -1790,7 +1798,8 @@ int gf_spi_read_byte_ree(struct gf_device *gf_dev, u16 addr, u8 * value)
 #ifdef CONFIG_SPI_MT65XX_MODULE
 	xfer[1].speed_hz = gf_spi_speed;
 #endif
-	xfer[1].delay_usecs = 5;
+	xfer[1].delay.value = 5;
+	xfer[1].delay.unit = SPI_DELAY_UNIT_USECS;
 	spi_message_add_tail(&xfer[1], &msg);
 	spi_sync(gf_dev->spi, &msg);
 
@@ -1825,7 +1834,8 @@ int gf_spi_write_byte_ree(struct gf_device *gf_dev, u16 addr, u8 value)
 #ifdef CONFIG_SPI_MT65XX_MODULE
 	xfer[0].speed_hz = gf_spi_speed;
 #endif
-	xfer[0].delay_usecs = 5;
+	xfer[0].delay.value = 5;
+	xfer[0].delay.unit = SPI_DELAY_UNIT_USECS;
 	spi_message_add_tail(&xfer[0], &msg);
 	spi_sync(gf_dev->spi, &msg);
 
@@ -2021,7 +2031,8 @@ int gf_spi_read_bytes(struct gf_device *gf_dev, u16 addr, u32 data_len,
 		 __func__, __LINE__, xfer[0].speed_hz);
 #endif
 
-	xfer[0].delay_usecs = 5;
+	xfer[0].delay.value = 5;
+	xfer[0].delay.unit = SPI_DELAY_UNIT_USECS;
 	spi_message_add_tail(&xfer[0], &msg);
 	spi_sync(gf_dev->spi, &msg);
 
@@ -2040,7 +2051,8 @@ int gf_spi_read_bytes(struct gf_device *gf_dev, u16 addr, u32 data_len,
 #ifdef CONFIG_SPI_MT65XX_MODULE
 	xfer[1].speed_hz = gf_spi_speed;
 #endif
-	xfer[1].delay_usecs = 5;
+	xfer[1].delay.value = 5;
+	xfer[1].delay.unit = SPI_DELAY_UNIT_USECS;
 	spi_message_add_tail(&xfer[1], &msg);
 	spi_sync(gf_dev->spi, &msg);
 
@@ -2063,7 +2075,8 @@ int gf_spi_read_bytes(struct gf_device *gf_dev, u16 addr, u32 data_len,
 #ifdef CONFIG_SPI_MT65XX_MODULE
 		xfer[2].speed_hz = gf_spi_speed;
 #endif
-		xfer[2].delay_usecs = 5;
+		xfer[2].delay.value = 5;
+	xfer[2].delay.unit = SPI_DELAY_UNIT_USECS;
 		spi_message_add_tail(&xfer[2], &msg);
 		spi_sync(gf_dev->spi, &msg);
 
@@ -2075,7 +2088,8 @@ int gf_spi_read_bytes(struct gf_device *gf_dev, u16 addr, u32 data_len,
 #ifdef CONFIG_SPI_MT65XX_MODULE
 		xfer[2].speed_hz = gf_spi_speed;
 #endif
-		xfer[3].delay_usecs = 5;
+		xfer[3].delay.value = 5;
+	xfer[3].delay.unit = SPI_DELAY_UNIT_USECS;
 		spi_message_add_tail(&xfer[3], &msg);
 		spi_sync(gf_dev->spi, &msg);
 
@@ -2097,7 +2111,7 @@ int gf_spi_read_bytes(struct gf_device *gf_dev, u16 addr, u32 data_len,
 }
 
 static int gf_probe(struct spi_device *spi);
-static int gf_remove(struct spi_device *spi);
+static void gf_remove(struct spi_device *spi);
 
 static struct spi_driver gf_spi_driver = {
 	.driver = {
@@ -2338,7 +2352,7 @@ static int gf_probe(struct spi_device *spi)
 #endif //SUPPORT_REE_SPI
 
 	/* create class */
-	gf_dev->class = class_create(THIS_MODULE, GF_CLASS_NAME);
+	gf_dev->class = class_create(GF_CLASS_NAME);
 	if (IS_ERR(gf_dev->class)) {
 		gf_debug(ERR_LOG, "%s, Failed to create class.\n", __func__);
 		status = -ENODEV;
@@ -2501,7 +2515,7 @@ err:
 	return status;
 }
 
-static int gf_remove(struct spi_device *spi)
+static void gf_remove(struct spi_device *spi)
 {
 	struct gf_device *gf_dev = spi_get_drvdata(spi);
 
@@ -2529,7 +2543,7 @@ static int gf_remove(struct spi_device *spi)
 		kfree(gf_dev);
 		mutex_unlock(&gf_dev->release_lock);
 		FUNC_EXIT();
-		return 0;
+		return;
 	}
 	input_unregister_device(gf_dev->input);
 	gf_dev->input = NULL;
@@ -2569,7 +2583,6 @@ static int gf_remove(struct spi_device *spi)
 	kfree(gf_dev);
 	//kfree(freq_to_set);
 	FUNC_EXIT();
-	return 0;
 }
 
 /*-------------------------------------------------------------------------*/

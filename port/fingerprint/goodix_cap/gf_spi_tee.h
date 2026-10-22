@@ -6,6 +6,7 @@
 #define __GF_SPI_TEE_H
 
 #include <linux/types.h>
+#include "gf_compat_66.h"
 #include <linux/netlink.h>
 #include <linux/cdev.h>
 #include <linux/input.h>
