@@ -34,7 +34,9 @@ text = EXT.read_text()
 # En el arbol del A34 los device modules viven en kernel/kernel_device_modules-6.6
 # (en el arbol oficial de MTK serian un hermano del GKI, por eso MTK usa
 # $(DEVICE_MODULES_REL_DIR) y aqui hay que poner la ruta a mano).
-DM_REL = "../kernel/kernel_device_modules-6.6"
+# el Makefile.ext se incluye desde drivers/Makefile, asi que la ruta es
+# relativa a drivers/: ../../kernel/kernel_device_modules-6.6
+DM_REL = "../../kernel/kernel_device_modules-6.6"
 
 lines = [
     "# --- ruby: drivers del arbol de device modules ---",
