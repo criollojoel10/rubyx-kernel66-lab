@@ -40,8 +40,9 @@ jobs:
         run: |
           set -e
           cd sources/a34x/kernel/kernel-6.6
-          export KCONFIG_EXT_PREFIX=../kernel_device_modules-6.6/
-          DM=../kernel_device_modules-6.6
+          # kernel-6.6 es un symlink: el CWD real es sources/a34x/kernel-6.6
+          export KCONFIG_EXT_PREFIX=../kernel/kernel_device_modules-6.6/
+          DM=../kernel/kernel_device_modules-6.6
           # defconfig de los device modules + sus overlays + nuestros fragments
           cp $DM/arch/arm64/configs/mediatek-bazel_defconfig arch/arm64/configs/
           cat $DM/kernel/configs/mt6877_overlay.config \
