@@ -61,3 +61,37 @@ Dos conclusiones que cambiaron el plan:
 ./scripts/verify-ruby.sh              # contrato kernel <-> user space
 ./scripts/check-ports-local.sh        # compila los ports en local (minutos)
 ```
+
+## Carga: verificado en vivo que no hace falta portar nada
+
+El dtsbo de ruby declara cargadores que el kernel stock **no usa** para
+cargar. En el dispositivo (kernel 6.6 stock, root) la carga la hace el
+cargador del PMIC mt6360:
+
+```
+mt6360_pmu_chg mt6360-chg.2.auto: mt6360_dump_registers:
+    ICHG = 1500mA, AICR = 1500mA, MIVR = 4200mV, IEOC = 200mA
+    VBUS = 4700mV, IBUS = 1347mA, VSYS = 3976mV, VBAT = 3946mV
+    CHG_EN = 1, CHG_STATUS = progress
+```
+
+`/sys/class/power_supply`: ac, battery, bbc, bms, charger, cp_master,
+cp_slave, primary_chg, usb.
+
+Cruce de compatibles (DTB de ruby -> driver en el GKI 6.6 del A34):
+
+| DTB de ruby | Driver en el GKI | Nota |
+|---|---|---|
+| `mp2762` | `mp2762` (mps) | existe |
+| `xmusb350` | `xmusb350` (xiaomi) | existe |
+| `max77932` | `max77932` (maxim) | existe |
+| `sc8561_master/slave` | `sc8561` | existe |
+| `ti,bq28z610` | `bq28z610` | el driver declara "bq28z610", no "ti,bq28z610" |
+| `bq25980_standalone1/2/3` | `ti,bq25980` | no coincide el compatible |
+| `sc8551_i2c7/11` | - | no esta en el GKI |
+| `lionsemi,ln8000` | - | no esta en el GKI |
+
+**Conclusion**: la carga de ruby va por el mt6360 (que el A34 ya trae como
+`CONFIG_DEVICE_MODULES_CHARGER_MT6360`), asi que los ports de carga no son
+necesarios para que el telefono cargue. `port/charger/` queda como
+referencia por si se quiere 支持 completo de USB-PD.
