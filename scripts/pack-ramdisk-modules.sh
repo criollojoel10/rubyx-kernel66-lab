@@ -2,7 +2,8 @@
 # Inserta el cierre de módulos en el ramdisk stock de ruby.
 # Uso: ./scripts/pack-ramdisk-modules.sh <boot_unpacked> <moddir> <salida.lz4>
 set -euo pipefail
-cd "$(dirname "$0")/.."
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO"
 
 UNPACKED="$(realpath -m "${1:?falta boot_unpacked}")"
 MODDIR="$(realpath -m "${2:?falta directorio de módulos}")"
@@ -24,17 +25,20 @@ mkdir -p "$TMP/root"
 
   # Wrapper de primera etapa: carga los modulos de ruby y arma un watchdog
   # que devuelve al slot A si Android no arranca (solo para imagenes de test).
-  if [ -f port/device/selfheal/first-stage-init.sh ]; then
-    [ -e init ] && mv init init.ramdisk
-    cp port/device/selfheal/first-stage-init.sh init
+  if [ -f "$REPO/port/device/selfheal/first-stage-init.sh" ]; then
+    # el init del ramdisk es un symlink a /system/bin/init (colgado aqui)
+    if [ -L init ] || [ -e init ]; then
+      mv -f init init.ramdisk 2>/dev/null || rm -f init
+    fi
+    cp "$REPO/port/device/selfheal/first-stage-init.sh" init
     chmod 755 init
     echo "  (init de primera etapa con watchdog instalado)"
   fi
-  if [ -f port/device/selfheal/bctool ]; then
-    cp port/device/selfheal/bctool bctool
+  if [ -f "$REPO/port/device/selfheal/bctool" ]; then
+    cp "$REPO/port/device/selfheal/bctool" bctool
     chmod 755 bctool
-  elif [ -f port/device/selfheal/bctool.c ] && command -v gcc >/dev/null; then
-    gcc -O2 -static -o bctool port/device/selfheal/bctool.c
+  elif [ -f "$REPO/port/device/selfheal/bctool.c" ] && command -v gcc >/dev/null; then
+    gcc -O2 -static -o bctool "$REPO/port/device/selfheal/bctool.c"
     chmod 755 bctool
   fi
 
