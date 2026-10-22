@@ -25,7 +25,11 @@ if [ -n "$faltan" ]; then
   echo "   (pacman -S --needed gcc make bc bison flex python)" >&2
   exit 2
 fi
-echo "   ok (${TC%% *})"
+if command -v clang >/dev/null 2>&1; then
+  echo "   ok (clang $(clang --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1))"
+else
+  echo "   ok (gcc $(gcc -dumpversion))"
+fi
 
 [ -d "$GKI" ] || { echo "falta $GKI; ejecuta make fetch" >&2; exit 1; }
 [ -f "$REF" ] || { echo "falta $REF (config de referencia)" >&2; exit 1; }
