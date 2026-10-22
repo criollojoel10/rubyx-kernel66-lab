@@ -56,6 +56,9 @@ jobs:
       - name: Build del kernel de producto
         run: make build-fast
 
+      - name: Recolectar
+        run: make collect
+
       - name: Verificar los drivers de ruby
         run: |
           set -e
