@@ -44,7 +44,7 @@ text = "".join(out)
 n_calls = 0
 out = []
 for line in text.splitlines(keepends=True):
-    if ("isee" in line) and re.search(r'\.(remove|append)\(', line) \
+    if re.search(r'teei/51[05]/isee', line) and re.search(r'\.(remove|append)\(', line) \
             and not line.lstrip().startswith("#"):
         n_calls += 1
         indent = line[:len(line) - len(line.lstrip())]
