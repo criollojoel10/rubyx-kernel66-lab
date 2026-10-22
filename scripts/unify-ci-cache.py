@@ -26,7 +26,9 @@ MANIFEST = "${{ hashFiles('manifests/a34-6.6.127.lock.json') }}"
 SHARED = f"a34-{MANIFEST}-"
 
 # prefijos historicos por workflow (mismo cache de Bazel, otro nombre)
-LEGACY_PREFIXES = ("ds-", "core-", "kabi-", "mt-", "panel-", "fast-", "storage-", "bazel-", "bazel-pilot-")
+# GitHub limita a 10 claves por cache (primaria + restore-keys), de ahi
+# que listemos 7 legados como maximo.
+LEGACY_PREFIXES = ("ds-", "core-", "kabi-", "mt-", "panel-", "fast-", "bazel-")
 
 
 def process(path: Path, check: bool) -> bool:

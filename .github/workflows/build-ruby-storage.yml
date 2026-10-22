@@ -52,9 +52,7 @@ jobs:
             mt-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
             panel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
             fast-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            storage-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
             bazel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            bazel-pilot-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
       - name: Fetch A34
         run: make fetch
 
