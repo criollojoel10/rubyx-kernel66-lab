@@ -1,8 +1,9 @@
 name: Check Kconfig de los ports
 
-# Comprobacion rapida (2 min) de que los simbolos nuevos de los ports
-# existen en el Kconfig que se parsea de verdad. Sin esto, un Kconfig mal
-# integrado hace que el build pase en verde sin compilar el modulo.
+# Comprobacion rapida (2-3 min) de que los simbolos nuevos de los ports
+# existen en el Kconfig que se parsea de verdad y que el overlay los activa.
+# Sin esto, un Kconfig mal integrado hace que el build pase en verde sin
+# compilar el modulo.
 
 on:
   workflow_dispatch:
@@ -35,29 +36,27 @@ jobs:
           ./port/touch/apply.sh
           ./port/charger/apply.sh
 
-      - name: Declarar los modulos en Kleaf
-        run: |
-          python3 scripts/patch-kleaf-outs.py \
-            drivers/tee/teei/400/isee.ko \
-            drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.ko \
-            drivers/input/touchscreen/focaltech_3680/focaltech_3680.ko \
-            drivers/power/supply/mps/mp2762.ko \
-            drivers/power/supply/ln/ln8410.ko \
-            drivers/power/supply/ti/bq25980.ko \
-            drivers/power/supply/southchip/sc8561.ko \
-            drivers/power/supply/maxim/max77932.ko \
-            drivers/power/supply/xiaomi/xmusb350.ko
-
       - name: Parsear el Kconfig real
         run: |
           set -e
           cd sources/a34x/kernel/kernel-6.6
           export KCONFIG_EXT_PREFIX=../kernel_device_modules-6.6/
           DM=../kernel_device_modules-6.6
+          # defconfig de los device modules + sus overlays + nuestros fragments
           cp $DM/arch/arm64/configs/mediatek-bazel_defconfig arch/arm64/configs/
+          cat $DM/kernel/configs/mt6877_overlay.config \
+              $DM/kernel/configs/mt6877_teegris_5_overlay.config \
+              $OLDPWD/configs/ruby-6.6/panel.fragment \
+              $OLDPWD/configs/ruby-6.6/touch.fragment \
+              $OLDPWD/configs/ruby-6.6/charger.fragment \
+              >> arch/arm64/configs/mediatek-bazel_defconfig
           make ARCH=arm64 LLVM=1 -j$(nproc) mediatek-bazel_defconfig
-          echo "=== simbolos de nuestros ports en el .config:"
-          grep -E 'TOUCHSCREEN_FOCALTECH_3680|DRM_PANEL_M16_36_02_0B_DSC_VDO|RUBY_(MP2762|LN8410|BQ25980|SC8561|MAX77932|XMUSB350)' .config || {
+          echo
+          echo "=== sanity: simbolo de los device modules (PINCTRL_MT6877):"
+          grep -E '^CONFIG_PINCTRL_MT6877=' .config || { echo "el Kconfig.ext NO se sourcea"; exit 1; }
+          echo
+          echo "=== simbolos de nuestros ports:"
+          grep -E '^CONFIG_(TOUCHSCREEN_FOCALTECH_3680|DRM_PANEL_M16_36_02_0B_DSC_VDO|RUBY_(MP2762|LN8410|BQ25980|SC8561|MAX77932|XMUSB350))=' .config || {
             echo "FALTAN LOS SIMBOLOS: el Kconfig no los expone"; exit 1; }
 
       - name: Comprobar los Makefile
