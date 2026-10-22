@@ -17,7 +17,7 @@ REF="artifacts/a34-6.6.127/device-modules.config"
 
 echo "== 0. comprobando dependencias"
 faltan=""
-for t in gcc make bc bison flex python3; do
+for t in make bc bison flex python3; do
   command -v "$t" >/dev/null 2>&1 || faltan="$faltan $t"
 done
 if [ -n "$faltan" ]; then
@@ -25,7 +25,7 @@ if [ -n "$faltan" ]; then
   echo "   (pacman -S --needed gcc make bc bison flex python)" >&2
   exit 2
 fi
-echo "   ok (gcc $(gcc -dumpversion))"
+echo "   ok (${TC%% *})"
 
 [ -d "$GKI" ] || { echo "falta $GKI; ejecuta make fetch" >&2; exit 1; }
 [ -f "$REF" ] || { echo "falta $REF (config de referencia)" >&2; exit 1; }
@@ -66,7 +66,12 @@ cp "$OLDPWD/$REF" .config
 sed -i -e 's/^CONFIG_CC_IS_CLANG=y/# CONFIG_CC_IS_CLANG is not set/' \
        -e 's/^CONFIG_LTO_CLANG=y/# CONFIG_LTO_CLANG is not set/' \
        -e 's/^CONFIG_CFI_CLANG=y/# CONFIG_CFI_CLANG is not set/' .config
-make -s olddefconfig CC=gcc HOSTCC=gcc >/dev/null 2>&1
+if command -v clang >/dev/null 2>&1; then
+  TC="CC=clang HOSTCC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip READELF=llvm-readelf OBJSIZE=llvm-size"
+else
+  TC="CC=gcc HOSTCC=gcc"
+fi
+make -s olddefconfig $TC >/dev/null 2>&1
 echo "   .config listo ($(wc -l < .config) lineas)"
 
 echo "== 3. compilando los ports"

@@ -22,9 +22,17 @@ VOLLA="$(cd sources/mtk-6.6-mt6877/kernel_device_modules 2>/dev/null && pwd || e
 [ -d "$GKI" ] || { echo "falta $GKI; ejecuta make fetch" >&2; exit 1; }
 export KCONFIG_EXT_PREFIX=../kernel/kernel_device_modules-6.6/
 
+# el build real usa clang (r536225): se usa el clang del host si esta
+# disponible y gcc como alternativa
+if command -v clang >/dev/null 2>&1; then
+  TOOLCHAIN="CC=clang HOSTCC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip READELF=llvm-readelf OBJSIZE=llvm-size"
+else
+  TOOLCHAIN="CC=gcc HOSTCC=gcc"
+fi
+
 cd "$GKI"
 for i in $(seq 1 "$INTENTOS"); do
-  out=$(timeout 1800 make -j"$(nproc)" CC=gcc HOSTCC=gcc "$TARGET" 2>&1)
+  out=$(timeout 1800 make -j"$(nproc)" $TOOLCHAIN "$TARGET" 2>&1)
   if [ $? -eq 0 ] && ! echo "$out" | grep -qE '(^|:) error:'; then
     echo "[build] $TARGET: OK"
     exit 0
