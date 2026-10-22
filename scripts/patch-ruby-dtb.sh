@@ -38,9 +38,11 @@ fdtput -t x "$D" /eint@1000b000 mediatek,instance-num 1
 fdtput -t x "$D" /eint@1000b000 interrupts 0x0 0x100 0x4
 fdtput -t x "$D" /eint@1000b000 interrupt-parent 0x1
 
-# 4. PMIC: el MFD mt6397 de 6.6 matchea "mediatek,mt6359p".
+# 4. PMIC: el MFD mt6397 de 6.6 solo matchea "mediatek,mt6359" (su tabla no
+#    tiene ni "mt6359p" ni "mt6359-pmic"). Va primero para que el MFD sondee;
+#    los otros dos se quedan para lo que los busque por nombre.
 fdtput -t s "$D" /pwrap@10026000/mt6359-pmic compatible \
-  "mediatek,mt6359-pmic" "mediatek,mt6359p"
+  "mediatek,mt6359" "mediatek,mt6359-pmic" "mediatek,mt6359p"
 
 # 5. Reguladores: el driver 6.6 busca "ldo-vemc"/"ldo-vufs" (con guion).
 fdtput -t s "$D" /pwrap@10026000/mt6359-pmic/mt6359regulator/ldo_vemc \
