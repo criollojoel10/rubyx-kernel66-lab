@@ -15,6 +15,18 @@ GKI="sources/a34x/kernel-6.6"
 DM="sources/a34x/kernel/kernel_device_modules-6.6"
 REF="artifacts/a34-6.6.127/device-modules.config"
 
+echo "== 0. comprobando dependencias"
+faltan=""
+for t in gcc make bc bison flex python3; do
+  command -v "$t" >/dev/null 2>&1 || faltan="$faltan $t"
+done
+if [ -n "$faltan" ]; then
+  echo "   faltan herramientas:$faltan" >&2
+  echo "   (pacman -S --needed gcc make bc bison flex python)" >&2
+  exit 2
+fi
+echo "   ok (gcc $(gcc -dumpversion))"
+
 [ -d "$GKI" ] || { echo "falta $GKI; ejecuta make fetch" >&2; exit 1; }
 [ -f "$REF" ] || { echo "falta $REF (config de referencia)" >&2; exit 1; }
 
