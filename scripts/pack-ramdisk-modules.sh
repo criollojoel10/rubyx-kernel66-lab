@@ -33,6 +33,9 @@ mkdir -p "$TMP/root"
   if [ -f port/device/selfheal/bctool ]; then
     cp port/device/selfheal/bctool bctool
     chmod 755 bctool
+  elif [ -f port/device/selfheal/bctool.c ] && command -v gcc >/dev/null; then
+    gcc -O2 -static -o bctool port/device/selfheal/bctool.c
+    chmod 755 bctool
   fi
 
   find . -print0 | cpio --null -o -H newc > "$TMP/new.cpio" 2>/dev/null
