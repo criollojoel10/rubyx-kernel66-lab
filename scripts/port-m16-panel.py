@@ -1,45 +1,44 @@
 #!/usr/bin/env python3
-"""Porta a la API mediatek_v2 (6.6) el panel REAL de ruby: m16 42-0d-0a.
+"""Porta a la API mediatek_v2 (6.6) los paneles m16 de ruby.
 
-El panel lo declara el propio cmdline del kernel stock:
-    panel-m16-42-0d-0a-dsc-vdo.oled_wp=...
-y el dtbo de ruby lo instancia como panel2@0 con el compatible
-"m16_42_0d_0a_dsc_vdo,lcm".
+ruby tiene tres variantes de panel m16 (segun la ROM):
+  36-02-0b, 42-0d-0a y 45-02-0c. El dtbo declara panel1@0 = 42-0d-0a y
+  panel2@0 = 36-02-0b, y el cmdline del kernel stock selecciona el 42-0d-0a
+  (panel-m16-42-0d-0a-dsc-vdo.oled_wp=...).
 
-Esqueleto: el panel de referencia 6.6 del A34 (panel-nt36672c...boe), que ya
-esta escrito para la API mediatek_v2. Se sustituyen la identidad, los
-timings y la secuencia DCS por los del m16 42-0d-0a del 4.19 de ruby.
+El esqueleto es el panel de referencia 6.6 del A34
+(panel-nt36672c-fhdp-dsi-vdo-dsc-txd-boe.c, que ya usa mediatek_v2) y se
+sustituyen la identidad, los timings y la secuencia DCS por los del panel
+m16 correspondiente del kernel 4.19 de ruby.
 
-Fuentes:
-  esqueleto v2 : sources/a34x/kernel-6.6/drivers/gpu/drm/panel/panel-nt36672c-fhdp-dsi-vdo-dsc-txd-boe.c
-                 + su include/panel-nt36672c-fhdp-dsi-vdo-dsc-txd-boe.h
-  DCS y timings : sources/ruby-4.19/drivers/gpu/drm/panel/panel-m16-42-0d-0a-dsc-vdo.c
+  DCS y timings : sources/ruby-4.19/drivers/gpu/drm/panel/panel-m16-<p>.c
+  esqueleto 6.6  : sources/a34x/.../panel-nt36672c-fhdp-dsi-vdo-dsc-txd-boe.c
+  salida         : port/display/panel-m16-<p>-dsc-vdo.c
+                   port/display/include/panel-m16-<p>-dsc-vdo.h
+                   port/display/m16-<p>-init.inc
 
-Salida:
-  port/display/panel-m16-42-0d-0a-dsc-vdo.c
-  port/display/include/panel-m16-42-0d-0a-dsc-vdo.h
-  port/display/m16-42-0d-0a-init.inc
-
-Uso: scripts/port-m16-panel.py
+Uso: scripts/port-m16-panel.py [panel ...]
+     (sin argumentos: los tres)
 """
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 REF_C = ROOT / "sources/a34x/kernel/kernel_device_modules-6.6/drivers/gpu/drm/panel/panel-nt36672c-fhdp-dsi-vdo-dsc-txd-boe.c"
 REF_H = ROOT / "sources/a34x/kernel/kernel_device_modules-6.6/drivers/gpu/drm/panel/include/panel-nt36672c-fhdp-dsi-vdo-dsc-txd-boe.h"
-RUBY = ROOT / "sources/ruby-4.19/drivers/gpu/drm/panel/panel-m16-42-0d-0a-dsc-vdo.c"
+RUBY_DIR = ROOT / "sources/ruby-4.19/drivers/gpu/drm/panel"
 
 OUT_DIR = ROOT / "port/display"
-OUT_C = OUT_DIR / "panel-m16-42-0d-0a-dsc-vdo.c"
-OUT_H = OUT_DIR / "include/panel-m16-42-0d-0a-dsc-vdo.h"
-OUT_INC = OUT_DIR / "m16-42-0d-0a-init.inc"
 
-COMPAT = "m16_42_0d_0a_dsc_vdo,lcm"
-KCONFIG = "DRM_PANEL_M16_42_0D_0A_DSC_VDO"
-
-# clocks del 42-0d-0a (mode_60hz / mode_90hz) y sus parametros de timing
-CLOCKS = {0: 328029, 1: 327759}
+PANELS = {
+    "36-02-0b": {"compat": "m16_36_02_0b_dsc_vdo,lcm",
+                  "kconfig": "DRM_PANEL_M16_36_02_0B_DSC_VDO"},
+    "42-0d-0a": {"compat": "m16_42_0d_0a_dsc_vdo,lcm",
+                  "kconfig": "DRM_PANEL_M16_42_0D_0A_DSC_VDO"},
+    "45-02-0c": {"compat": "m16_45_02_0c_dsc_vdo,lcm",
+                  "kconfig": "DRM_PANEL_M16_45_02_0C_DSC_VDO"},
+}
 
 
 def parse_init_table(src: str):
@@ -64,7 +63,6 @@ def parse_init_table(src: str):
         body.append(c)
         i += 1
     text = "".join(body)
-    # partir por entradas de primer nivel
     entries = []
     depth = 0
     cur = []
@@ -95,10 +93,10 @@ def parse_init_table(src: str):
     return out
 
 
-def emit_inc(entries) -> str:
+def emit_inc(entries, panel: str) -> str:
     lines = [
         "/* SPDX-License-Identifier: GPL-2.0 */",
-        "/* Secuencia de inicializacion DCS del panel m16 42-0d-0a de ruby.",
+        f"/* Secuencia de inicializacion DCS del panel m16 {panel} de ruby.",
         " * Generado por scripts/port-m16-panel.py desde el driver 4.19 de ruby.",
         " * No editar a mano: regenerar. */",
         "",
@@ -116,38 +114,61 @@ def emit_inc(entries) -> str:
     return "\n".join(lines)
 
 
-def ruby_const(name):
-    m = re.search(r"^#define\s+" + name + r"\s+\(?([^)\n]+)\)?\s*$", RUBY.read_text(), re.M)
-    return m.group(1).strip() if m else None
+def ruby_modes(src: str):
+    """Extrae los dos modos (60/90 Hz) del panel 4.19: clock, HFP, VFP."""
+    modes = []
+    for name in ("mode_60hz", "mode_90hz"):
+        m = re.search(r"\." + name + r"\s*=\s*\{(.*?)\n\t\};", src, re.S)
+        if not m:
+            continue
+        body = m.group(1)
+        def num(key, default=0):
+            mm = re.search(r"\." + key + r"\s*=\s*(\d+)", body)
+            return int(mm.group(1)) if mm else default
+        # los offsets vienen como "1080 + 20" o "2400 + 2452"
+        def off(key):
+            mm = re.search(r"\." + key + r"\s*=\s*\d+\s*\+\s*(\d+)", body)
+            return int(mm.group(1)) if mm else num(key)
+        modes.append({
+            "clock": num("clock"),
+            "hfp": off("hsync_start"),
+            "vfp": off("vsync_start"),
+            "hsa": off("hsync_end") - off("hsync_start") if off("hsync_end") >= off("hsync_start") else 8,
+            "vsa": 4,
+        })
+    return modes
 
 
-def build_header() -> str:
+def build_header(panel: str, ruby_src: str) -> str:
     ref = REF_H.read_text()
-    # identidad
     ref = ref.replace("PANEL_NT36672C_FHDP_DSI_VDO_DSC_TXD_BOE",
-                      "PANEL_M16_42_0D_0A_DSC_VDO")
-    # geometria y timings reales del 42-0d-0a
+                      f"PANEL_M16_{panel.upper().replace('-', '_')}_DSC_VDO")
+    # geometria y timings reales del panel de ruby
+    def rconst(name, default=None):
+        m = re.search(r"^#define\s+" + name + r"\s+\(?([^)\n]+)\)?\s*$", ruby_src, re.M)
+        return m.group(1).strip() if m else default
     reemplazos = {
-        "FRAME_WIDTH": 1080,
-        "FRAME_HEIGHT": 2400,
-        "DATA_RATE": 831,
-        "PHYSICAL_WIDTH": 69552,
-        "PHYSICAL_HEIGHT": 154560,
+        "FRAME_WIDTH": rconst("FRAME_WIDTH", "1080"),
+        "FRAME_HEIGHT": rconst("FRAME_HEIGHT", "2400"),
+        "DATA_RATE": rconst("DATA_RATE", "831"),
+        "PHYSICAL_WIDTH": rconst("PHYSICAL_WIDTH", "69552"),
+        "PHYSICAL_HEIGHT": rconst("PHYSICAL_HEIGHT", "154560"),
     }
     for k, v in reemplazos.items():
         ref = re.sub(r"^#define\s+" + k + r"\s+.*$", f"#define {k} {v}", ref, flags=re.M)
-    # modos: 60 Hz (mode 0) y 90 Hz (mode 1) con los valores del 42-0d-0a
-    ref = re.sub(r"^#define\s+MODE_0_VFP\s+.*$", "#define MODE_0_VFP                  2452", ref, flags=re.M)
-    ref = re.sub(r"^#define\s+MODE_0_HFP\s+.*$", "#define MODE_0_HFP                  20", ref, flags=re.M)
-    ref = re.sub(r"^#define\s+MODE_1_VFP\s+.*$", "#define MODE_1_VFP                  828", ref, flags=re.M)
-    ref = re.sub(r"^#define\s+MODE_1_HFP\s+.*$", "#define MODE_1_HFP                  20", ref, flags=re.M)
+    # modos: 60 Hz (mode 0) y 90 Hz (mode 1) con los valores del panel
+    modes = ruby_modes(ruby_src)
+    if len(modes) >= 2:
+        m0, m1 = modes[0], modes[1]
+        ref = re.sub(r"^#define\s+MODE_0_VFP\s+.*$", f"#define MODE_0_VFP                  {m0['vfp']}", ref, flags=re.M)
+        ref = re.sub(r"^#define\s+MODE_0_HFP\s+.*$", f"#define MODE_0_HFP                  {m0['hfp']}", ref, flags=re.M)
+        ref = re.sub(r"^#define\s+MODE_1_VFP\s+.*$", f"#define MODE_1_VFP                  {m1['vfp']}", ref, flags=re.M)
+        ref = re.sub(r"^#define\s+MODE_1_HFP\s+.*$", f"#define MODE_1_HFP                  {m1['hfp']}", ref, flags=re.M)
     ref = re.sub(r"^#define\s+MODE_0_FPS\s+.*$", "#define MODE_0_FPS                  60", ref, flags=re.M)
     ref = re.sub(r"^#define\s+MODE_1_FPS\s+.*$", "#define MODE_1_FPS                  90", ref, flags=re.M)
     # tablas RC del panel de ruby (rate control del DSC)
-    rsrc = RUBY.read_text()
-
     def tabla(nombre):
-        m = re.search(r"static\s+\w+\s+" + nombre + r"\[\d+\]\s*=\s*\{(.*?)\};", rsrc, re.S)
+        m = re.search(r"static\s+\w+\s+" + nombre + r"\[\d+\]\s*=\s*\{(.*?)\};", ruby_src, re.S)
         return m.group(1).strip() if m else None
 
     rc = []
@@ -158,20 +179,20 @@ def build_header() -> str:
         vals = tabla(nombre)
         if vals:
             rc.append(f"static {tipo} {nombre}[] = {{{vals}}};")
+    guard = f"#endif /* PANEL_M16_{panel.upper().replace('-', '_')}_DSC_VDO */"
     if rc:
-        ref = ref.replace("#endif /* PANEL_M16_42_0D_0A_DSC_VDO */",
-                          "\n".join(rc) + "\n\n#endif /* PANEL_M16_42_0D_0A_DSC_VDO */")
+        ref = ref.replace(guard, "\n".join(rc) + "\n\n" + guard)
     return ref
 
 
-def build_c(entries) -> str:
+def build_c(entries, panel: str, compat: str, ruby_src: str) -> str:
     s = REF_C.read_text()
     s = s.replace("include/panel-nt36672c-fhdp-dsi-vdo-dsc-txd-boe.h",
-                  "include/panel-m16-42-0d-0a-dsc-vdo.h")
-    s = s.replace('"nt36672c,vdo,dsc,boe"', f'"{COMPAT}"')
-    s = s.replace("panel-nt36672c-fhdp-dsi-vdo-dsc-txd-boe", "panel-m16-42-0d-0a-dsc-vdo")
-    s = s.replace("nt36672c", "m16-42-0d-0a")
-    s = s.replace("NT36672C_FHDP_DSI_VDO_DSC_TXD_BOE", "M16_42_0D_0A_DSC_VDO")
+                  f"include/panel-m16-{panel}-dsc-vdo.h")
+    s = s.replace('"nt36672c,vdo,dsc,boe"', f'"{compat}"')
+    s = s.replace("panel-nt36672c-fhdp-dsi-vdo-dsc-txd-boe", f"panel-m16-{panel}-dsc-vdo")
+    s = s.replace("nt36672c", f"m16-{panel}")
+    s = s.replace("NT36672C_FHDP_DSI_VDO_DSC_TXD_BOE", f"M16_{panel.upper().replace('-', '_')}_DSC_VDO")
 
     # secuencia DCS: el bloque del panel de referencia se sustituye por el .inc
     marker = "static void lcm_panel_init(struct lcm *ctx)\n{"
@@ -182,30 +203,42 @@ def build_c(entries) -> str:
     tail = block.rstrip().splitlines()[-1]
     if "msleep" not in tail and "udelay" not in tail:
         raise SystemExit(f"el bloque DCS no termina en un delay: {tail!r}")
-    s = s[:start] + ('\t/* m16 42-0d-0a: secuencia DCS real del panel de ruby */\n'
-                     '#include "m16-42-0d-0a-init.inc"\n') + s[end:]
+    s = s[:start] + (f'\t/* m16 {panel}: secuencia DCS real del panel de ruby */\n'
+                     f'#include "m16-{panel}-init.inc"\n') + s[end:]
 
-    # clocks reales
+    # clocks reales del panel
+    modes = ruby_modes(ruby_src)
     clocks = list(re.findall(r"\.clock\s*=\s*(\d+),", s))
     for idx, old in enumerate(clocks[:2]):
-        new = CLOCKS.get(idx, old)
-        if old != str(new):
-            s = s.replace(f".clock = {old},", f".clock = {new},", 1)
+        if idx < len(modes):
+            new = str(modes[idx]["clock"])
+            if old != new:
+                s = s.replace(f".clock = {old},", f".clock = {new},", 1)
     return s
 
 
 def main() -> None:
-    for f in (REF_C, REF_H, RUBY):
+    paneles = sys.argv[1:] or list(PANELS)
+    for f in (REF_C, REF_H):
         if not f.exists():
             raise SystemExit(f"falta {f}")
-    entries = parse_init_table(RUBY.read_text())
-    print(f"[panel] {len(entries)} entradas de init DCS")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "include").mkdir(parents=True, exist_ok=True)
-    OUT_INC.write_text(emit_inc(entries))
-    OUT_H.write_text(build_header())
-    OUT_C.write_text(build_c(entries))
-    print(f"[panel] escritos {OUT_C.name}, {OUT_H.name}, {OUT_INC.name}")
+    for panel in paneles:
+        if panel not in PANELS:
+            raise SystemExit(f"panel desconocido: {panel}")
+        ruby = RUBY_DIR / f"panel-m16-{panel}-dsc-vdo.c"
+        if not ruby.exists():
+            raise SystemExit(f"falta {ruby}")
+        ruby_src = ruby.read_text()
+        entries = parse_init_table(ruby_src)
+        compat = PANELS[panel]["compat"]
+        (OUT_DIR / f"m16-{panel}-init.inc").write_text(emit_inc(entries, panel))
+        (OUT_DIR / "include" / f"panel-m16-{panel}-dsc-vdo.h").write_text(
+            build_header(panel, ruby_src))
+        (OUT_DIR / f"panel-m16-{panel}-dsc-vdo.c").write_text(
+            build_c(entries, panel, compat, ruby_src))
+        print(f"[panel] {panel}: {len(entries)} entradas DCS -> port/display/")
 
 
 if __name__ == "__main__":
