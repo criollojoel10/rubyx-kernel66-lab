@@ -23,7 +23,10 @@ if ! grep -q '^config DRM_PANEL_M16_36_02_0B_DSC_VDO' "$K"; then
 
 config DRM_PANEL_M16_36_02_0B_DSC_VDO
 	tristate "Xiaomi m16 36-02-0b DSC VDO panel"
-	depends on DRM_MEDIATEK
+	depends on OF
+	depends on DRM_MIPI_DSI
+	depends on BACKLIGHT_CLASS_DEVICE
+	depends on DRM_MEDIATEK_V2
 	help
 	  Xiaomi m16 36-02-0b panel (1080x2400, DSC VDO) ported from
 	  ruby 4.19 to mediatek_v2.
