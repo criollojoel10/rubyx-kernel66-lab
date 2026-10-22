@@ -41,6 +41,9 @@ echo "== tee (Microtrust TEEI 400)"
 echo "== config (fragmento combinado)"
 ./scripts/apply-ruby-fragment.sh configs/ruby-6.6/full.fragment
 
+echo "== lista de Kleaf sin los .ko de TEEGRIS (el TEE va built-in)"
+./scripts/patch-kleaf-tee-builtin.py "${1:-sources/a34x}"
+
 echo "== modulos declarados en Kleaf"
 # El panel y el tactil van built-in (=y) como en el kernel stock de ruby, asi
 # que no producen .ko. Los cargadores y el TEE si son modulos.

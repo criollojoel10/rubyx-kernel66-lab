@@ -57,19 +57,9 @@ jobs:
 
       - name: Declarar los modulos nuevos en Kleaf
         # El TEEI se compila built-in (=y) como en el kernel stock de ruby:
-        # el GKI lo incluye con obj-y += ../$(DEVICE_MODULES_REL_DIR)/drivers/tee/
-        # Por eso no se declara ningun .ko: el isee.ko de TEEGRIS 510 se
-        # sustituye por la v2 del GKI.
-        run: |
-          python3 - <<'PY'
-          import re, pathlib
-          p = pathlib.Path("sources/a34x/kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_64.bzl")
-          t = p.read_text()
-          t = re.sub(r'^\s*"drivers/tee/teei/510/isee\.ko",\n', '', t, flags=re.M)
-          t = re.sub(r'^\s*"drivers/tee/teei/515/isee\.ko",\n', '', t, flags=re.M)
-          p.write_text(t)
-          print("[kleaf] isee.ko de TEEGRIS retirado de la lista")
-          PY
+        # el GKI lo incluye con obj-y += ../$(DEVICE_MODULES_REL_DIR)/drivers/tee/.
+        # Por eso no hay ningun .ko de TEE que recoger.
+        run: ./scripts/patch-kleaf-tee-builtin.py sources/a34x
 
       - name: Build con Microtrust TEEI 400
         env:
