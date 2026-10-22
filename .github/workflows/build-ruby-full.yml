@@ -59,20 +59,32 @@ jobs:
       - name: Build del kernel de producto
         run: make build-fast
 
-      - name: Verificar los modulos de ruby
+      - name: Verificar los drivers de ruby
         run: |
           set -e
+          # 1) display, tactil y TEE van built-in (=y) como en el kernel stock
+          echo "== simbolos built-in"
+          for sym in m16_36_02_0b fts_ts isee tz_driver mp2762 ln8410 bq25980 sc8561 max77932 xmusb350; do
+            if grep -qi "$sym" artifacts/a34-6.6.127/System.map; then
+              echo "OK  $sym"
+            else
+              echo "FALTA $sym"
+            fi
+          done
+          grep -qi "m16_36_02_0b" artifacts/a34-6.6.127/System.map || exit 1
+          grep -qi "fts_ts" artifacts/a34-6.6.127/System.map || exit 1
+          grep -qi "tz_driver" artifacts/a34-6.6.127/System.map || exit 1
+
+          # 2) los cargadores son modulos
+          echo "== modulos"
           tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst > /tmp/mods.txt
           for ko in \
-            drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.ko \
-            drivers/input/touchscreen/focaltech_3680/focaltech_3680.ko \
             drivers/power/supply/mps/mp2762.ko \
             drivers/power/supply/ln/ln8410.ko \
             drivers/power/supply/ti/bq25980.ko \
             drivers/power/supply/southchip/sc8561.ko \
             drivers/power/supply/maxim/max77932.ko \
-            drivers/power/supply/xiaomi/xmusb350.ko \
-            drivers/tee/teei/400/isee.ko ; do
+            drivers/power/supply/xiaomi/xmusb350.ko ; do
             grep -q "$ko" /tmp/mods.txt || { echo "FALTA $ko"; exit 1; }
             echo "OK  $ko"
           done
