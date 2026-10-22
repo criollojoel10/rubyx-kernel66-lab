@@ -17,10 +17,14 @@ cp "port/display/include/panel-m16-36-02-0b-dsc-vdo.h" \
 cp "port/display/m16-36-02-0b-init.inc" \
    "$DM/drivers/gpu/drm/panel/m16-36-02-0b-init.inc"
 
-K="$DM/drivers/gpu/drm/panel/Kconfig"
+# El simbolo va en el Kconfig.ext de los device modules (fichero que SI se
+# sourcea siempre); anadirlo al Kconfig del subdirectorio no llega al arbol
+# de configuracion que usa el build.
+K="$DM/Kconfig.ext"
 if ! grep -q '^config DRM_PANEL_M16_36_02_0B_DSC_VDO' "$K"; then
   cat >> "$K" <<'EOF'
 
+# --- ruby: panel m16 36-02-0b (DSC VDO 1080x2400) ---
 config DRM_PANEL_M16_36_02_0B_DSC_VDO
 	tristate "Xiaomi m16 36-02-0b DSC VDO panel"
 	depends on OF
@@ -37,5 +41,7 @@ M="$DM/drivers/gpu/drm/panel/Makefile"
 if ! grep -q 'panel-m16-36-02-0b-dsc-vdo.o' "$M"; then
   echo 'obj-$(CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO) += panel-m16-36-02-0b-dsc-vdo.o' >> "$M"
 fi
+
+./scripts/apply-ruby-fragment.sh configs/ruby-6.6/panel.fragment "$DM"
 
 echo "[display] panel m16 36-02-0b aplicado en $DM"

@@ -12,16 +12,25 @@ PS="$DM/drivers/power/supply"
 SRC="port/charger/drivers"
 [ -d "$SRC" ] || { echo "falta $SRC; ejecuta scripts/port-charger.py" >&2; exit 1; }
 
-# subdir:simbolo
-DIRS="mps:RUBY_MP2762 ln:RUBY_LN8410 ti:RUBY_BQ25980 southchip:RUBY_SC8561"
-DIRS="$DIRS maxim:RUBY_MAX77932 xiaomi:RUBY_XMUSB350"
+# subdir:simbolo:descripcion
+DIRS="mps:RUBY_MP2762:mp2762 charger"
+DIRS="$DIRS ln:RUBY_LN8410:ln8410 charger"
+DIRS="$DIRS ti:RUBY_BQ25980:bq25980 charger"
+DIRS="$DIRS southchip:RUBY_SC8561:sc8561 charger"
+DIRS="$DIRS maxim:RUBY_MAX77932:max77932 charger"
+DIRS="$DIRS xiaomi:RUBY_XMUSB350:xmusb350 USB-PD"
 
-K="$PS/Kconfig"
 M="$PS/Makefile"
+# Los simbolos van en el Kconfig.ext de los device modules: es el fichero que
+# SI se sourcea siempre en el build (anadirlos al Kconfig del subdirectorio
+# no llegaba al arbol de configuracion).
+KEXT="$DM/Kconfig.ext"
 
 for pair in $DIRS; do
   d="${pair%%:*}"
-  sym="${pair##*:}"
+  rest="${pair#*:}"
+  sym="${rest%%:*}"
+  desc="${rest#*:}"
   [ -d "$SRC/$d" ] || continue
 
   rm -rf "$PS/$d"
@@ -35,12 +44,22 @@ for pair in $DIRS; do
     printf '%s\n' "$line" >> "$file"
   }
 
-  grep -q "drivers/power/supply/$d/Kconfig" "$K" ||
-    append "$K" "source \"\$(KCONFIG_EXT_PREFIX)drivers/power/supply/$d/Kconfig\""
+  grep -q "^config $sym" "$KEXT" || {
+    {
+      echo
+      echo "# --- ruby: driver de carga $desc ---"
+      echo "config $sym"
+      echo "	tristate \"$desc\""
+      echo "	help"
+      echo "	  Driver de carga de Xiaomi ruby portado desde el 4.19."
+    } >> "$KEXT"
+  }
 
   grep -q "CONFIG_$sym) += $d/" "$M" ||
     append "$M" "obj-\$(CONFIG_$sym) += $d/"
 done
+
+./scripts/apply-ruby-fragment.sh configs/ruby-6.6/charger.fragment "$DM"
 
 echo "[charger] drivers de carga de ruby aplicados en $PS"
 grep -E 'RUBY_' "$M" || true

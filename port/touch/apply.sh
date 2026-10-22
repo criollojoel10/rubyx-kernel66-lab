@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # Aplica el driver del tactil de ruby (Focaltech FT3680 por SPI) al arbol 6.6.
+#
+# El simbolo de Kconfig se declara en el Kconfig.ext de los device modules
+# (fichero que SI se sourcea siempre) y no en el Kconfig del subdirectorio:
+# anadir un "source" al Kconfig del subdirectorio no llega al arbol de
+# configuracion que usa el build.
+#
 # Uso: ./port/touch/apply.sh [ruta/a/kernel_device_modules-6.6]
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -14,10 +20,16 @@ SRC="port/touch/focaltech_3680"
 rm -rf "$TS/focaltech_3680"
 cp -a "$SRC" "$TS/focaltech_3680"
 
-K="$TS/Kconfig"
-if ! grep -q 'focaltech_3680/Kconfig' "$K"; then
+K="$DM/Kconfig.ext"
+if ! grep -q '^config TOUCHSCREEN_FOCALTECH_3680' "$K"; then
   cat >> "$K" <<'EOF'
-source "$(KCONFIG_EXT_PREFIX)drivers/input/touchscreen/focaltech_3680/Kconfig"
+
+# --- ruby: tactil Focaltech FT3680 por SPI3 (port desde el 4.19) ---
+config TOUCHSCREEN_FOCALTECH_3680
+	tristate "Focaltech FT3680 touchscreen (SPI)"
+	help
+	  Driver del panel tactil Focaltech FT3680 que monta el
+	  Xiaomi ruby (m16) sobre SPI3. Portado desde el 4.19.
 EOF
 fi
 
@@ -26,4 +38,7 @@ if ! grep -q 'focaltech_3680/' "$M"; then
   echo 'obj-$(CONFIG_TOUCHSCREEN_FOCALTECH_3680) += focaltech_3680/' >> "$M"
 fi
 
+./scripts/apply-ruby-fragment.sh configs/ruby-6.6/touch.fragment "$DM"
+
 echo "[touch] driver FT3680 aplicado en $TS/focaltech_3680"
+grep -n 'TOUCHSCREEN_FOCALTECH_3680' "$K" | head -2
