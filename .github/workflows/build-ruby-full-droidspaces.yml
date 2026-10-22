@@ -1,0 +1,123 @@
+name: Build ruby kernel completo con Droidspaces
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 420
+    steps:
+      - name: Checkout laboratorio
+        uses: actions/checkout@v4
+
+      - name: Liberar espacio
+        run: |
+          set +e
+          sudo apt-get remove --purge -y 'php*' 'dotnet*' 'mysql*' 'nodejs*' 'clang*' 'google*'
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          for d in /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                   /opt/hostedtoolcache/CodeQL /usr/local/share/boost; do
+            sudo rm -rf "$d"
+          done
+          set -e
+          df -h
+
+      - name: Dependencias
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl wget ca-certificates gnupg python3 python3-pip \
+            bc bison flex cpio libssl-dev libelf-dev lz4 zstd unzip patch
+          git config --global user.name "rubyx-kernel66-lab"
+          git config --global user.email "lab@users.noreply.github.com"
+
+      - name: Caché Bazel + Clang
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
+            ~/.cache/ruby/clang-r536225
+          key: a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('port/**') }}-${{ hashFiles('scripts/apply-ruby-fragment.sh') }}-${{ github.sha }}
+          restore-keys: |
+            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+
+      - name: Fetch A34
+        run: make fetch
+
+      - name: Aplicar todos los ports de ruby
+        run: ./port/apply-all.sh
+
+      - name: Conectar los device modules con el kbuild del GKI
+        run: ./scripts/patch-gki-mtk-drm.sh sources/a34x full
+
+      - name: Parche kABI de Droidspaces
+        run: ./scripts/apply-droidspaces-kabi.sh
+
+      - name: Opciones de Droidspaces (GKI)
+        run: ./scripts/patch-gki-core.sh configs/ruby-6.6/droidspaces-gki.fragment
+
+      - name: Build del kernel de producto
+        run: make build-fast
+
+      - name: Verificar los drivers de ruby
+        run: |
+          set -e
+          # 1) display, tactil y TEE van built-in (=y) como en el kernel stock
+          echo "== simbolos built-in"
+          for sym in m16_36_02_0b fts_ts isee tz_driver mp2762 ln8410 bq25980 sc8561 max77932 xmusb350; do
+            if grep -qi "$sym" artifacts/a34-6.6.127/System.map; then
+              echo "OK  $sym"
+            else
+              echo "FALTA $sym"
+            fi
+          done
+          grep -qi "m16_36_02_0b" artifacts/a34-6.6.127/System.map || exit 1
+          grep -qi "fts_ts" artifacts/a34-6.6.127/System.map || exit 1
+          grep -qi "tz_driver" artifacts/a34-6.6.127/System.map || exit 1
+
+          # 2) los cargadores son modulos
+          echo "== modulos"
+          tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst > /tmp/mods.txt
+          for ko in \
+            drivers/power/supply/mps/mp2762.ko \
+            drivers/power/supply/ln/ln8410.ko \
+            drivers/power/supply/ti/bq25980.ko \
+            drivers/power/supply/southchip/sc8561.ko \
+            drivers/power/supply/maxim/max77932.ko \
+            drivers/power/supply/xiaomi/xmusb350.ko ; do
+            grep -q "$ko" /tmp/mods.txt || { echo "FALTA $ko"; exit 1; }
+            echo "OK  $ko"
+          done
+
+      - name: Verificar las opciones de Droidspaces
+        run: |
+          grep -E '^CONFIG_(SYSVIPC|POSIX_MQUEUE|IPC_NS|PID_NS|DEVTMPFS|NETFILTER_XT_MATCH_ADDRTYPE)=y' artifacts/a34-6.6.127/device-modules.config
+          gunzip -c configs/ruby-6.6/kabi-baseline.symvers.gz > /tmp/baseline.symvers
+          python3 scripts/check-kabi.py /tmp/baseline.symvers artifacts/a34-6.6.127/Module.symvers
+
+      - name: Verificar la config
+        run: |
+          grep -E '^CONFIG_(DRM_PANEL_M16_36_02_0B_DSC_VDO|TOUCHSCREEN_FOCALTECH_3680|RUBY_MP2762|RUBY_LN8410|RUBY_BQ25980|RUBY_SC8561|RUBY_MAX77932|RUBY_XMUSB350)=m' artifacts/a34-6.6.127/device-modules.config
+          grep -E '^CONFIG_MICROTRUST_TEE_SUPPORT=m' artifacts/a34-6.6.127/device-modules.config
+
+      - name: Subir artefactos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-full-droidspaces
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Subir logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-full-droidspaces-logs
+          path: logs/
+          if-no-files-found: warn
