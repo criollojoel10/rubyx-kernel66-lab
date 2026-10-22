@@ -1,0 +1,55 @@
+name: Diagnose cache
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout laboratorio
+        uses: actions/checkout@v4
+
+      - name: Estado del cache antes
+        run: |
+          ls -la ~/.cache 2>/dev/null || echo "no existe ~/.cache"
+
+      - name: Restaurar cache (misma config que los builds)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
+            ~/.cache/ruby/clang-r536225
+          key: diag-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            ds-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            core-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            kabi-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            mt-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            panel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            fast-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            bazel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+
+      - name: Estado del cache despues
+        run: |
+          echo "--- ~/.cache:"
+          ls -la ~/.cache 2>/dev/null || echo "no existe"
+          echo "--- tamanos:"
+          du -sh ~/.cache/* 2>/dev/null || true
+          echo "--- contenido de bazel-disk (muestra):"
+          ls ~/.cache/bazel-disk 2>/dev/null | head -5 || echo "vacio"
+          echo "--- clang:"
+          ls ~/.cache/ruby/clang-r536225/bin 2>/dev/null | head -5 || echo "no hay clang"
+
+      - name: Listar caches del repo
+        run: |
+          gh api repos/criollojoel10/rubyx-kernel66-lab/actions/caches \
+            --jq '.actions_caches[] | "\(.created_at) \(.size_in_bytes) \(.key)"' || true
+        env:
+          GH_TOKEN: ${{ github.token }}
