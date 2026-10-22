@@ -41,6 +41,9 @@ CONFIG_SND_SOC_MT6877_MT6359P=y
 # el codec sale del driver vendor de los device modules, colgado del simbolo
 # de la card (los CONFIG_DEVICE_MODULES_* no existen en la config del GKI)
 CONFIG_SND_SMARTPA_AW882XX=y
+# el MT6359 es un MFD: sin su driver no se crea el device "mt6359-sound" y el
+# codec nunca sondea (en el stock va como modulo y se carga aparte)
+CONFIG_MFD_MT6397=y
 
 # El vibrador (aw8697) sigue pendiente: no compila todavia.
 # CONFIG_INPUT_AW8697_HAPTIC=y

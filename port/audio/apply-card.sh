@@ -234,10 +234,30 @@ viejo = """#if IS_ENABLED(CONFIG_DEVICE_MODULES_SND_SOC_MT6359P)
 #elif IS_ENABLED(CONFIG_DEVICE_MODULES_SND_SOC_MT6359)
 #include "mt6359.h"
 #endif"""
+cambiado = False
 if viejo in t:
     t = t.replace(viejo, '#include "mt6359p.h"', 1)
-    p.write_text(t)
+    cambiado = True
     print("   mt6359.c: include de mt6359p.h")
+if "ruby: el MFD mt6397" not in t:
+    ancla = '#include "mt6359p.h"'
+    if ancla not in t:
+        sys.exit("mt6359.c: no encuentro el include de mt6359p.h")
+    extra = "\n".join([
+        '#include "mt6359p.h"',
+        '',
+        '/* ruby: el MFD mt6397 de 6.6 crea el device "mt6359-sound" (celda sin',
+        ' * of_compatible), asi que el driver tiene que declararse con ese nombre;',
+        ' * si no, el codec nunca sondea y no hay sound card. */',
+        '#undef DEVICE_MT6359_NAME',
+        '#define DEVICE_MT6359_NAME "mt6359-sound"',
+        '',
+    ])
+    t = t.replace(ancla, extra, 1)
+    cambiado = True
+    print("   mt6359.c: device name mt6359-sound (MFD mt6397)")
+if cambiado:
+    p.write_text(t)
 PY
   python3 - "$CODECS/Makefile" <<'PY'
 import sys
