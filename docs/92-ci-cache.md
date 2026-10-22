@@ -102,3 +102,12 @@ disco), por lo que el build debe bajar a **~10-15 min**.
     '.actions_caches[] | "\(.id) \(.created_at) \(.key)"'
   gh api -X DELETE repos/criollojoel10/rubyx-kernel66-lab/actions/caches/<id>
   ```
+
+## Verificacion (2026-10-22)
+
+Con el prefijo unificado `a34-<manifest>-` el paso de cache paso de 0 s
+(sin restaurar) a **23 s** (restaurando 1,68 GB), y se genero la entrada
+compartida `a34-951210ca...-e1...` que usan ya todos los workflows.
+Los prefijo antiguos (`ds-`, `core-`, `kabi-`, `fast-`, `storage-`) siguen
+en restore-keys como respaldo y se pueden borrar cuando el compartido este
+estable (limite de 10 GB del repo).
