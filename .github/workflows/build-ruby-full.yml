@@ -72,45 +72,70 @@ jobs:
           IMG=artifacts/a34-6.6.127/Image
           CFG=artifacts/a34-6.6.127/config
 
-          # 1) los drivers built-in dejan su cadena de compatible en el Image;
-          #    es mas fiable que buscar simbolos (casi todos son static)
+          # 1) drivers built-in: su cadena de compatible viaja en el Image.
+          #    El audio de MT6877 no esta aqui: va como .ko del arbol de
+          #    device modules (se comprueba abajo, en el tar de modulos).
           echo "== cadenas de compatible en el Image"
           for s in \
-            "mediatek,mt6877-mt6359-sound" \
             "panel-m16-42-0d-0a-dsc-vdo" \
             "focaltech,3680-spi" \
-            "goodix,goodix-fp" \
-            "aw882xx" ; do
+            "goodix,goodix-fp" ; do
             strings "$IMG" | grep -qF "$s" \
               && echo "OK  $s" \
               || { echo "FALTA $s"; exit 1; }
           done
 
-          # 2) la config que el Image lleva dentro, si el IKCONFIG esta activo
+          # 2) built-in (=y) en la config que lleva el Image
           if [ -s "$CFG" ]; then
-            echo "== config del Image"
+            echo "== config del Image (built-in)"
             for sym in \
               CONFIG_DRM_MEDIATEK_V2 \
               CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO \
               CONFIG_TOUCHSCREEN_FOCALTECH_3680 \
               CONFIG_GOODIX_CAP_FINGERPRINT \
-              CONFIG_MICROTRUST_TEE_SUPPORT \
-              CONFIG_SND_SOC_MEDIATEK \
-              CONFIG_SND_SOC_MT6877 \
-              CONFIG_SND_SOC_MT6877_MT6359P \
-              CONFIG_SND_SMARTPA_AW882XX ; do
+              CONFIG_MICROTRUST_TEE_SUPPORT ; do
               grep -qx "$sym=y" "$CFG" \
-                && echo "OK  $sym" \
+                && echo "OK  $sym=y" \
                 || { echo "FALTA $sym=y"; exit 1; }
+            done
+
+            # 3) la cadena de audio de MT6877 va como modulos y se compila en
+            #    el arbol de device modules; si desaparece de la config, el
+            #    build la ignora en silencio (olddefconfig)
+            echo "== config del audio (=m)"
+            for sym in \
+              CONFIG_DEVICE_MODULES_SND_SOC_MEDIATEK \
+              CONFIG_DEVICE_MODULES_SND_SOC_MT6359P \
+              CONFIG_SND_SOC_MTK_SMART_PHONE \
+              CONFIG_SND_SOC_MTK_SRAM \
+              CONFIG_SND_SOC_MT6877 \
+              CONFIG_SND_SOC_MT6877_MT6359P ; do
+              grep -qx "$sym=m" "$CFG" \
+                && echo "OK  $sym=m" \
+                || { echo "FALTA $sym=m"; exit 1; }
             done
           else
             echo "AVISO: el Image no lleva config (IKCONFIG), me quedo con las cadenas"
           fi
 
-          # 3) el TEE no puede haberse colado como modulo: si existe isee.ko,
-          #    el arbol de device modules lo compilo y el build esta mal
+          # 4) los .ko de ruby tienen que estar en el tar de modulos, y el TEE
+          #    no puede haberse colado como modulo (isee.ko va built-in)
           echo "== modulos"
           tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst > /tmp/mods.txt
+          for ko in \
+            "sound/soc/mediatek/mt6877/mt6877-mt6359.ko" \
+            "sound/soc/mediatek/mt6877/snd-soc-mt6877-afe.ko" \
+            "sound/soc/mediatek/common/snd-soc-mtk-common.ko" \
+            "sound/soc/codecs/snd-soc-mt6359.ko" ; do
+            grep -qF "$ko" /tmp/mods.txt \
+              && echo "OK  $ko" \
+              || { echo "FALTA $ko"; exit 1; }
+          done
+          if grep -qF "sound/soc/mediatek/common/mtk-afe-external.ko" /tmp/mods.txt; then
+            echo "OK  mtk-afe-external.ko"
+          else
+            echo "AVISO: falta mtk-afe-external.ko (SMART_PHONE)"
+          fi
           if grep -q 'teei/400/isee.ko' /tmp/mods.txt; then
             echo "FALTA: isee.ko esta como modulo (el TEE va built-in)"
             exit 1
