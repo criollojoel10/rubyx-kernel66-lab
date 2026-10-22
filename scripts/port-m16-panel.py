@@ -108,6 +108,16 @@ def emit_inc(entries, panel: str) -> str:
         if cmd == "REGFLAG_UDELAY":
             lines.append(f"\tudelay({delay});")
             continue
+        if cmd == "REGFLAG_END_OF_TABLE":
+            # sentinela de fin de tabla: no es un comando DCS
+            lines.append("\t/* fin de la tabla DCS */")
+            continue
+        if cmd == "REGFLAG_RESET_LOW":
+            lines.append("\t/* reset bajo */")
+            continue
+        if cmd == "REGFLAG_RESET_HIGH":
+            lines.append("\t/* reset alto */")
+            continue
         args = ", ".join([cmd] + plist)
         lines.append(f"\tlcm_dcs_write_seq_static(ctx, {args});")
     lines.append("")

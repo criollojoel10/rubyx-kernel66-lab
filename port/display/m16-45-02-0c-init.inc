@@ -78,4 +78,4 @@
 	lcm_dcs_write_seq_static(ctx, 0xBE, 0xC5);
 	lcm_dcs_write_seq_static(ctx, 0xF0, 0x55, 0xAA, 0x52, 0x00, 0x00);
 	lcm_dcs_write_seq_static(ctx, 0xFF, 0xAA, 0x55, 0xA5, 0x00);
-	lcm_dcs_write_seq_static(ctx, REGFLAG_END_OF_TABLE);
+	/* fin de la tabla DCS */
