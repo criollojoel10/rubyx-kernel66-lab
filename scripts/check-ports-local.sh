@@ -97,8 +97,8 @@ for o in "${OBJETIVOS[@]}"; do
     xmusb350) sym=CONFIG_RUBY_XMUSB350 ;;
     teei) sym=CONFIG_MICROTRUST_TEE_SUPPORT ;;
     mediatek_v2) sym=CONFIG_DRM_MEDIATEK_V2 ;;
-    aw882xx) sym=CONFIG_SND_SOC_AW882XX ;;
-    aw8697) sym=CONFIG_DRIVER_AW8697 ;;
+    aw882xx) sym=CONFIG_SND_SMARTPA_AW882XX ;;
+    aw8697) sym=CONFIG_INPUT_AW8697_HAPTIC ;;
   esac
   if ! grep -qE "^${sym}=(m|y)" .config; then
     echo "   --  $nombre: deshabilitado en el config ($sym)"

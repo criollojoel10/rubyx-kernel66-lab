@@ -20,23 +20,16 @@ SRC="port/audio"
 rm -rf "$GKI/sound/soc/codecs/aw882xx"
 cp -a "$SRC/aw882xx" "$GKI/sound/soc/codecs/aw882xx"
 
+# el Kconfig y el Makefile son los del 4.19 (simbolos
+# CONFIG_SND_SMARTPA_AW882XX); solo hay que sourcearlos. La ruta del
+# source es relativa a la raiz del package (no al directorio del Kconfig).
 KC="$GKI/sound/soc/codecs/Kconfig"
-if [ -f "$KC" ] && ! grep -q 'aw882xx/Kconfig' "$KC"; then
-  echo 'source "aw882xx/Kconfig"' >> "$KC"
+if [ -f "$KC" ] && ! grep -q 'sound/soc/codecs/aw882xx/Kconfig' "$KC"; then
+  echo 'source "sound/soc/codecs/aw882xx/Kconfig"' >> "$KC"
 fi
 MK="$GKI/sound/soc/codecs/Makefile"
 if [ -f "$MK" ] && ! grep -q 'aw882xx/' "$MK"; then
-  echo 'obj-$(CONFIG_SND_SOC_AW882XX) += aw882xx/' >> "$MK"
-fi
-if [ ! -f "$GKI/sound/soc/codecs/aw882xx/Kconfig" ]; then
-  cat > "$GKI/sound/soc/codecs/aw882xx/Kconfig" <<'EOF'
-config SND_SOC_AW882XX
-	tristate "Awinic AW882XX smart amplifier"
-	depends on I2C
-	select SND_SOC_COMPONENT
-	help
-	  Driver del altavoz (Awinic AW882xx) del Xiaomi ruby.
-EOF
+  echo 'obj-$(CONFIG_SND_SMARTPA_AW882XX) += aw882xx/' >> "$MK"
 fi
 
 # --- vibrador -------------------------------------------------------------
@@ -44,16 +37,10 @@ rm -rf "$GKI/drivers/input/misc/aw8697_haptic"
 cp -a "$SRC/aw8697_haptic" "$GKI/drivers/input/misc/aw8697_haptic"
 
 if [ -f "$GKI/drivers/input/misc/Kconfig" ] && ! grep -q 'aw8697_haptic' "$GKI/drivers/input/misc/Kconfig"; then
-  cat >> "$GKI/drivers/input/misc/Kconfig" <<'EOF'
-
-config DRIVER_AW8697
-	tristate "AW8697 haptic driver"
-	help
-	  Driver del motor de vibracion (Awinic AW8697) del Xiaomi ruby.
-EOF
+  echo 'source "drivers/input/misc/aw8697_haptic/Kconfig"' >> "$GKI/drivers/input/misc/Kconfig"
 fi
 if [ -f "$GKI/drivers/input/misc/Makefile" ] && ! grep -q 'aw8697_haptic' "$GKI/drivers/input/misc/Makefile"; then
-  echo 'obj-$(CONFIG_DRIVER_AW8697) += aw8697_haptic/' >> "$GKI/drivers/input/misc/Makefile"
+  echo 'obj-$(CONFIG_INPUT_AW8697_HAPTIC) += aw8697_haptic/' >> "$GKI/drivers/input/misc/Makefile"
 fi
 
 echo "[audio] altavoz y vibrador aplicados en $GKI"
