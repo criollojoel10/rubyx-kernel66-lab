@@ -60,6 +60,23 @@ Por eso nuestros ports de panel, tactil y carga tienen que aplicarse a
 GKI. Si se aplican a los device modules, el .ko no se construye nunca y
 Kleaf falla con "Unable to find <modulo>.ko".
 
+Referencias que lo confirman (arbol MTK 6.6 publico de MT6877):
+
+```
+kernel_device_modules-6.6/drivers/input/Makefile        NO EXISTE
+kernel_device_modules-6.6/drivers/gpu/drm/Makefile       NO EXISTE
+kernel_device_modules-6.6/drivers/power/Makefile        NO EXISTE
+kernel_device_modules-6.6/drivers/power/supply/Makefile EXISTE
+kernel-6.6/drivers/{input,gpu/drm,power}/Makefile       EXISTEN
+```
+
+Es decir: en MTK 6.6 los drivers de display, tactil y alimentacion se
+compilan desde el **GKI** (que produce `.ko` para los simbolos en `m`), y el
+TEE (TEEI) desde los device modules. El target de Kleaf
+`mgk_64_k66_modules.user` tiene como `outs` la lista
+`mgk_64_device_modules`, y su staging es compartido, asi que un `.ko`
+compilado en el GKI tambien se recoge si esta en esa lista.
+
 Validado en local reproduciendo el merge exacto del build:
 
 ```
