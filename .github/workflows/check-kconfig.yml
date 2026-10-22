@@ -53,15 +53,11 @@ jobs:
           set -e
           cd sources/a34x/kernel/kernel-6.6
           export KCONFIG_EXT_PREFIX=../kernel_device_modules-6.6/
-          make ARCH=arm64 LLVM=1 -j$(nproc) scripts/kconfig/conf
+          make -C scripts/kconfig conf HOSTCC=gcc
           DM=../kernel_device_modules-6.6
           ./scripts/kconfig/conf \
             --defconfig=$DM/arch/arm64/configs/mediatek-bazel_defconfig \
             /tmp/test.config
-          for f in panel touch charger; do
-            ./scripts/kconfig/merge_config.sh -m -O /tmp/test.config \
-              /tmp/test.config $OLDPWD/configs/ruby-6.6/$f.fragment
-          done
           echo "=== simbolos de nuestros ports en el .config:"
           grep -E 'TOUCHSCREEN_FOCALTECH_3680|DRM_PANEL_M16_36_02_0B_DSC_VDO|RUBY_(MP2762|LN8410|BQ25980|SC8561|MAX77932|XMUSB350)' /tmp/test.config || {
             echo "FALTAN LOS SIMBOLOS: el Kconfig no los expone"; exit 1; }
