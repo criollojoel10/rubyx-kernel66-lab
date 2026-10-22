@@ -74,4 +74,22 @@ for h in include/uapi/drm/mediatek_drm.h \
   fi
 done
 
+# El header UAPI de MTK usa uint32_t/bool pero no incluye los tipos base:
+# con clang (PCH) falla con "unknown type name 'uint32_t'". Se hace
+# autosuficiente.
+UAPI="$GKI/include/uapi/drm/mediatek_drm.h"
+if [ -f "$UAPI" ] && ! grep -q 'linux/types.h' "$UAPI"; then
+  python3 - "$UAPI" <<'PYEOF'
+import sys
+p = sys.argv[1]
+lines = open(p).read().splitlines(keepends=True)
+for i, l in enumerate(lines):
+    if l.startswith("#include"):
+        lines.insert(i, "#include <linux/types.h>\n")
+        break
+open(p, "w").write("".join(lines))
+PYEOF
+  echo "[mtk-drivers] include/uapi/drm/mediatek_drm.h: añadida linux/types.h"
+fi
+
 echo "[mtk-drivers] listo"
