@@ -56,6 +56,11 @@ mkdir -p "$TMP/root"
     chmod 755 bctool
   fi
 
+  # ficheros de init del GPS (stack GNSS de MTK 6.6) y de lo demas
+  if [ -x "$REPO/scripts/pack-init-rc.sh" ]; then
+    "$REPO/scripts/pack-init-rc.sh" . 2>/dev/null || true
+  fi
+
   find . -print0 | cpio --null -o -H newc > "$TMP/new.cpio" 2>/dev/null
 )
 lz4 -l -9 -f "$TMP/new.cpio" "$OUT" >/dev/null
