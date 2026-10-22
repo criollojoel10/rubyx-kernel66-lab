@@ -95,3 +95,28 @@ Cruce de compatibles (DTB de ruby -> driver en el GKI 6.6 del A34):
 `CONFIG_DEVICE_MODULES_CHARGER_MT6360`), asi que los ports de carga no son
 necesarios para que el telefono cargue. `port/charger/` queda como
 referencia por si se quiere el soporte completo de USB-PD.
+
+## GPS: el A34 ya trae el stack completo de MTK 6.6
+
+El arbol del A34 incluye `vendor/mediatek/kernel_modules/connectivity/` con
+`gps/{gps_stp,data_link,gps_pwr,gps_scp}`, `conninfra` y `common` (el
+framework OSAL). Se compilan como modulos externos (M=) contra el GKI, con
+`CONFIG_MTK_GPS_SUPPORT=y` (ya activo en el build de referencia) y
+`CONFIG_MTK_COMBO_GPS=m`.
+
+En el dispositivo (kernel stock) el GPS funciona:
+
+```
+mnld            (proceso, usuario gps)
+mtk_agpsd       (proceso, usuario gps)
+/dev/gpsdl0 /dev/gpsdl1 /dev/gps_emi /dev/socket/mnld
+```
+
+El driver va built-in en el kernel stock, asi que no aparece en el dmesg con
+el nombre del modulo, pero los nodos y los servicios existen.
+
+**Conclusion**: no hay que portar nada de GPS; basta con que el build de
+producto compile el stack de vendor (ya esta en el build.config del A34:
+`../vendor/mediatek/kernel_modules/connectivity/gps/{gps_stp,data_link,
+gps_pwr,gps_scp}`) y con que el ramdisk cargue esos .ko y arranque
+`mnld` y `mtk_agpsd`.
