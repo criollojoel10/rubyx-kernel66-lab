@@ -21,8 +21,8 @@ ART="artifacts/ci-$RUN"
 if [ ! -d "$ART/a34-6.6.127" ]; then
   mkdir -p "$ART"
   NAME=$(gh run view -R criollojoel10/rubyx-kernel66-lab "$RUN" --json artifacts \
-          --jq '.artifacts[] | select(.name|startswith("ruby-full")) | .name' | head -1)
-  [ -n "$NAME" ] || { echo "no hay artefacto 'ruby-full*' en el run $RUN" >&2; exit 1; }
+          --jq '.artifacts[] | select(.name|startswith("ruby-")) | select(.name|endswith("logs")|not) | .name' | head -1)
+  [ -n "$NAME" ] || { echo "no hay artefacto 'ruby-*' en el run $RUN" >&2; exit 1; }
   gh run download -R criollojoel10/rubyx-kernel66-lab "$RUN" -n "$NAME" -D "$ART"
 fi
 

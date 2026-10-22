@@ -1,0 +1,38 @@
+# Kernel de release de ruby: display + tactil + carga + Droidspaces.
+#
+# Los simbolos de Droidspaces (IPC_NS, PID_NS, SYSVIPC...) requieren el parche
+# kABI oficial (scripts/apply-droidspaces-kabi.sh) aplicado al GKI.
+
+# --- display ---
+CONFIG_DRM_MEDIATEK_V2=y
+CONFIG_DRM_MEDIATEK=n
+CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=m
+
+# --- tactil ---
+CONFIG_TOUCHSCREEN_FOCALTECH_3680=m
+
+# --- carga ---
+CONFIG_RUBY_MP2762=m
+CONFIG_RUBY_LN8410=m
+CONFIG_RUBY_BQ25980=m
+CONFIG_RUBY_SC8561=m
+CONFIG_RUBY_MAX77932=m
+CONFIG_RUBY_XMUSB350=m
+
+# --- TEE (Microtrust TEEI 400) ---
+CONFIG_MICROTRUST_TEE_SUPPORT=m
+CONFIG_MICROTRUST_TEE_VERSION="400"
+CONFIG_MICROTRUST_TZ_DRIVER=y
+CONFIG_MICROTRUST_VFS_DRIVER=y
+CONFIG_MICROTRUST_FP_DRIVER=y
+CONFIG_MICROTRUST_KEYMASTER_DRIVER=y
+
+# --- Droidspaces (doc oficial: droidspaces.org/docs/kernel-configuration) ---
+CONFIG_SYSVIPC=y
+CONFIG_POSIX_MQUEUE=y
+CONFIG_IPC_NS=y
+CONFIG_PID_NS=y
+CONFIG_USER_NS=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y

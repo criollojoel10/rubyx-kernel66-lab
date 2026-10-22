@@ -42,7 +42,8 @@ echo "== tee (Microtrust TEEI 400)"
 ./scripts/patch-mtk-tee-config.sh
 
 echo "== config (fragmento combinado)"
-./scripts/apply-ruby-fragment.sh configs/ruby-6.6/full.fragment
+FRAG="${RUBY_FRAGMENT:-configs/ruby-6.6/full.fragment}"
+./scripts/apply-ruby-fragment.sh "$FRAG"
 
 echo "== lista de Kleaf sin los .ko de TEEGRIS (el TEE va built-in)"
 ./scripts/patch-kleaf-tee-builtin.py "${1:-sources/a34x}"
