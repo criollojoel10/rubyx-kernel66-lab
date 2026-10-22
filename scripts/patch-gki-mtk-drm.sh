@@ -31,13 +31,18 @@ if not EXT.exists():
     sys.exit(f"falta {EXT}; ejecuta make fetch")
 
 text = EXT.read_text()
+# En el arbol del A34 los device modules viven en kernel/kernel_device_modules-6.6
+# (en el arbol oficial de MTK serian un hermano del GKI, por eso MTK usa
+# $(DEVICE_MODULES_REL_DIR) y aqui hay que poner la ruta a mano).
+DM_REL = "../kernel/kernel_device_modules-6.6"
+
 lines = [
     "# --- ruby: drivers del arbol de device modules ---",
-    "obj-y += ../$(DEVICE_MODULES_REL_DIR)/drivers/tee/",
+    f"obj-y += {DM_REL}/drivers/tee/",
 ]
 if MODO == "full":
     # mediatek_v2 (la API de panel que usan el m16 y el FT3680)
-    lines.append("obj-y += ../$(DEVICE_MODULES_REL_DIR)/drivers/gpu/drm/mediatek/")
+    lines.append(f"obj-y += {DM_REL}/drivers/gpu/drm/mediatek/")
 lines.append("")
 nuevo = "\n".join(lines)
 if "ruby: drivers del arbol de device modules" in text:
