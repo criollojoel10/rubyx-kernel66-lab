@@ -49,4 +49,18 @@ if [ -f "$DEFCONFIG" ]; then
   fi
 fi
 
+# sign.config es el ULTIMO fragmento del merge, asi que lo que pongamos ahi
+# gana sobre cualquier overlay (incluido el de TEEGRIS, que apaga Microtrust).
+SIGN="$DM/kernel/configs/sign.config"
+if [ -f "$SIGN" ]; then
+  if ! grep -qF "$MARK" "$SIGN"; then
+    {
+      echo
+      echo "$MARK"
+      echo "$LINES"
+    } >> "$SIGN"
+    echo "[cfg] $(basename "$FRAG") -> sign.config (ultimo fragmento)"
+  fi
+fi
+
 echo "[cfg] $(basename "$FRAG") -> $(basename "$OVERLAY")"

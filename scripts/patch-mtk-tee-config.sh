@@ -55,6 +55,19 @@ if [ -f "$DEFCONFIG" ]; then
   fi
 fi
 
+# sign.config es el ultimo fragmento del merge: lo que se ponga ahi gana.
+SIGN="sources/a34x/kernel/kernel_device_modules-6.6/kernel/configs/sign.config"
+if [ -f "$SIGN" ]; then
+  if ! grep -qF "# --- ruby: Microtrust 400 (TEE real de ruby) ---" "$SIGN"; then
+    {
+      echo
+      echo "# --- ruby: Microtrust 400 (TEE real de ruby) ---"
+      grep -E '^CONFIG_MICROTRUST' "$O"
+    } >> "$SIGN"
+    echo "[tee] Microtrust 400 anadido a sign.config"
+  fi
+fi
+
 grep -E 'MICROTRUST|TEEGRIS' "$O"
 
 # ---------------------------------------------------------------------------

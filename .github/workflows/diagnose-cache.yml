@@ -25,16 +25,9 @@ jobs:
             ~/.cache/bazel-disk
             ~/.cache/bazel-repo
             ~/.cache/ruby/clang-r536225
-          key: a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ github.sha }}
+          key: a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('port/**', 'configs/ruby-6.6/*', 'scripts/patch-*.py') }}-${{ github.sha }}
           restore-keys: |
-            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            ds-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            core-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            kabi-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            mt-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            panel-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            fast-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            bazel-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('port/**', 'configs/ruby-6.6/*', 'scripts/patch-*.py') }}-
       - name: Estado del cache despues
         run: |
           echo "--- ~/.cache:"

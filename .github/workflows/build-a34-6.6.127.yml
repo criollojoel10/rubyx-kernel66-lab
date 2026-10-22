@@ -45,16 +45,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/bazel-disk
-          key: a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ github.sha }}
+          key: a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('port/**', 'configs/ruby-6.6/*', 'scripts/patch-*.py') }}-${{ github.sha }}
           restore-keys: |
-            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            ds-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            core-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            kabi-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            mt-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            panel-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            fast-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            bazel-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('port/**', 'configs/ruby-6.6/*', 'scripts/patch-*.py') }}-
       - name: Fetch A34 6.6.127 (tag y submódulo fijados)
         run: make fetch
 
