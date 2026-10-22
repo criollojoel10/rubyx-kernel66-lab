@@ -53,13 +53,11 @@ jobs:
           set -e
           cd sources/a34x/kernel/kernel-6.6
           export KCONFIG_EXT_PREFIX=../kernel_device_modules-6.6/
-          make -C scripts/kconfig conf HOSTCC=gcc
           DM=../kernel_device_modules-6.6
-          ./scripts/kconfig/conf \
-            --defconfig=$DM/arch/arm64/configs/mediatek-bazel_defconfig \
-            /tmp/test.config
+          cp $DM/arch/arm64/configs/mediatek-bazel_defconfig arch/arm64/configs/
+          make ARCH=arm64 LLVM=1 -j$(nproc) mediatek-bazel_defconfig
           echo "=== simbolos de nuestros ports en el .config:"
-          grep -E 'TOUCHSCREEN_FOCALTECH_3680|DRM_PANEL_M16_36_02_0B_DSC_VDO|RUBY_(MP2762|LN8410|BQ25980|SC8561|MAX77932|XMUSB350)' /tmp/test.config || {
+          grep -E 'TOUCHSCREEN_FOCALTECH_3680|DRM_PANEL_M16_36_02_0B_DSC_VDO|RUBY_(MP2762|LN8410|BQ25980|SC8561|MAX77932|XMUSB350)' .config || {
             echo "FALTAN LOS SIMBOLOS: el Kconfig no los expone"; exit 1; }
 
       - name: Comprobar los Makefile
