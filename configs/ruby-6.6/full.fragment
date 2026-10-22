@@ -33,17 +33,23 @@ CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
 # mt6360, que el A34 ya trae (CONFIG_DEVICE_MODULES_CHARGER_MT6360).
 
 # --- audio: card MT6877 + altavoz Awinic aw882xx ---
-# La card de MT6877 vive en los device modules (que no se compilan con
-# ALLOW_BUILTIN=n), asi que port/audio/apply-card.sh la copia al GKI y le
-# engancha el dai_link del altavoz. El port del aw882xx ya compila.
-CONFIG_SND_SOC_MT6877=y
-CONFIG_SND_SOC_MT6877_MT6359P=y
-# el codec sale del driver vendor de los device modules, colgado del simbolo
-# de la card (los CONFIG_DEVICE_MODULES_* no existen en la config del GKI)
-CONFIG_SND_SMARTPA_AW882XX=y
-# el MT6359 es un MFD: sin su driver no se crea el device "mt6359-sound" y el
-# codec nunca sondea (en el stock va como modulo y se carga aparte)
-CONFIG_MFD_MT6397=y
+# El kernel que se arranca lo construye el arbol de device modules
+# (mediatek-bazel_defconfig + este overlay), y el audio del stock va ahi como
+# modulos: la common/ y la card solo se compilan si existe el simbolo
+# DEVICE_MODULES_SND_SOC_MEDIATEK, y mtk-afe-external.ko (que exporta
+# mtk_spk_*, notify_vb_audio_control y los notifier de 3way) solo si esta
+# SMART_PHONE. Sin esos tres, mediatek-drm.ko, adsp-v0.ko, scp.ko,
+# mtk-scp-vow.ko y snd-soc-tfa98xx.ko quedan con simbolos indefinidos.
+CONFIG_DEVICE_MODULES_SND_SOC_MEDIATEK=m
+CONFIG_DEVICE_MODULES_SND_SOC_MT6359P=m
+CONFIG_SND_SOC_MTK_SMART_PHONE=m
+CONFIG_SND_SOC_MTK_SRAM=m
+CONFIG_SND_SOC_MT6877=m
+CONFIG_SND_SOC_MT6877_MT6359P=m
+CONFIG_DEVICE_MODULES_MFD_MT6397=m
+# El port del aw882xx (altavoz) sigue en el arbol del GKI, que este build no
+# compila: hay que moverlo al arbol de device modules antes de reactivarlo.
+# CONFIG_SND_SMARTPA_AW882XX=m
 
 # El vibrador (aw8697) sigue pendiente: no compila todavia.
 # CONFIG_INPUT_AW8697_HAPTIC=y
