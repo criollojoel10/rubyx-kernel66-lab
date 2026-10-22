@@ -26,8 +26,15 @@ clone() {
   fi
 }
 
+KERNEL_REPO="https://github.com/HelloVolla/android_kernel_volla_mt6877.git"
+MODULES_REPO="https://github.com/HelloVolla/android_kernel_device_modules_volla_mt6877.git"
+VENDOR_REPO="https://github.com/HelloVolla/android_kernel_modules_volla_mt6877.git"
+
 clone "$KERNEL_REPO"  "$DEST/kernel"
 clone "$MODULES_REPO" "$DEST/kernel_device_modules"
+# Modulos de vendor de MTK (connectivity: wifi/bt/gps/fm, gpu, mtkcam):
+# el build de MGK los espera en vendor/mediatek/kernel_modules.
+clone "$VENDOR_REPO" "$DEST/vendor/mediatek/kernel_modules"
 
 echo
 echo "[mtk] contenido clave verificado:"
@@ -52,6 +59,9 @@ check "focaltech SPI (FT3519)"       "$DEST/kernel_device_modules/drivers/input/
 check "carga MTK (mtk_charger)"       "$DEST/kernel_device_modules/drivers/power/supply/mtk_charger.c"
 check "DTS mt6877"                   "$DEST/kernel_device_modules/arch/arm64/boot/dts/mediatek/mt6877.dts"
 check "DTS referencia k6877v1_64"     "$DEST/kernel_device_modules/arch/arm64/boot/dts/mediatek/k6877v1_64.dts"
+check "GNSS de MTK (gps_stp)"         "$DEST/vendor/mediatek/kernel_modules/connectivity/gps/gps_stp"
+check "GPU (mali)"                    "$DEST/vendor/mediatek/kernel_modules/gpu"
+check "camara (mtkcam)"               "$DEST/vendor/mediatek/kernel_modules/mtkcam"
 
 grep -m1 '^VERSION\|^PATCHLEVEL\|^SUBLEVEL' "$DEST/kernel/Makefile" | tr '\n' ' '
 echo
