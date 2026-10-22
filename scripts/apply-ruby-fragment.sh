@@ -8,8 +8,8 @@
 # construye). En cambio, editar directamente el overlay de MTK
 # (mt6877_overlay.config) si funciona: es lo que hace el parche de Microtrust.
 #
-# El bloque se reescribe siempre (no solo la primera vez): asi, si cambia el
-# valor de un simbolo del fragment, el overlay no se queda con el viejo.
+# El bloque del fragment se reescribe siempre (no solo la primera vez) y los
+# simbolos que deje de usar un fragment se limpian del resto del fichero.
 #
 # Uso: scripts/apply-ruby-fragment.sh <fragment.config> [overlay.config]
 set -euo pipefail
@@ -25,45 +25,41 @@ OVERLAY="${2:-$DM/kernel/configs/mt6877_overlay.config}"
 [ -f "$OVERLAY" ] || { echo "no existe el overlay: $OVERLAY (¿make fetch?)" >&2; exit 1; }
 
 MARK="# --- ruby: $(basename "$FRAG") ---"
-LINES="$(grep -vE '^\s*#\s*CONFIG_.*is not set\s*$' "$FRAG" | grep -vE '^\s*$')"
+# simbolos que define el fragment (sin comentarios ni lineas vacias)
+SYMS=$(grep -oE '^CONFIG_[A-Za-z0-9_]+' "$FRAG" | sort -u || true)
+LINES=$(grep -vE '^\s*#\s*CONFIG_.*is not set\s*$' "$FRAG" | grep -vE '^\s*$' || true)
 
 # reescribe el bloque identificado por $MARK en el fichero indicado
 set_block() {
   local file="$1" mark="$2" lines="$3"
   [ -f "$file" ] || return 0
-  local tmp; tmp="$(mktemp)"
-  # 1) fuera el bloque anterior (marcador + sus lineas hasta el siguiente
-  #    marcador) y anota los simbolos que tenia, para limpiarlos tambien del
-  #    resto del fichero (si un fragment cambia de simbolo, el viejo se queda
-  #    si no se limpia explicitamente)
-  local prev_syms
-  prev_syms=$(awk -v mark="$mark" '
+
+  # 1) simbolos del bloque anterior (para limpiarlos del resto del fichero)
+  local prev
+  prev=$(awk -v mark="$mark" '
     $0 == mark { skip = 1; next }
     skip && /^# --- / { skip = 0 }
     skip { print; next }
     { print }
-  ' "$file" | grep -oE '^CONFIG_[A-Za-z0-9_]+' | sort -u)
+  ' "$file" | grep -oE '^CONFIG_[A-Za-z0-9_]+' | sort -u || true)
+
+  # 2) fuera el bloque anterior (marcador + sus lineas)
   awk -v mark="$mark" '
     $0 == mark { skip = 1; next }
     skip && /^# --- / { skip = 0 }
     skip { next }
     { print }
-  ' "$file" > "$tmp"
-  local psym
-  for psym in $prev_syms; do
-    # grep -v devuelve 1 si no queda nada: con set -e abortaria el script
-    grep -v "^${psym}=" "$tmp" > "$tmp.2" || true
-    mv "$tmp.2" "$tmp"
-  done
-  # 2) fuera los valores viejos de los simbolos del fragment (por si cambiaron)
+  ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+  # 3) fuera del resto del fichero los simbolos del bloque anterior y los del
+  #    fragment (sed no falla si no encuentra nada)
   local sym
-  for sym in $(printf '%s\n' "$lines" | grep -oE '^CONFIG_[A-Za-z0-9_]+' | sort -u); do
-    grep -v "^${sym}=" "$tmp" > "$tmp.2" || true
-    mv "$tmp.2" "$tmp"
+  for sym in $prev $SYMS; do
+    sed -i "/^${sym}=/d" "$file"
   done
-  # 3) el bloque nuevo
-  { echo; echo "$mark"; echo "$lines"; } >> "$tmp"
-  mv "$tmp" "$file"
+
+  # 4) el bloque nuevo
+  { echo; echo "$mark"; echo "$lines"; } >> "$file"
   echo "[cfg] $(basename "$file") <- $(basename "$FRAG")"
 }
 
@@ -77,4 +73,14 @@ set_block "$DM/arch/arm64/configs/mediatek-bazel_defconfig" "$MARK" "$LINES"
 # gana sobre cualquier overlay (incluido el de TEEGRIS, que apaga Microtrust).
 set_block "$DM/kernel/configs/sign.config" "$MARK" "$LINES"
 
-grep -E '^CONFIG_' "$OVERLAY" | tail -12
+# comprobacion: los simbolos del fragment tienen que estar en los tres sitios
+for f in "$OVERLAY" "$DM/arch/arm64/configs/mediatek-bazel_defconfig" \
+         "$DM/kernel/configs/sign.config"; do
+  [ -f "$f" ] || continue
+  for sym in $SYMS; do
+    grep -q "^${sym}=" "$f" || {
+      echo "[cfg] ERROR: $sym no quedo en $(basename "$f")" >&2
+      exit 1
+    }
+  done
+done
