@@ -32,6 +32,32 @@ if [ -d "$DM/drivers/misc/mediatek/include/mt-plat" ]; then
   echo "[audio] include/mt-plat"
 fi
 
+# 1.5) IDs SMC de MTK que el audio del arbol de device modules necesita y
+#      el header del GKI (KO common) no trae: solo usa MTK_SIP_AUDIO_CONTROL
+#      (0x517) para el arranque del AFE. Sin el define, mt6877-afe-pcm.c y
+#      mt6877-afe-clk.c no compilan. Se anade sin tocar los IDs del GKI.
+SIP="$GKI/include/linux/soc/mediatek/mtk_sip_svc.h"
+if [ -f "$SIP" ]; then
+  python3 - "$SIP" <<'PY'
+import sys
+from pathlib import Path
+
+p = Path(sys.argv[1])
+t = p.read_text()
+if "MTK_SIP_AUDIO_CONTROL" in t:
+    print("[audio] mtk_sip_svc.h ya tiene MTK_SIP_AUDIO_CONTROL")
+else:
+    bloque = (
+        "/* ruby: IDs SMC de MTK que el header del GKI no trae (audio MT6877) */\n"
+        "#define MTK_SIP_AUDIO_CONTROL \\\n"
+        "\tMTK_SIP_SMC_CMD(0x517)\n\n"
+    )
+    i = t.rfind("#endif")
+    p.write_text(t[:i] + bloque + t[i:])
+    print("[audio] MTK_SIP_AUDIO_CONTROL en mtk_sip_svc.h")
+PY
+fi
+
 # 2) dai_link del altavoz aw882xx (del 4.19 de ruby) en la card 6.6
 CARD="$DM/sound/soc/mediatek/mt6877/mt6877-mt6359.c"
 [ -f "$CARD" ] || { echo "no existe $CARD" >&2; exit 1; }
