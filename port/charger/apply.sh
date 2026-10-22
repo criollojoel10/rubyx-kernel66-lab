@@ -35,6 +35,12 @@ for pair in $DIRS; do
 
   rm -rf "$PS/$d"
   cp -a "$SRC/$d" "$PS/$d"
+  # Los simbolos se declaran en el Kconfig.ext de los device modules; aqui
+  # solo queda un Kconfig de cortesia (sin definir el simbolo).
+  cat > "$PS/$d/Kconfig" <<EOF
+# El simbolo $sym se declara en el Kconfig.ext de los device modules
+# (ver port/charger/apply.sh).
+EOF
   # charger_class.h (framework MTK) vive un nivel arriba
   sed -i '1i ccflags-y += -I$(srctree)/$(src)/..' "$PS/$d/Makefile"
 

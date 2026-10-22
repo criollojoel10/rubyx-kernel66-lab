@@ -19,6 +19,12 @@ SRC="port/touch/focaltech_3680"
 
 rm -rf "$TS/focaltech_3680"
 cp -a "$SRC" "$TS/focaltech_3680"
+# El simbolo se declara en el Kconfig.ext de los device modules; aqui solo
+# queda un Kconfig de cortesia (sin definir el simbolo, para no duplicarlo).
+cat > "$TS/focaltech_3680/Kconfig" <<'EOF'
+# El simbolo TOUCHSCREEN_FOCALTECH_3680 se declara en el Kconfig.ext de los
+# device modules (ver port/touch/apply.sh).
+EOF
 
 K="$DM/Kconfig.ext"
 if ! grep -q '^config TOUCHSCREEN_FOCALTECH_3680' "$K"; then
