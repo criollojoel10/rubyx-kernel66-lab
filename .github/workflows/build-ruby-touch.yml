@@ -59,6 +59,9 @@ jobs:
       - name: Aplicar el driver del tactil FT3680
         run: ./port/touch/apply.sh
 
+      - name: Declarar los modulos nuevos en Kleaf
+        run: python3 scripts/patch-kleaf-outs.py drivers/input/touchscreen/focaltech_3680/focaltech_3680.ko
+
       - name: Build con el tactil FT3680
         env:
           RUBY_OVERLAY: configs/ruby-6.6/touch.fragment

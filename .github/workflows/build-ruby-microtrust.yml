@@ -59,6 +59,9 @@ jobs:
       - name: Habilitar Microtrust TEEI 400 en el overlay de TEE
         run: ./scripts/patch-mtk-tee-config.sh
 
+      - name: Declarar los modulos nuevos en Kleaf
+        run: python3 scripts/patch-kleaf-outs.py drivers/tee/teei/400/isee.ko
+
       - name: Build con Microtrust TEEI 400
         env:
           RUBY_OVERLAY: configs/ruby-6.6/microtrust.fragment
