@@ -93,13 +93,16 @@ for o in "${OBJETIVOS[@]}"; do
   fi
 
   printf "   %-12s " "$nombre"
-  out=$(timeout 1800 make -j"$(nproc)" CC=gcc HOSTCC=gcc "$ruta" 2>&1)
-  if [ $? -eq 0 ] && ! echo "$out" | grep -qE '(^|:) error:'; then
+  # build-target-local.sh resuelve solo los headers que falten (copiandolos
+  # al GKI) y devuelve los errores reales de compilacion
+  out=$(cd .. && ./scripts/build-target-local.sh "$ruta" 2>&1)
+  if echo "$out" | grep -q ': OK$'; then
     echo "OK"
+    echo "$out" | grep -E '^\[build\] copiado' | sed 's/^/        /'
   else
     echo "FALLO"
     fallos=$((fallos + 1))
-    echo "$out" | grep -E '(^|:) error:|Error [0-9]|undefined reference|No rule to make' \
+    echo "$out" | grep -E '(^|:) error:|Error [0-9]|undefined reference|No rule to make|fatal error' \
       | head -12 | sed 's/^/        /'
   fi
 done
