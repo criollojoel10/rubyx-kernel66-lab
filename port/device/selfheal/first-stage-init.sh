@@ -15,13 +15,22 @@ echo "RUBYFS slot=$SLOT"
 
 if [ "$SLOT" = "_b" ]; then
   (
-    sleep 90
-    echo "RUBYFS watchdog returning to A"
+    # Espera a que Android confirme el arranque; si no, vuelve al slot A.
+    i=0
+    while [ $i -lt 60 ]; do
+      sleep 5
+      i=$((i + 1))
+      if [ "$(getprop sys.boot_completed 2>/dev/null)" = "1" ]; then
+        echo "RUBYFS watchdog: Android arrancado, no hace falta volver"
+        exit 0
+      fi
+    done
+    echo "RUBYFS watchdog: Android no confirmo, volviendo a A"
     /bctool set a --write
     sync
     reboot
   ) &
-  echo "RUBYFS watchdog armed pid=$!"
+  echo "RUBYFS watchdog armed pid=$! (5 min)"
 fi
 
 MODDIR="/lib/modules/$(uname -r)"

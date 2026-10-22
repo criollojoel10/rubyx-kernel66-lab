@@ -21,6 +21,20 @@ mkdir -p "$TMP/root"
   cpio -idm < "$TMP/ramdisk.cpio" 2>/dev/null
   mkdir -p lib/modules
   cp "$MODDIR"/*.ko "$MODDIR/modules.load" lib/modules/
+
+  # Wrapper de primera etapa: carga los modulos de ruby y arma un watchdog
+  # que devuelve al slot A si Android no arranca (solo para imagenes de test).
+  if [ -f port/device/selfheal/first-stage-init.sh ]; then
+    [ -e init ] && mv init init.ramdisk
+    cp port/device/selfheal/first-stage-init.sh init
+    chmod 755 init
+    echo "  (init de primera etapa con watchdog instalado)"
+  fi
+  if [ -f port/device/selfheal/bctool ]; then
+    cp port/device/selfheal/bctool bctool
+    chmod 755 bctool
+  fi
+
   find . -print0 | cpio --null -o -H newc > "$TMP/new.cpio" 2>/dev/null
 )
 lz4 -l -9 -f "$TMP/new.cpio" "$OUT" >/dev/null
