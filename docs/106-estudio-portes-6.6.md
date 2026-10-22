@@ -134,3 +134,34 @@ A34, que es la vía que ya compila.
    nada más.
 5. **GPS** — no hay nada que portar; solo el movimiento de directorio y el
    `.rc` del ramdisk.
+
+## 6. Dónde acaba cada cosa (arquitectura del build)
+
+Este dato decide si un port va al árbol del GKI o al de device modules:
+
+- `make build-fast` → `sources/a34x/build_kernel.sh` → `kernel_device_modules-6.6/build.sh`
+  con `PROJECT=mgk_64_k66`. Ese script genera **un solo** `build.config`
+  (`out/target/product/a34x/obj/KERNEL_OBJ/build.config`) con
+  `mediatek-bazel_defconfig` + `mt6877_overlay.config` + `mt6877_teegris_5_overlay.config`
+  + `sec_ogki_fragment.config`. Los dos builds leen el mismo archivo, así que
+  un `CONFIG_*` afecta a ambos.
+- **La `Image` que arranca sale del árbol del GKI/ACK**: `build/bazel_mgk_rules/mgk.bzl:150`
+  fija `ack_dir = "kernel"`, y el `kernel_build` usa
+  `srcs = ["//kernel-6.6:kernel_aarch64_sources"]`, `kconfig_ext = ":Kconfig.ext"`
+  (el del árbol de device modules) y `make_goals = [Image, Image.gz, modules]`.
+  Por eso los ports built-in (display v2, panel m16, FT3680, TEEI 400,
+  goodix_cap, card MT6877) **sí** entran en la imagen.
+- **Los `.ko` que se cargan salen del árbol de device modules**, que es un
+  árbol de kernel completo (tiene su propio `sound/soc/mediatek/*`,
+  `mediatek_v2`, `drivers/tee/teei`). El ramdisk se llena con el tarball de
+  `mgk_64_k66_customer_modules_install.user`, no con los `.ko` del build del GKI.
+- `kernel/kleaf/mgk_64.bzl` (4022 líneas) tiene `mgk_64_module_outs` en la
+  línea 126; `common_user_modules = mgk_module_outs + mgk_64_module_outs +
+  samsung_gki_modules` alimenta el build del GKI, y los `.ko` de audio
+  (`mtk-afe-external.ko`, `snd-soc-mtk-common.ko`, `mt6877-mt6359.ko`,
+  `snd-soc-mt6877-afe.ko`) ya están declarados ahí.
+- Consecuencia: si un driver se pone `=m`, el build del GKI también lo compila
+  (y se descarta), mientras el que se carga viene del árbol de device modules.
+  Duplicar el mismo driver en los dos árboles con el mismo nombre de `.ko`
+  genera dos salidas para la misma ruta; elegir **un** sitio por driver.
+
