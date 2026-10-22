@@ -1,0 +1,9 @@
+#
+# Focaltech FT3680 (SPI) para ruby
+#
+
+config TOUCHSCREEN_FOCALTECH_3680
+    tristate "Focaltech FT3680 touchscreen (SPI)"
+    help
+      Driver del panel tactil Focaltech FT3680 que monta el
+      Xiaomi ruby (m16) sobre SPI3.

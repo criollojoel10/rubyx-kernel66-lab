@@ -1,0 +1,4 @@
+# Tactil de ruby: Focaltech FT3680 sobre SPI3
+# Base: driver MTK 6.6 focal_FT3519 adaptado al chip FT3680
+# (scripts/port-touch-focal3680.py)
+CONFIG_TOUCHSCREEN_FOCALTECH_3680=m
