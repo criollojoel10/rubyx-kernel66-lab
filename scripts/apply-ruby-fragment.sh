@@ -32,13 +32,27 @@ set_block() {
   local file="$1" mark="$2" lines="$3"
   [ -f "$file" ] || return 0
   local tmp; tmp="$(mktemp)"
-  # 1) fuera el bloque anterior (marcador + sus lineas hasta el siguiente marcador)
+  # 1) fuera el bloque anterior (marcador + sus lineas hasta el siguiente
+  #    marcador) y anota los simbolos que tenia, para limpiarlos tambien del
+  #    resto del fichero (si un fragment cambia de simbolo, el viejo se queda
+  #    si no se limpia explicitamente)
+  local prev_syms
+  prev_syms=$(awk -v mark="$mark" '
+    $0 == mark { skip = 1; next }
+    skip && /^# --- / { skip = 0 }
+    skip { print; next }
+    { print }
+  ' "$file" | grep -oE '^CONFIG_[A-Za-z0-9_]+' | sort -u)
   awk -v mark="$mark" '
     $0 == mark { skip = 1; next }
     skip && /^# --- / { skip = 0 }
     skip { next }
     { print }
   ' "$file" > "$tmp"
+  local psym
+  for psym in $prev_syms; do
+    grep -v "^${psym}=" "$tmp" > "$tmp.2" && mv "$tmp.2" "$tmp"
+  done
   # 2) fuera los valores viejos de los simbolos del fragment (por si cambiaron)
   local sym
   for sym in $(printf '%s\n' "$lines" | grep -oE '^CONFIG_[A-Za-z0-9_]+' | sort -u); do

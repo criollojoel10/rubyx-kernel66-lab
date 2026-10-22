@@ -44,6 +44,9 @@ echo "== TEEI 400 y mediatek_v2 (vienen de los device modules)"
 
 echo "== carga: el cargador del PMIC mt6360 ya esta en el A34 (no hay nada que portar)"
 
+echo "== audio (altavoz aw882xx + vibrador aw8697)"
+./port/audio/apply.sh "$GKI"
+
 echo "== tee (overlay de Microtrust TEEI 400)"
 ./scripts/patch-mtk-tee-config.sh
 
