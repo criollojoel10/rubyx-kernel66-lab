@@ -13,7 +13,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 FRAG="${1:?falta el fragmento}"
-DM="${2:-sources/a34x/kernel/kernel_device_modules-6.6}"
+# Los overlays, el defconfig y sign.config SIEMPRE viven en los device
+# modules: es el arbol cuyo .config compila tanto el GKI como los modulos.
+DM="${RUBY_CONFIG_TREE:-sources/a34x/kernel/kernel_device_modules-6.6}"
 OVERLAY="$DM/kernel/configs/mt6877_overlay.config"
 
 [ -f "$FRAG" ] || { echo "no existe el fragmento: $FRAG" >&2; exit 1; }

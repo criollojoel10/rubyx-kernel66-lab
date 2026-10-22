@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-DM="${1:-sources/a34x/kernel/kernel_device_modules-6.6}"
+DM="${1:-sources/a34x/kernel-6.6}"
 [ -d "$DM/drivers/gpu/drm/panel" ] || { echo "no existe $DM/drivers/gpu/drm/panel" >&2; exit 1; }
 
 SRC="port/display/panel-m16-36-02-0b-dsc-vdo.c"
@@ -17,10 +17,10 @@ cp "port/display/include/panel-m16-36-02-0b-dsc-vdo.h" \
 cp "port/display/m16-36-02-0b-init.inc" \
    "$DM/drivers/gpu/drm/panel/m16-36-02-0b-init.inc"
 
-# El simbolo va en el Kconfig.ext de los device modules (fichero que SI se
-# sourcea siempre); anadirlo al Kconfig del subdirectorio no llega al arbol
-# de configuracion que usa el build.
-K="$DM/Kconfig.ext"
+# Los drivers de display/input/power se compilan desde el GKI (en los device
+# modules no hay Makefiles intermedios), asi que el simbolo va en el Kconfig
+# del GKI.
+K="$DM/drivers/gpu/drm/panel/Kconfig"
 if ! grep -q '^config DRM_PANEL_M16_36_02_0B_DSC_VDO' "$K"; then
   cat >> "$K" <<'EOF'
 
@@ -42,6 +42,6 @@ if ! grep -q 'panel-m16-36-02-0b-dsc-vdo.o' "$M"; then
   echo 'obj-$(CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO) += panel-m16-36-02-0b-dsc-vdo.o' >> "$M"
 fi
 
-./scripts/apply-ruby-fragment.sh configs/ruby-6.6/panel.fragment "$DM"
+./scripts/apply-ruby-fragment.sh configs/ruby-6.6/panel.fragment
 
 echo "[display] panel m16 36-02-0b aplicado en $DM"

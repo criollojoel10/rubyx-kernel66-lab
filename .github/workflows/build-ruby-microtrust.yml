@@ -53,7 +53,7 @@ jobs:
         run: ./scripts/patch-mtk-tee-config.sh
 
       - name: Declarar los modulos nuevos en Kleaf
-        run: python3 scripts/patch-kleaf-outs.py drivers/tee/teei/400/isee.ko
+        run: python3 scripts/patch-kleaf-outs.py --dm drivers/tee/teei/400/isee.ko
 
       - name: Build con Microtrust TEEI 400
         env:

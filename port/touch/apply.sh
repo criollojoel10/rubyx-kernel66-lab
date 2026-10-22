@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-DM="${1:-sources/a34x/kernel/kernel_device_modules-6.6}"
+DM="${1:-sources/a34x/kernel-6.6}"
 TS="$DM/drivers/input/touchscreen"
 [ -d "$TS" ] || { echo "no existe $TS" >&2; exit 1; }
 
@@ -26,7 +26,7 @@ cat > "$TS/focaltech_3680/Kconfig" <<'EOF'
 # device modules (ver port/touch/apply.sh).
 EOF
 
-K="$DM/Kconfig.ext"
+K="$DM/drivers/input/touchscreen/Kconfig"
 if ! grep -q '^config TOUCHSCREEN_FOCALTECH_3680' "$K"; then
   cat >> "$K" <<'EOF'
 
@@ -44,7 +44,7 @@ if ! grep -q 'focaltech_3680/' "$M"; then
   echo 'obj-$(CONFIG_TOUCHSCREEN_FOCALTECH_3680) += focaltech_3680/' >> "$M"
 fi
 
-./scripts/apply-ruby-fragment.sh configs/ruby-6.6/touch.fragment "$DM"
+./scripts/apply-ruby-fragment.sh configs/ruby-6.6/touch.fragment
 
 echo "[touch] driver FT3680 aplicado en $TS/focaltech_3680"
 grep -n 'TOUCHSCREEN_FOCALTECH_3680' "$K" | head -2

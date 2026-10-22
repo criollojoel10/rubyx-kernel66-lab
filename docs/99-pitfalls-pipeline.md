@@ -46,6 +46,30 @@ Efecto bonus: como bazel exige que exista cada fichero declarado, **el build
 falla si el modulo no llega a compilarse** -> la verificacion pasa a formar
 parte del build.
 
+## 2 bis. Los drivers de display/input/power van en el GKI, no en los device modules
+
+En `kernel_device_modules-6.6/drivers/` **no hay Makefiles intermedios**
+(`drivers/input/Makefile`, `drivers/gpu/drm/Makefile`, `drivers/power/Makefile`
+no existen): el kbuild no puede descender a esos directorios, asi que los
+drivers de display, tactil y alimentacion se compilan desde el **GKI**
+(`kernel-6.6/drivers/...`), mientras que el TEE (TEEI) si vive en los device
+modules.
+
+Por eso nuestros ports de panel, tactil y carga tienen que aplicarse a
+`sources/a34x/kernel-6.6` (GKI) y declarar sus simbolos en los Kconfig del
+GKI. Si se aplican a los device modules, el .ko no se construye nunca y
+Kleaf falla con "Unable to find <modulo>.ko".
+
+Validado en local reproduciendo el merge exacto del build:
+
+```
+CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=m
+CONFIG_TOUCHSCREEN_FOCALTECH_3680=m
+CONFIG_RUBY_MP2762=m ... CONFIG_RUBY_XMUSB350=m
+CONFIG_MICROTRUST_TEE_SUPPORT=m
+CONFIG_MICROTRUST_TEE_VERSION="400"
+```
+
 ## 3. Los simbolos nuevos tienen que ser visibles en el Kconfig
 
 Un `config` anadido al `Kconfig` de un subdirectorio puede no llegar al

@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-DM="${1:-sources/a34x/kernel/kernel_device_modules-6.6}"
+DM="${1:-sources/a34x/kernel-6.6}"
 PS="$DM/drivers/power/supply"
 [ -d "$PS" ] || { echo "no existe $PS" >&2; exit 1; }
 
@@ -24,7 +24,7 @@ M="$PS/Makefile"
 # Los simbolos van en el Kconfig.ext de los device modules: es el fichero que
 # SI se sourcea siempre en el build (anadirlos al Kconfig del subdirectorio
 # no llegaba al arbol de configuracion).
-KEXT="$DM/Kconfig.ext"
+KEXT="$DM/drivers/power/supply/Kconfig"
 
 for pair in $DIRS; do
   d="${pair%%:*}"
@@ -65,7 +65,7 @@ EOF
     append "$M" "obj-\$(CONFIG_$sym) += $d/"
 done
 
-./scripts/apply-ruby-fragment.sh configs/ruby-6.6/charger.fragment "$DM"
+./scripts/apply-ruby-fragment.sh configs/ruby-6.6/charger.fragment
 
 echo "[charger] drivers de carga de ruby aplicados en $PS"
 grep -E 'RUBY_' "$M" || true

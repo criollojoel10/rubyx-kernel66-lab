@@ -60,6 +60,13 @@ def patch_outs(mods) -> int:
 
 
 def patch_device_modules(mods) -> int:
+    """Los modulos que se compilan en el arbol de device modules.
+
+    Los drivers de display/input/power de MTK viven en el GKI (en los device
+    modules no hay Makefiles intermedios), asi que sus .ko solo se declaran
+    en los outs; declararlos tambien en device_modules haria que el build
+    los buscara donde no se construyen.
+    """
     text = BZL_MODS.read_text()
     bloque = ["", "# --- ruby: modulos propios del proyecto ---",
               "def _ruby_add(mods, name):",
@@ -87,13 +94,22 @@ def main() -> int:
     if not BZL_OUTS.exists() or not BZL_MODS.exists():
         print(f"falta {KLEAF}; ejecuta make fetch", file=sys.stderr)
         return 1
-    mods = sys.argv[1:]
+    argv = sys.argv[1:]
+    dm_mods, gki_mods = [], []
+    mode = "dm"
+    for a in argv:
+        if a == "--dm":
+            mode = "dm"; continue
+        if a == "--gki":
+            mode = "gki"; continue
+        (dm_mods if mode == "dm" else gki_mods).append(a)
+    mods = dm_mods + gki_mods
     if not mods:
-        print("uso: patch-kleaf-outs.py <rutas .ko> [...]", file=sys.stderr)
+        print("uso: patch-kleaf-outs.py [--dm|--gki] <rutas .ko> [...]", file=sys.stderr)
         return 1
 
     n1 = patch_outs(mods)
-    n2 = patch_device_modules(mods)
+    n2 = patch_device_modules(dm_mods)
     print(f"[kleaf] outs: +{n1} entradas | device_modules: +{n2} modulos")
     return 0
 

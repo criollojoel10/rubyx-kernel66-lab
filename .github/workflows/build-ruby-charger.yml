@@ -53,7 +53,7 @@ jobs:
         run: ./port/charger/apply.sh
 
       - name: Declarar los modulos nuevos en Kleaf
-        run: python3 scripts/patch-kleaf-outs.py drivers/power/supply/mps/mp2762.ko drivers/power/supply/ln/ln8410.ko drivers/power/supply/ti/bq25980.ko drivers/power/supply/southchip/sc8561.ko drivers/power/supply/maxim/max77932.ko drivers/power/supply/xiaomi/xmusb350.ko
+        run: python3 scripts/patch-kleaf-outs.py --gki drivers/power/supply/mps/mp2762.ko drivers/power/supply/ln/ln8410.ko drivers/power/supply/ti/bq25980.ko drivers/power/supply/southchip/sc8561.ko drivers/power/supply/maxim/max77932.ko drivers/power/supply/xiaomi/xmusb350.ko
 
       - name: Build con los drivers de carga
         env:
