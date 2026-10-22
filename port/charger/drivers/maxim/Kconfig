@@ -1,0 +1,9 @@
+#
+# Driver de carga de ruby portado a 6.6
+#
+
+config RUBY_MAX77932
+	tristate "max77932"
+	help
+	  Driver de carga max77932 de Xiaomi ruby, portado desde el
+	  kernel 4.19 de ruby al arbol 6.6 de MTK mt6877.

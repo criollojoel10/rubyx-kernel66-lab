@@ -1,0 +1,9 @@
+#
+# Driver de carga de ruby portado a 6.6
+#
+
+config RUBY_SC8561
+	tristate "sc8561"
+	help
+	  Driver de carga sc8561 de Xiaomi ruby, portado desde el
+	  kernel 4.19 de ruby al arbol 6.6 de MTK mt6877.

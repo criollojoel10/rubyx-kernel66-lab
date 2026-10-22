@@ -1,0 +1,8 @@
+# Carga de ruby: drivers de chip portados desde el 4.19
+# (scripts/port-charger.py)
+CONFIG_RUBY_MP2762=m
+CONFIG_RUBY_LN8410=m
+CONFIG_RUBY_BQ25980=m
+CONFIG_RUBY_SC8561=m
+CONFIG_RUBY_MAX77932=m
+CONFIG_RUBY_XMUSB350=m
