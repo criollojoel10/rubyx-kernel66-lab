@@ -51,8 +51,12 @@ if [ -d "$DM/drivers/gpu/drm/mediatek/mediatek_v2" ]; then
   # kconfig resuelve los "source" relativos contra el cwd (la raiz del
   # package), no contra el directorio del Kconfig que lo contiene: por eso
   # el path es relativo y hace falta el symlink de abajo.
-  grep -q 'mediatek_v2/Kconfig' "$K" ||
-    echo 'source "mediatek_v2/Kconfig"' >> "$K"
+  # kconfig resuelve los "source" relativos contra el cwd (la raiz del
+  # package), no contra el directorio del Kconfig que lo contiene: por eso
+  # el path es relativo y hace falta el symlink de abajo.
+  KC="$GKI/drivers/gpu/drm/mediatek/Kconfig"
+  grep -q 'mediatek_v2/Kconfig' "$KC" ||
+    echo 'source "mediatek_v2/Kconfig"' >> "$KC"
   # kconfig resuelve los "source" relativos contra el cwd (la raiz del
   # package), no contra el directorio del Kconfig que lo contiene: por eso
   # el GKI de A34 sourcea "mediatek_v2/Kconfig" y hace falta el symlink.
