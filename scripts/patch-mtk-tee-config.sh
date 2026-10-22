@@ -49,7 +49,7 @@ if [ -f "$DEFCONFIG" ]; then
     {
       echo
       echo "# --- ruby: Microtrust 400 (TEE real de ruby) ---"
-      grep -E '^CONFIG_MICROTRUST' "$O"
+      grep -E '^CONFIG_MICROTRUST' "$O" || true
     } >> "$DEFCONFIG"
     echo "[tee] Microtrust 400 anadido a $(basename "$DEFCONFIG")"
   fi
@@ -62,13 +62,13 @@ if [ -f "$SIGN" ]; then
     {
       echo
       echo "# --- ruby: Microtrust 400 (TEE real de ruby) ---"
-      grep -E '^CONFIG_MICROTRUST' "$O"
+      grep -E '^CONFIG_MICROTRUST' "$O" || true
     } >> "$SIGN"
     echo "[tee] Microtrust 400 anadido a sign.config"
   fi
 fi
 
-grep -E 'MICROTRUST|TEEGRIS' "$O"
+grep -E 'MICROTRUST|TEEGRIS' "$O" || true
 
 # ---------------------------------------------------------------------------
 # El driver geniezone de MTK usa la API GlobalPlatform de TEEGRIS
@@ -108,7 +108,7 @@ else:
     sys.exit("no se encontro la rama de Microtrust en geniezone/Makefile")
 PY
 
-grep -n 'tzdev' "$GZ"
+grep -n 'tzdev' "$GZ" || true
 
 # ---------------------------------------------------------------------------
 # Segundo sitio con el mismo problema: el subsistema "trusted_mem" de MTK
@@ -147,4 +147,4 @@ else:
     sys.exit("no se encontro la rama de Microtrust en trusted_mem/Makefile")
 PY
 
-grep -n 'tzdev' "$TM"
+grep -n 'tzdev' "$TM" || true
