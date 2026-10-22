@@ -61,6 +61,12 @@ echo "== 1. aplicando los ports al arbol"
 echo "== 2. preparando el .config (merge real del build)"
 cd "$GKI"
 export KCONFIG_EXT_PREFIX=../kernel/kernel_device_modules-6.6/
+# el build real exporta esto; el .config lo usa para el path de la clave de
+# firma de los modulos (CONFIG_MODULE_SIG_KEY)
+export DEVICE_MODULES_DIR="kernel_device_modules-6.6"
+export DEVICE_MODULES_REL_DIR="kernel_device_modules-6.6"
+export DEVICE_MODULES_PATH="$(cd ../kernel/kernel_device_modules-6.6 && pwd)"
+export MTK_PLATFORM="mt6877"
 cp "$OLDPWD/$REF" .config
 ./scripts/kconfig/merge_config.sh -m .config \
   ../kernel/kernel_device_modules-6.6/arch/arm64/configs/mediatek-bazel_defconfig \
