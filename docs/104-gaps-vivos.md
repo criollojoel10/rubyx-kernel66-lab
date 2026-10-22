@@ -94,4 +94,4 @@ Cruce de compatibles (DTB de ruby -> driver en el GKI 6.6 del A34):
 **Conclusion**: la carga de ruby va por el mt6360 (que el A34 ya trae como
 `CONFIG_DEVICE_MODULES_CHARGER_MT6360`), asi que los ports de carga no son
 necesarios para que el telefono cargue. `port/charger/` queda como
-referencia por si se quiere 支持 completo de USB-PD.
+referencia por si se quiere el soporte completo de USB-PD.
