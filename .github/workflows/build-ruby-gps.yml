@@ -1,0 +1,87 @@
+name: Build ruby GPS (modulos vendor de MTK 6.6)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 420
+    steps:
+      - name: Checkout laboratorio
+        uses: actions/checkout@v4
+
+      - name: Liberar espacio
+        run: |
+          set +e
+          sudo apt-get remove --purge -y 'php*' 'dotnet*' 'mysql*' 'nodejs*' 'clang*' 'google*'
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          for d in /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                   /opt/hostedtoolcache/CodeQL /usr/local/share/boost; do
+            sudo rm -rf "$d"
+          done
+          set -e
+          df -h
+
+      - name: Dependencias
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git curl wget ca-certificates gnupg python3 python3-pip \
+            bc bison flex cpio libssl-dev libelf-dev lz4 zstd unzip patch
+          git config --global user.name "rubyx-kernel66-lab"
+          git config --global user.email "lab@users.noreply.github.com"
+
+      - name: Caché Bazel + Clang
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel-disk
+            ~/.cache/bazel-repo
+            ~/.cache/ruby/clang-r536225
+          key: a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-gps-${{ github.sha }}
+          restore-keys: |
+            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+
+      - name: Fetch A34
+        run: make fetch
+
+      - name: Modulos vendor de MTK 6.6 (GPS, GPU, camara)
+        run: ./port/vendor-mods.sh sources/a34x
+
+      - name: Declarar los modulos del GPS en Kleaf
+        run: |
+          python3 scripts/patch-kleaf-outs.py --dm \
+            drivers/tee/teei/400/isee.ko \
+            ../vendor/mediatek/kernel_modules/connectivity/gps/gps_stp/gps_stp.ko \
+            ../vendor/mediatek/kernel_modules/connectivity/gps/data_link/data_link.ko \
+            ../vendor/mediatek/kernel_modules/connectivity/gps/gps_pwr/gps_pwr.ko \
+            ../vendor/mediatek/kernel_modules/connectivity/gps/gps_scp/gps_scp.ko
+
+      - name: Build con los modulos del GPS
+        run: make build-fast
+
+      - name: Verificar los modulos del GPS
+        run: |
+          tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst | grep -E 'gps_(stp|pwr|scp)|data_link' | tee /tmp/gps-ko.txt
+          test -s /tmp/gps-ko.txt
+
+      - name: Subir artefactos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-gps
+          path: artifacts/
+          if-no-files-found: warn
+
+      - name: Subir logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruby-gps-logs
+          path: logs/
+          if-no-files-found: warn

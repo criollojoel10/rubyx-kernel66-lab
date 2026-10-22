@@ -30,10 +30,6 @@ if [ -f "$BC" ]; then
   sed -i '\|../vendor/mediatek/tests/kernel/ktf_testcase|d' "$BC"
 fi
 
-# .ko de ruby que hay que declarar en Kleaf
-./scripts/patch-kleaf-outs.py --dm \
-  drivers/tee/teei/400/isee.ko
-
 echo "[vendor-mods] listo"
 for d in connectivity/gps/gps_stp connectivity/gps/data_link \
          connectivity/gps/gps_pwr connectivity/gps/gps_scp gpu mtkcam; do
