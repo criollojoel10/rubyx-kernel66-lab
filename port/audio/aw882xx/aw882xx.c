@@ -14,7 +14,6 @@
 
 /*#define DEBUG*/
 #include <linux/module.h>
-#include <linux/gpio/consumer.h>
 #include <linux/i2c.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
@@ -2405,6 +2404,9 @@ static void aw882xx_i2c_remove(struct i2c_client *i2c)
 			aw882xx);
 
 	/*free gpio*/
+	if (gpio_is_valid(aw882xx->irq_gpio))
+	if (gpio_is_valid(aw882xx->reset_gpio))
+	if (gpio_is_valid(aw882xx->spk_sw_gpio))
 
 	/*rm attr node*/
 	sysfs_remove_group(&i2c->dev.kobj, &aw882xx_attribute_group);
@@ -2426,6 +2428,7 @@ static void aw882xx_i2c_remove(struct i2c_client *i2c)
 	}
 	mutex_unlock(&g_aw882xx_lock);
 
+	
 
 }
 
@@ -2454,7 +2457,7 @@ static struct of_device_id aw882xx_dt_match[] = {
 static struct i2c_driver aw882xx_i2c_driver = {
 	.driver = {
 		.name = AW882XX_I2C_NAME,
-			.of_match_table = of_match_ptr(aw882xx_dt_match),
+		.of_match_table = of_match_ptr(aw882xx_dt_match),
 	},
 	.probe = aw882xx_i2c_probe,
 	.remove = aw882xx_i2c_remove,

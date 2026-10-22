@@ -46,9 +46,40 @@ def port_aw882xx() -> None:
                       'static inline const char *get_hw_sku(void)\n'
                       '{ return "ruby"; }\n'
                       '#endif')
-        # 6.4+: las clases usan device_attribute y ya no tienen .owner
-        t = t.replace('struct class_attribute', 'struct device_attribute')
-        t = t.replace('\t.owner = THIS_MODULE,\n', '')
+        # 6.4+: struct class ya no tiene .owner
+        t = re.sub(r'\n[ \t]*\.owner[ \t]*=[ \t]*THIS_MODULE,[ \t]*\n', '\n', t)
+        # 6.6: la firma de class_attribute usa const struct class *
+        #      (const struct class *, const struct class_attribute *, ...)
+        def _const_sig(m):
+            sig = m.group(0)
+            sig = re.sub(r'\bstruct(\s+class\s*\*\s*class,)', r'const struct\1', sig)
+            sig = re.sub(r'\bstruct(\s+class_attribute\s*\*\s*attr,)',
+                         r'const struct\1', sig)
+            return sig
+        t = re.sub(r'static ssize_t \w+\([^)]*\)', _const_sig, t)
+        # loff_t con %d: el valor es un entero small
+        t = t.replace('loff_t pos;', 'int pos;')
+        # el %d de un loff_t (pos)
+        t = t.replace('pos:%d', 'pos:%lld')
+        t = t.replace('"channel:%d pos:%d \\n"', '"channel:%d pos:%lld \\n"')
+        t = t.replace('"channel:%d pos:%d \\n"', '"channel:%d pos:%lld \\n"')
+        t = t.replace('loff_t offset', 'long offset')
+        # 6.2+: devm_gpio_free() ya no existe (los gpio devm se liberan solos)
+        t = re.sub(r'\n[ \t]*devm_gpio_free\([^)]*\);', '', t)
+        # 6.x: el probe() de i2c ya no recibe el i2c_device_id
+        t = re.sub(r'static int (\w*probe)\(struct i2c_client \*(\w+),\s*\n?\s*'
+                   r'const struct i2c_device_id \*\w+\)',
+                   r'static int \1(struct i2c_client *\2)', t)
+        # 6.x: el remove() de i2c devuelve void (y sin "return 0")
+        def _fix_remove(m):
+            body = m.group(3).replace("return 0;", "")
+            return ("static void %s(struct i2c_client *%s)\n{%s\n}"
+                    % (m.group(1), m.group(2), body))
+        t = re.sub(r'static int (\w*remove)\(struct i2c_client \*(\w+)\)\n\{(.*?)\n\}',
+                   _fix_remove, t, flags=re.S)
+        # format string incompleto (Werror=format-extra-args)
+        t = t.replace('"[spk_sw_gpio] prof index:",index',
+                      '"[spk_sw_gpio] prof index:%d",index')
         # 5.10+: get_fs/set_fs/KERNEL_DS ya no existen
         t = t.replace('\tmm_segment_t fs;\n', '')
         t = t.replace('\tfs = get_fs();\n\tset_fs(KERNEL_DS);\n\n', '')
@@ -56,38 +87,9 @@ def port_aw882xx() -> None:
         t = t.replace('\tset_fs(fs);\n', '')
         # class_create() sin THIS_MODULE desde 6.4
         t = re.sub(r'class_create\(THIS_MODULE,\s*', 'class_create(', t)
-        # 6.6: __ATTR() + class_create_file() ya no existen para las clases:
-        # se usa DEVICE_ATTR() + device_create_file(class_dev(...), &attr.dev_attr)
-        t = t.replace('class_att_', 'class_attr_')
-        # juego legacy: struct class_attribute + __ATTR() -> DEVICE_ATTR()
-        t = re.sub(
-            r'static struct class_attribute (\w+)\s*=\s*\\?\s*\n\s*__ATTR\(\s*(\w+)\s*,',
-            r'static DEVICE_ATTR(\2,', t)
-        # juego moderno: se mantiene el struct device_attribute, pero el
-        # registro pasa por device_create_file(class_dev(...), &attr)
-        t = re.sub(
-            r'class_create_file\(&(\w+),\s*&class_attr_(\w+)\)',
-            r'device_create_file(class_dev(&\1), &class_attr_\2)', t)
-        if 'class_dev(' in t and 'linux/device/class.h' not in t:
-            t = t.replace('#include <linux/module.h>',
-                          '#include <linux/module.h>\n#include <linux/device/class.h>', 1)
-        # devm_gpio_* viven en gpio/consumer.h desde 5.x
-        if 'devm_gpio_' in t and 'linux/gpio/consumer.h' not in t:
-            t = t.replace('#include <linux/module.h>',
-                          '#include <linux/module.h>\n#include <linux/gpio/consumer.h>', 1)
-        # 6.x: probe() del driver de i2c ya no recibe el device_id
-        t = t.replace(
-            'static int aw882xx_i2c_probe(struct i2c_client *i2c,\n'
-            '\t\t\t\tconst struct i2c_device_id *id)',
-            'static int aw882xx_i2c_probe(struct i2c_client *i2c)')
-        # 6.x: remove() del driver de i2c devuelve void
-        t = t.replace('static int aw882xx_i2c_remove(struct i2c_client *i2c)',
-                      'static void aw882xx_i2c_remove(struct i2c_client *i2c)')
-        # ... y su cuerpo no puede devolver valor
-        t = re.sub(r'(static void aw882xx_i2c_remove\(struct i2c_client \*i2c\)\n\{.*?\n)\treturn 0;\n',
-                   r'\1', t, flags=re.S)
-        # 6.2+: devm_gpio_free() ya no existe (los GPIO devm se liberan solos)
-        t = re.sub(r'\n\tif \(gpio_is_valid\(aw882xx->\w+\)\)\n\t\tdevm_gpio_free\(&i2c->dev, aw882xx->\w+\);', '', t)
+        # el juego legacy de atributos de clase (struct class_attribute +
+        # __ATTR() + class_create_file()) se deja como venia en 4.19: esa API
+        # sigue existiendo en 6.6
         if t != orig:
             c.write_text(t)
             n += 1
@@ -115,12 +117,48 @@ def port_haptic() -> None:
     print(f"[audio] aw8697_haptic: {len(list(dst.iterdir()))} ficheros, {n} ajustados")
 
 
+def fix_class_attrs(root: Path) -> None:
+    """6.6 exige la firma de device_attribute (struct device *, sin loff_t)."""
+    for f in root.rglob("*.c"):
+        text = f.read_text()
+        orig = text
+        # show: (struct class *class, struct device_attribute *attr, char *buf)
+        text = re.sub(
+            r"\(struct\s+class\s*\*class,\s*\n?\s*struct device_attribute \*attr, char \*buf\)",
+            "(struct device *dev, struct device_attribute *attr, char *buf)",
+            text,
+        )
+        # store: (struct class *class, struct device_attribute *attr, const char *buf, size_t len)
+        text = re.sub(
+            r"\(struct\s+class\s*\*class,\s*\n?\s*struct device_attribute \*attr,\s*\n?\s*const char \*buf, size_t len\)",
+            "(struct device *dev, struct device_attribute *attr, const char *buf)",
+            text,
+        )
+        if text != orig:
+            f.write_text(text)
+            print(f"[audio] firmas de device_attribute en {f.name}")
+
+
+def fix_format_strings(root: Path) -> None:
+    """7. %d con loff_t -> %lld (los size_t/loff_t de la API antigua)."""
+    for f in root.rglob("*.c"):
+        text = f.read_text()
+        orig = text
+        text = re.sub(r'"%d"\s*,\s*offset', '"%lld", offset', text)
+        text = re.sub(r'"%d"\s*,\s*len\b', '"%zu", len', text)
+        if text != orig:
+            f.write_text(text)
+            print(f"[audio] format strings en {f.name}")
+
+
 def main() -> None:
     if not AW882XX.exists():
         raise SystemExit(f"falta {AW882XX}; descarga el arbol 4.19 de ruby")
     DST.mkdir(parents=True, exist_ok=True)
     port_aw882xx()
     port_haptic()
+    fix_class_attrs(DST)
+    fix_format_strings(DST)
 
 
 if __name__ == "__main__":

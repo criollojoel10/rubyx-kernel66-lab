@@ -13,7 +13,6 @@
  */
 /*#define DEBUG*/
 #include <linux/module.h>
-#include <linux/device/class.h>
 #include <asm/ioctls.h>
 #include <asm/uaccess.h>
 #include <linux/delay.h>
@@ -124,7 +123,7 @@ static int aw_cali_get_read_cali_re(int32_t *cali_re, int channel)
 	}else{
 		pos = AW_INT_DEC_DIGIT_2;
 	}
-	pr_info("%s: channel:%d pos:%d \n", __func__,channel,pos);
+	pr_info("%s: channel:%d pos:%lld \n", __func__,channel,pos);
 
 	/*node = fp->f_dentry->d_inode;*/
 	/*f_size = node->i_size;*/
@@ -1264,7 +1263,7 @@ static void aw_cali_attr_deinit(struct aw_device *aw_dev)
 /*****************************attr   end***************************************************/
 
 /*****************************class node******************************************************/
-static ssize_t aw_cali_class_time_show(struct  class *class, struct device_attribute *attr, char *buf)
+static ssize_t aw_cali_class_time_show(const struct  class *class, const struct class_attribute *attr, char *buf)
 {
 	ssize_t len = 0;
 
@@ -1274,8 +1273,8 @@ static ssize_t aw_cali_class_time_show(struct  class *class, struct device_attri
 	return len;
 }
 
-static ssize_t aw_cali_class_time_store(struct class *class,
-					struct device_attribute *attr, const char *buf, size_t len)
+static ssize_t aw_cali_class_time_store(const struct class *class,
+					const struct class_attribute *attr, const char *buf, size_t len)
 {
 	int ret;
 	uint32_t time;
@@ -1299,7 +1298,7 @@ static ssize_t aw_cali_class_time_store(struct class *class,
 	return len;
 }
 
-static ssize_t aw_cali_class_cali_re_show(struct  class *class, struct device_attribute *attr, char *buf)
+static ssize_t aw_cali_class_cali_re_show(const struct  class *class, const struct class_attribute *attr, char *buf)
 {
 	int ret, i;
 	struct list_head *dev_list = NULL;
@@ -1334,8 +1333,8 @@ static ssize_t aw_cali_class_cali_re_show(struct  class *class, struct device_at
 	return len;
 }
 
-static ssize_t aw_cali_class_cali_re_store(struct class *class,
-					struct device_attribute *attr, const char *buf, size_t len)
+static ssize_t aw_cali_class_cali_re_store(const struct class *class,
+					const struct class_attribute *attr, const char *buf, size_t len)
 {
 	int ret;
 	struct list_head *dev_list = NULL;
@@ -1358,7 +1357,7 @@ static ssize_t aw_cali_class_cali_re_store(struct class *class,
 	return len;
 }
 
-static ssize_t aw_cali_class_cali_f0_show(struct  class *class, struct device_attribute *attr, char *buf)
+static ssize_t aw_cali_class_cali_f0_show(const struct  class *class, const struct class_attribute *attr, char *buf)
 {
 	int ret, i;
 	struct list_head *dev_list = NULL;
@@ -1393,8 +1392,8 @@ static ssize_t aw_cali_class_cali_f0_show(struct  class *class, struct device_at
 	return len;
 }
 
-static ssize_t aw_cali_class_cali_f0_store(struct class *class,
-				struct device_attribute *attr, const char *buf, size_t len)
+static ssize_t aw_cali_class_cali_f0_store(const struct class *class,
+				const struct class_attribute *attr, const char *buf, size_t len)
 {
 	int ret;
 	struct list_head *dev_list = NULL;
@@ -1413,7 +1412,7 @@ static ssize_t aw_cali_class_cali_f0_store(struct class *class,
 	return len;
 }
 
-static ssize_t aw_cali_class_f0_show(struct  class *class, struct device_attribute *attr, char *buf)
+static ssize_t aw_cali_class_f0_show(const struct  class *class, const struct class_attribute *attr, char *buf)
 {
 	int ret, i;
 	struct list_head *dev_list = NULL;
@@ -1441,7 +1440,7 @@ static ssize_t aw_cali_class_f0_show(struct  class *class, struct device_attribu
 	return len;
 }
 
-static ssize_t aw_cali_class_re_show(struct  class *class, struct device_attribute *attr, char *buf)
+static ssize_t aw_cali_class_re_show(const struct  class *class, const struct class_attribute *attr, char *buf)
 {
 	int ret, i;
 	struct list_head *dev_list = NULL;
@@ -1469,7 +1468,7 @@ static ssize_t aw_cali_class_re_show(struct  class *class, struct device_attribu
 	return len;
 }
 
-static ssize_t aw_class_re_range_show(struct  class *class, struct device_attribute *attr, char *buf)
+static ssize_t aw_class_re_range_show(const struct  class *class, const struct class_attribute *attr, char *buf)
 {
 	int ret, i;
 	ssize_t len = 0;
@@ -1502,27 +1501,27 @@ static ssize_t aw_class_re_range_show(struct  class *class, struct device_attrib
 	return len;
 }
 
-static struct device_attribute class_attr_cali_time = \
+static struct class_attribute class_attr_cali_time = \
 		__ATTR(cali_time, S_IWUSR | S_IRUGO, \
 		aw_cali_class_time_show, aw_cali_class_time_store);
 
-static struct device_attribute class_attr_re25_calib =  \
+static struct class_attribute class_attr_re25_calib =  \
 		__ATTR(re25_calib, S_IWUSR | S_IRUGO,	\
 		aw_cali_class_cali_re_show, aw_cali_class_cali_re_store);
 
-static struct device_attribute class_attr_f0_calib = \
+static struct class_attribute class_attr_f0_calib = \
 		__ATTR(f0_calib, S_IWUSR | S_IRUGO, \
 		aw_cali_class_cali_f0_show, aw_cali_class_cali_f0_store);
 
-static struct device_attribute class_attr_re_show = \
+static struct class_attribute class_attr_re_show = \
 		__ATTR(re_show, S_IRUGO, \
 		aw_cali_class_re_show, NULL);
 
-static struct device_attribute class_attr_f0_show = \
+static struct class_attribute class_attr_f0_show = \
 		__ATTR(f0_show, S_IRUGO, \
 		aw_cali_class_f0_show, NULL);
 
-static struct device_attribute class_attr_re_range = \
+static struct class_attribute class_att_re_range = \
 		__ATTR(re_range, S_IRUGO, \
 		aw_class_re_range_show, NULL);
 
@@ -1544,34 +1543,34 @@ static void aw_cali_class_attr_init(struct aw_device *aw_dev)
 		aw_dev_info(aw_dev->dev, "error creating class node");
 		return;
 	}
-	ret = device_create_file(class_dev(&aw_cali_class), &class_attr_re25_calib);
+	ret = class_create_file(&aw_cali_class, &class_attr_re25_calib);
 	if (ret) {
 		aw_dev_info(aw_dev->dev, "creat class_attr_re25_calib fail");
 	}
-	ret = device_create_file(class_dev(&aw_cali_class), &class_attr_f0_calib);
+	ret = class_create_file(&aw_cali_class, &class_attr_f0_calib);
 	if (ret) {
 		aw_dev_info(aw_dev->dev, "creat class_attr_re25_calib fail");
 	}
-	ret = device_create_file(class_dev(&aw_cali_class), &class_attr_cali_time);
+	ret = class_create_file(&aw_cali_class, &class_attr_cali_time);
 	if (ret) {
 		aw_dev_info(aw_dev->dev, "creat class_attr_cali_time fail");
 	}
-	ret = device_create_file(class_dev(&aw_cali_class), &class_attr_re_show);
+	ret = class_create_file(&aw_cali_class, &class_attr_re_show);
 	if (ret) {
 		aw_dev_info(aw_dev->dev, "creat class_attr_re_show fail");
 	}
-	ret = device_create_file(class_dev(&aw_cali_class), &class_attr_f0_show);
+	ret = class_create_file(&aw_cali_class, &class_attr_f0_show);
 	if (ret) {
 		aw_dev_info(aw_dev->dev, "creat class_attr_f0_show fail");
 	}
-	ret = device_create_file(class_dev(&aw_cali_class), &class_attr_re_range);
+	ret = class_create_file(&aw_cali_class, &class_att_re_range);
 	if (ret)
-		aw_dev_err(aw_dev->dev, "creat class_attr_re_range fail");
+		aw_dev_err(aw_dev->dev, "creat class_att_re_range fail");
 }
 
 static void aw_cali_class_attr_deinit(struct aw_device *aw_dev)
 {
-	class_remove_file(&aw_cali_class, &class_attr_re_range);
+	class_remove_file(&aw_cali_class, &class_att_re_range);
 	class_remove_file(&aw_cali_class, &class_attr_re25_calib);
 	class_remove_file(&aw_cali_class, &class_attr_f0_calib);
 	class_remove_file(&aw_cali_class, &class_attr_cali_time);
