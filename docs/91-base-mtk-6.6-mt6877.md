@@ -93,8 +93,41 @@ kABI se recalcula con nuestro propio baseline (`scripts/check-kabi.py`).
 Los modulos del vendor (78 `.ko` genericos) no se ven afectados: son GKI
 puro.
 
+## Correccion importante: el arbol del A34 YA es un mt6877
+
+Al revisar el arbol que ya teniamos (`UN1CA/kernel_samsung_a34x`):
+
+- El submodulo `kernel-6.6` es `kernel_samsung_mediatek_common`, es decir el
+  **GKI de MTK 6.6.127** (misma generacion y subversion que el kernel de ruby).
+- `kernel_device_modules-6.6` es el **arbol de device modules de MTK para
+  MT6877** (el A34 5G es un Exynos 1380 = MT6877V), con `mt6877/mgk.enabled`,
+  `drivers/tee/teei/{400,510,515}`, `mediatek_v2`, `mt6359p`, la infraestructura
+  MTK de carga, focaltech, goodix, GT9xx, etc.
+
+Es decir: la base del laboratorio **ya es la plataforma MTK 6.6 de MT6877**.
+Por tanto no hay que cambiar de base; hay que **añadir los drivers que son
+propios del board de ruby**:
+
+| Falta en el arbol A34 (mt6877) | Origen del port |
+|---|---|
+| panel `m16_36_02_0b` (DSC VDO 1080x2400) | ruby's 4.19 `panel-m16-36-02-0b-dsc-vdo.c` + plantilla `panel-n11a-42-02-0a-dsc-vdo.c` (arbol MTK publico) |
+| Focaltech FT3680 por SPI3 | ruby's 4.19 `focaltech_3680/focaltech_spi.c` + `focaltech_spi_v2.c` del arbol MTK publico |
+| cargadores: `mp2762`, `ln8410`, `sc8561`, `bq25980`, `xmusb350` (USB-PD), `bq28z610` (gauge), `max77932` | ruby's 4.19 (`sources/ruby-4.19`) |
+| huella Goodix por SPI | ruby's 4.19 |
+| GNSS/consys | `vendor/mediatek/kernel_modules/connectivity/gps/*` (aun por localizar) |
+
+El arbol publico de MTK 6.6 mt6877 (Volla) pasa a ser, sobre todo, la
+**biblioteca de referencias 6.6 nativas** para esos ports (panel n11a DSC,
+`focaltech_spi_v2.c`, `cust_panel`, TEEI 400 ya presente en A34).
+
 ## Decision
 
-Se abre la via B en paralelo, empezando por lo que mas bloquea:
-**TEEI 400** (ya esta en el arbol) y **panel m16**. Con TEE + display, el
-telefono ya es utilizable; touch, carga y GPS van detras.
+Se sigue con la base actual (GKI MTK 6.6.127 + device modules MTK mt6877)
+y se atacan, en este orden, los drivers propios de ruby:
+
+1. **TEEI 400** (ya esta; solo faltaba el flag del overlay y el path de
+   TEEGRIS para geniezone) -> keymaster/FBE.
+2. **Panel m16** -> pantalla.
+3. **Focaltech FT3680 SPI** -> tactil.
+4. **Cargadores** -> carga real.
+5. **Droidspaces** (config + parche kABI) sobre el GKI que ya compila.
