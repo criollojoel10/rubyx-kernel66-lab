@@ -1,0 +1,14 @@
+# Kernel de producto de ruby: display + tactil + carga.
+# (display.fragment + touch.fragment + charger.fragment)
+#
+# Panel m16 36-02-0b (mediatek_v2)
+CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=m
+# Tactil Focaltech FT3680 por SPI3
+CONFIG_TOUCHSCREEN_FOCALTECH_3680=m
+# Carga: mp2762, ln8410, bq25980, sc8561, max77932, xmusb350
+CONFIG_RUBY_MP2762=m
+CONFIG_RUBY_LN8410=m
+CONFIG_RUBY_BQ25980=m
+CONFIG_RUBY_SC8561=m
+CONFIG_RUBY_MAX77932=m
+CONFIG_RUBY_XMUSB350=m
