@@ -52,6 +52,9 @@ jobs:
       - name: Fetch A34
         run: make fetch
 
+      - name: Habilitar Microtrust TEEI 400 en el overlay de TEE
+        run: ./scripts/patch-mtk-tee-config.sh
+
       - name: Build con Microtrust TEEI 400
         env:
           RUBY_OVERLAY: configs/ruby-6.6/microtrust.fragment
