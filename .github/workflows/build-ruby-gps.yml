@@ -50,6 +50,9 @@ jobs:
       - name: Fetch A34
         run: make fetch
 
+      - name: Ports de ruby (display, tactil, carga, TEE) y config
+        run: ./port/apply-all.sh sources/a34x
+
       - name: Modulos vendor de MTK 6.6 (GPS, GPU, camara)
         run: ./port/vendor-mods.sh sources/a34x
 
@@ -63,6 +66,8 @@ jobs:
             ../vendor/mediatek/kernel_modules/connectivity/gps/gps_scp/gps_scp.ko
 
       - name: Build con los modulos del GPS
+        env:
+          RUBY_FRAGMENT: configs/ruby-6.6/full.fragment
         run: make build-fast
 
       - name: Verificar los modulos del GPS
