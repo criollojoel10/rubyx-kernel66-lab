@@ -1,23 +1,30 @@
-# Kernel de producto de ruby.
+# Kernel de producto de ruby (display + tactil + huella + TEE).
 #
-# Display y tactil: el GKI del A34 (mismo SoC MT6877, mismo panel m16) ya
-# trae portados a 6.6 el panel m16 36-02-0b y el tactil Focaltech FT3680.
-# Se compilan built-in (=y), igual que en el kernel stock de ruby.
-CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO=y
-CONFIG_TOUCHSCREEN_FOCALTECH_3680=y
-
-# Display: se usa la API mediatek_v2 (device modules) y se apaga la v1 del
-# GKI para no duplicar simbolos (mtk_dsi_*, mtk_disp_*).
-# El TEEI 400 llama a bootprof_log_boot() si CONFIG_MTPROF=m y el bootprof
-# de MTK vive en los device modules (que no se compilan): se desactiva.
-CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
+# En el kernel stock de ruby todos estos drivers van built-in (=y), asi que
+# aqui tambien. Ver docs/104-gaps-vivos.md (inventario en vivo).
+#
+# Display: se usa la API mediatek_v2 (copiada al GKI desde los device
+# modules) y se apaga la v1 del GKI para no duplicar simbolos
+# (mtk_dsi_*, mtk_disp_*). El DTB de ruby ya usa los compatibles de la v2
+# (mediatek,mt6877-disp-ovl), asi que no hay que tocarlo.
 CONFIG_DRM_MEDIATEK_V2=y
 CONFIG_DRM_MEDIATEK=n
 
-# Carga: drivers de chip de ruby portados desde el 4.19 (modulos).
-CONFIG_RUBY_MP2762=m
-CONFIG_RUBY_LN8410=m
-CONFIG_RUBY_BQ25980=m
-CONFIG_RUBY_SC8561=m
-CONFIG_RUBY_MAX77932=m
-CONFIG_RUBY_XMUSB350=m
+# Panel m16 42-0d-0a (1080x2400, DSC VDO): el que declara el cmdline del
+# kernel stock. Port en port/display (DCS y timings del 4.19 de ruby).
+CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO=y
+
+# Tactil Focaltech FT3680 por SPI3: port en port/touch.
+CONFIG_TOUCHSCREEN_FOCALTECH_3680=y
+
+# Huella Goodix por SPI (UUID de la TA Goodix 0x8888c03f): port en
+# port/fingerprint (desde el 4.19 de ruby).
+CONFIG_GOODIX_CAP_FINGERPRINT=y
+
+# TEE: Microtrust TEEI 400 (el TEE real de ruby). El TEEI llama a
+# bootprof_log_boot() si CONFIG_MTPROF=m, y ese simbolo vive en los device
+# modules (que no se compilan): se desactiva el bootprof.
+CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
+
+# Carga: no hay nada que portar. ruby carga con el cargador del PMIC
+# mt6360, que el A34 ya trae (CONFIG_DEVICE_MODULES_CHARGER_MT6360).

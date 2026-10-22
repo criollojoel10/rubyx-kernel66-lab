@@ -3,6 +3,7 @@
 #
 #   display : panel m16 42-0d-0a (mediatek_v2)  -> port/display (GKI)
 #   touch   : Focaltech FT3680 por SPI3           -> port/touch   (GKI)
+#   huella  : Goodix SPI (UUID de la TA Goodix)    -> port/fingerprint (GKI)
 #   tee     : Microtrust TEEI 400 + mediatek_v2   -> port/mtk-drivers (GKI)
 #   carga   : la hace el cargador del PMIC mt6360, que el A34 ya trae
 #
@@ -31,6 +32,9 @@ echo "== display: panel m16 42-0d-0a (el A34 no lo trae)"
 
 echo "== touch: Focaltech FT3680 por SPI3 (el A34 no lo trae)"
 ./port/touch/apply.sh "$GKI"
+
+echo "== huella: Goodix SPI (el A34 no lo trae)"
+./port/fingerprint/apply.sh "$GKI"
 
 echo "== parche del GKI: /vendor/firmware en fw_path[]"
 ./port/kernel-patches/firmware-path.sh "$GKI"

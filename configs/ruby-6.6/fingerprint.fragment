@@ -1,0 +1,2 @@
+# Huella Goodix de ruby (SPI), portada desde el 4.19
+CONFIG_GOODIX_CAP_FINGERPRINT=y
