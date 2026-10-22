@@ -28,3 +28,7 @@ CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
 
 # Carga: no hay nada que portar. ruby carga con el cargador del PMIC
 # mt6360, que el A34 ya trae (CONFIG_DEVICE_MODULES_CHARGER_MT6360).
+
+# --- audio (altavoz Awinic aw882xx + vibrador aw8697) ---
+CONFIG_SND_SOC_AW882XX=y
+CONFIG_DRIVER_AW8697=y
