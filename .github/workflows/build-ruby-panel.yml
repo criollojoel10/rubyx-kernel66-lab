@@ -64,6 +64,9 @@ jobs:
           RUBY_OVERLAY: configs/ruby-6.6/panel.fragment
         run: make build-fast
 
+      - name: Recolectar
+        run: make collect
+
       - name: Verificar el modulo del panel
         run: |
           grep -E '^CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=m' artifacts/a34-6.6.127/device-modules.config

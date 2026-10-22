@@ -64,6 +64,9 @@ jobs:
           RUBY_OVERLAY: configs/ruby-6.6/charger.fragment
         run: make build-fast
 
+      - name: Recolectar
+        run: make collect
+
       - name: Verificar los modulos de carga
         run: |
           grep -E '^CONFIG_RUBY_(MP2762|LN8410|BQ25980|SC8561|MAX77932|XMUSB350)=m' artifacts/a34-6.6.127/device-modules.config

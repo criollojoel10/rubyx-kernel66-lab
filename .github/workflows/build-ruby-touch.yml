@@ -64,6 +64,9 @@ jobs:
           RUBY_OVERLAY: configs/ruby-6.6/touch.fragment
         run: make build-fast
 
+      - name: Recolectar
+        run: make collect
+
       - name: Verificar el modulo del tactil
         run: |
           grep -E '^CONFIG_TOUCHSCREEN_FOCALTECH_3680=m' artifacts/a34-6.6.127/device-modules.config
