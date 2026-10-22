@@ -8,13 +8,16 @@
 # Uso: scripts/build-target-local.sh <ruta-relativa-del-target> [intentos]
 set -uo pipefail
 cd "$(dirname "$0")/.."
+ROOT="$(pwd)"
 
 TARGET="${1:?falta el target}"
 INTENTOS="${2:-12}"
 
-GKI="sources/a34x/kernel-6.6"
-DM="sources/a34x/kernel/kernel_device_modules-6.6"
-VOLLA="sources/mtk-6.6-mt6877/kernel_device_modules"
+# rutas absolutas: el script cd al GKI y las rutas de origen deben seguir
+# valiendo
+GKI="$(cd sources/a34x/kernel-6.6 && pwd)"
+DM="$(cd sources/a34x/kernel/kernel_device_modules-6.6 && pwd)"
+VOLLA="$(cd sources/mtk-6.6-mt6877/kernel_device_modules 2>/dev/null && pwd || echo /nonexistent)"
 
 [ -d "$GKI" ] || { echo "falta $GKI; ejecuta make fetch" >&2; exit 1; }
 export KCONFIG_EXT_PREFIX=../kernel/kernel_device_modules-6.6/
@@ -47,10 +50,15 @@ for i in $(seq 1 "$INTENTOS"); do
     exit 1
   fi
 
-  dest="$GKI/$hdr"
+  # los headers que se incluyen con <linux/...> o <uapi/...> van a
+  # include/ del GKI (el kernel anade $(srctree)/include al include path)
+  case "$hdr" in
+    linux/*|uapi/*) dest="$GKI/include/$hdr" ;;
+    *)            dest="$GKI/$hdr" ;;
+  esac
   mkdir -p "$(dirname "$dest")"
   cp -a "$found" "$dest"
-  echo "[build] copiado $hdr  (desde ${found#$PWD/})"
+  echo "[build] copiado $hdr  (desde ${found#$ROOT/})"
 done
 
 echo "[build] se agotaron los intentos"

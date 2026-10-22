@@ -64,10 +64,14 @@ fi
 
 # 3) cabeceros UAPI de MTK (los usa la mediatek_v2 y el panel m16) --------
 # El GKI del A34 no los tiene; estan en los device modules.
-if [ -f "$DM/include/uapi/drm/mediatek_drm.h" ]; then
-  mkdir -p "$GKI/include/uapi/drm"
-  cp -a "$DM/include/uapi/drm/mediatek_drm.h" "$GKI/include/uapi/drm/"
-  echo "[mtk-drivers] include/uapi/drm/mediatek_drm.h copiado al GKI"
-fi
+for h in include/uapi/drm/mediatek_drm.h \
+         include/linux/soc/mediatek/mtk-cmdq-ext.h \
+         include/linux/mailbox/mtk-cmdq-mailbox-ext.h; do
+  if [ -f "$DM/$h" ]; then
+    mkdir -p "$GKI/$(dirname "$h")"
+    cp -a "$DM/$h" "$GKI/$h"
+    echo "[mtk-drivers] $h copiado al GKI"
+  fi
+done
 
 echo "[mtk-drivers] listo"
