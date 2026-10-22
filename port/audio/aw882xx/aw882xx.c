@@ -14,6 +14,7 @@
 
 /*#define DEBUG*/
 #include <linux/module.h>
+#include <linux/gpio/consumer.h>
 #include <linux/i2c.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
@@ -2303,8 +2304,7 @@ static struct attribute_group aw882xx_attribute_group = {
 	.attrs = aw882xx_attributes,
 };
 
-static int aw882xx_i2c_probe(struct i2c_client *i2c,
-				const struct i2c_device_id *id)
+static int aw882xx_i2c_probe(struct i2c_client *i2c)
 {
 	int ret;
 	struct aw882xx *aw882xx = NULL;
@@ -2392,7 +2392,7 @@ err_sysfs:
 	return ret;
 }
 
-static int aw882xx_i2c_remove(struct i2c_client *i2c)
+static void aw882xx_i2c_remove(struct i2c_client *i2c)
 {
 	struct aw882xx *aw882xx = i2c_get_clientdata(i2c);
 
@@ -2405,12 +2405,6 @@ static int aw882xx_i2c_remove(struct i2c_client *i2c)
 			aw882xx);
 
 	/*free gpio*/
-	if (gpio_is_valid(aw882xx->irq_gpio))
-		devm_gpio_free(&i2c->dev, aw882xx->irq_gpio);
-	if (gpio_is_valid(aw882xx->reset_gpio))
-		devm_gpio_free(&i2c->dev, aw882xx->reset_gpio);
-	if (gpio_is_valid(aw882xx->spk_sw_gpio))
-		devm_gpio_free(&i2c->dev, aw882xx->spk_sw_gpio);
 
 	/*rm attr node*/
 	sysfs_remove_group(&i2c->dev.kobj, &aw882xx_attribute_group);
@@ -2432,7 +2426,6 @@ static int aw882xx_i2c_remove(struct i2c_client *i2c)
 	}
 	mutex_unlock(&g_aw882xx_lock);
 
-	return 0;
 
 }
 

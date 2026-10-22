@@ -59,16 +59,35 @@ def port_aw882xx() -> None:
         # 6.6: __ATTR() + class_create_file() ya no existen para las clases:
         # se usa DEVICE_ATTR() + device_create_file(class_dev(...), &attr.dev_attr)
         t = t.replace('class_att_', 'class_attr_')
+        # juego legacy: struct class_attribute + __ATTR() -> DEVICE_ATTR()
         t = re.sub(
-            r'static struct device_attribute class_attr_(\w+)\s*=\s*\\?\s*\n\s*__ATTR\(\s*\1\s*,',
-            r'static DEVICE_ATTR(\1,', t)
-        # variantes con otro nombre de variable
-        t = re.sub(
-            r'static struct device_attribute (\w+)\s*=\s*\\?\s*\n\s*__ATTR\(\s*(\w+)\s*,',
+            r'static struct class_attribute (\w+)\s*=\s*\\?\s*\n\s*__ATTR\(\s*(\w+)\s*,',
             r'static DEVICE_ATTR(\2,', t)
+        # juego moderno: se mantiene el struct device_attribute, pero el
+        # registro pasa por device_create_file(class_dev(...), &attr)
         t = re.sub(
             r'class_create_file\(&(\w+),\s*&class_attr_(\w+)\)',
-            r'device_create_file(class_dev(&\1), &attr_\2.dev_attr)', t)
+            r'device_create_file(class_dev(&\1), &class_attr_\2)', t)
+        if 'class_dev(' in t and 'linux/device/class.h' not in t:
+            t = t.replace('#include <linux/module.h>',
+                          '#include <linux/module.h>\n#include <linux/device/class.h>', 1)
+        # devm_gpio_* viven en gpio/consumer.h desde 5.x
+        if 'devm_gpio_' in t and 'linux/gpio/consumer.h' not in t:
+            t = t.replace('#include <linux/module.h>',
+                          '#include <linux/module.h>\n#include <linux/gpio/consumer.h>', 1)
+        # 6.x: probe() del driver de i2c ya no recibe el device_id
+        t = t.replace(
+            'static int aw882xx_i2c_probe(struct i2c_client *i2c,\n'
+            '\t\t\t\tconst struct i2c_device_id *id)',
+            'static int aw882xx_i2c_probe(struct i2c_client *i2c)')
+        # 6.x: remove() del driver de i2c devuelve void
+        t = t.replace('static int aw882xx_i2c_remove(struct i2c_client *i2c)',
+                      'static void aw882xx_i2c_remove(struct i2c_client *i2c)')
+        # ... y su cuerpo no puede devolver valor
+        t = re.sub(r'(static void aw882xx_i2c_remove\(struct i2c_client \*i2c\)\n\{.*?\n)\treturn 0;\n',
+                   r'\1', t, flags=re.S)
+        # 6.2+: devm_gpio_free() ya no existe (los GPIO devm se liberan solos)
+        t = re.sub(r'\n\tif \(gpio_is_valid\(aw882xx->\w+\)\)\n\t\tdevm_gpio_free\(&i2c->dev, aw882xx->\w+\);', '', t)
         if t != orig:
             c.write_text(t)
             n += 1
