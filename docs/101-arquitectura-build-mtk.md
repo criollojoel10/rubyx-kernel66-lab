@@ -43,7 +43,21 @@ Por tanto:
 
 Los compatibles coinciden con los del dtbo de ruby
 (`m16_36_02_0b_dsc_vdo,lcm` y `focaltech,3680-spi`), asi que el DTB de ruby
-(6.6, ya extraido) + su dtboOriginal encajan sin cambios.
+(6.6, ya extraido) + su dtbo original encajan sin cambios.
+
+**La API de display es la v2 (`mediatek_v2`), no la v1**: el DTB 6.6 de ruby
+usa compatibles con el sufijo de SoC que solo matchea la v2:
+
+```
+DTB ruby:   "mediatek,disp_ovl0", "mediatek,mt6877-disp-ovl"
+v2 (A34):   { .compatible = "mediatek,mt6877-disp-aal", ... }
+v1 (A34):   solo mt8173/mt8183 -> no sirve para ruby
+```
+
+Por eso el kernel se compila con `CONFIG_DRM_MEDIATEK_V2=y` y
+`CONFIG_DRM_MEDIATEK=n` (la v1 y la v2 colisionan), y la v2 se copia al GKI
+desde los device modules (`port/mtk-drivers/apply.sh`), porque los device
+modules no se compilan por si solos.
 
 ## Como se compila cada cosa (MGK)
 
