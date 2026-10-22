@@ -69,18 +69,45 @@ jobs:
       - name: Verificar los drivers de ruby
         run: |
           set -e
-          # 1) display, tactil, TEE, audio y huella van built-in (=y) como en
-          #    el kernel stock: no hay .ko que buscar
-          echo "== simbolos built-in"
-          for sym in m16_36_02_0b fts_ts isee tz_driver \
-                     mt6877_mt6359 snd_soc_mt6877 aw882xx \
-                     goodix_fp mtk_afe; do
-            grep -qi "$sym" artifacts/a34-6.6.127/System.map \
-              && echo "OK  $sym" \
-              || { echo "FALTA $sym"; exit 1; }
+          IMG=artifacts/a34-6.6.127/Image
+          CFG=artifacts/a34-6.6.127/config
+
+          # 1) los drivers built-in dejan su cadena de compatible en el Image;
+          #    es mas fiable que buscar simbolos (casi todos son static)
+          echo "== cadenas de compatible en el Image"
+          for s in \
+            "mediatek,mt6877-mt6359-sound" \
+            "panel-m16-42-0d-0a-dsc-vdo" \
+            "focaltech,3680-spi" \
+            "goodix,goodix-fp" \
+            "aw882xx" ; do
+            strings "$IMG" | grep -qF "$s" \
+              && echo "OK  $s" \
+              || { echo "FALTA $s"; exit 1; }
           done
 
-          # 2) el TEE no puede haberse colado como modulo: si existe isee.ko,
+          # 2) la config que el Image lleva dentro, si el IKCONFIG esta activo
+          if [ -s "$CFG" ]; then
+            echo "== config del Image"
+            for sym in \
+              CONFIG_DRM_MEDIATEK_V2 \
+              CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO \
+              CONFIG_TOUCHSCREEN_FOCALTECH_3680 \
+              CONFIG_GOODIX_CAP_FINGERPRINT \
+              CONFIG_MICROTRUST_TEE_SUPPORT \
+              CONFIG_SND_SOC_MEDIATEK \
+              CONFIG_SND_SOC_MT6877 \
+              CONFIG_SND_SOC_MT6877_MT6359P \
+              CONFIG_SND_SMARTPA_AW882XX ; do
+              grep -qx "$sym=y" "$CFG" \
+                && echo "OK  $sym" \
+                || { echo "FALTA $sym=y"; exit 1; }
+            done
+          else
+            echo "AVISO: el Image no lleva config (IKCONFIG), me quedo con las cadenas"
+          fi
+
+          # 3) el TEE no puede haberse colado como modulo: si existe isee.ko,
           #    el arbol de device modules lo compilo y el build esta mal
           echo "== modulos"
           tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst > /tmp/mods.txt
