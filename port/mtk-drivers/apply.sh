@@ -38,6 +38,9 @@ EOF
   echo "[mtk-drivers] TEEI 400 copiado al GKI"
 fi
 
+# limpiar K para que no se arrastre al bloque del display
+K=""
+
 # --- 2) mediatek_v2 (display v2) -------------------------------------------
 if [ -d "$DM/drivers/gpu/drm/mediatek/mediatek_v2" ]; then
   mkdir -p "$GKI/drivers/gpu/drm/mediatek"
