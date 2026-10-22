@@ -211,9 +211,15 @@ fi
 #     upstream y depende de MTK_PMIC_WRAP, que esta apagado.
 CODECS="$GKI/sound/soc/codecs"
 if [ -d "$DM/sound/soc/codecs" ] && [ -d "$CODECS" ]; then
-  for f in mt6359.c mt6359.h mt6359p.h; do
+  for f in mt6359.c mt6359.h mt6359p.h mt6359p-accdet.c mt6359p-accdet.h; do
     [ -f "$DM/sound/soc/codecs/$f" ] && cp -a "$DM/sound/soc/codecs/$f" "$CODECS/$f"
   done
+  # accdet (deteccion de auricular) solo si el config lo pide; si no, no entra
+  if ! grep -q 'snd-soc-mt6359p-accdet-o' "$CODECS/Makefile" 2>/dev/null; then
+    printf '%s\n%s\n' \
+      'obj-$(CONFIG_SND_SOC_MT6359P_ACCDET) += snd-soc-mt6359p-accdet.o' \
+      'snd-soc-mt6359p-accdet-objs := mt6359p-accdet.o' >> "$CODECS/Makefile"
+  fi
   # el codigo vendor incluye su cabecera privada solo si esta el simbolo de
   # los device modules; en el GKI ese simbolo no existe, asi que se incluye
   # siempre (el codec solo se compila con la card, ver Makefile)
