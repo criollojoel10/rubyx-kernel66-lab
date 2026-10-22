@@ -79,20 +79,44 @@ done
 # autosuficiente.
 # se parchea tambien la copia de los device modules: el error salia al
 # compilar la mediatek_v2 desde ahi
+# El header UAPI de MTK usa uint32_t/bool sin resolverlos. En el arbol del
+# kernel (include/uapi) eso lo da <linux/types.h>, pero los device modules se
+# compilan como modulo externo (M=) contra las cabeceras INSTALADAS en
+# usr/include, que son la version de userspace: ahi <linux/types.h> solo da
+# __u32 y uint32_t/bool vienen de <stdint.h>/<stdbool.h>.
+# Se resuelve como hace drm/drm.h: segun el contexto.
 for UAPI in "$GKI/include/uapi/drm/mediatek_drm.h" \
             "$DM/include/uapi/drm/mediatek_drm.h"; do
-if [ -f "$UAPI" ] && ! grep -q 'linux/types.h' "$UAPI"; then
+if [ -f "$UAPI" ] && ! grep -q 'ruby: tipos de uapi' "$UAPI"; then
   python3 - "$UAPI" <<'PYEOF'
 import sys
 p = sys.argv[1]
-lines = open(p).read().splitlines(keepends=True)
-for i, l in enumerate(lines):
-    if l.startswith("#include"):
-        lines.insert(i, "#include <linux/types.h>\n")
-        break
-open(p, "w").write("".join(lines))
+text = open(p).read()
+viejo = "#include <linux/types.h>\n#include <drm/drm.h>\n"
+nuevo = ("/* ruby: tipos de uapi, como hacen las cabeceras del kernel.\n"
+         " * Este header se compila ademas en su version SANITIZADA (la que\n"
+         " * instala el kernel en usr/include para los modulos externos), y\n"
+         " * ahi se quitan las ramas __KERNEL__ y los tipos de C que usa no\n"
+         " * existen (vienen de stdint.h/stdbool.h, que el kernel no\n"
+         " * exporta). Por eso se sustituyen por los tipos del kernel, que\n"
+         " * si existen en los dos mundos y tienen el mismo ABI. */\n"
+         "#include <linux/types.h>\n"
+         "#include <drm/drm.h>\n")
+if viejo not in text:
+    # el header original de MTK no lleva linux/types.h
+    viejo = "#include <drm/drm.h>\n"
+    if viejo not in text:
+        sys.exit("no encuentro el include de drm/drm.h")
+text = text.replace(viejo, nuevo, 1)
+# uint32_t/uint64_t/bool -> __u32/__u64/_Bool (mismo ABI, existe en ambos
+# mundos: el kernel y la copia sanitizada de userspace)
+import re as _re
+text = _re.sub(r'\buint32_t\b', '__u32', text)
+text = _re.sub(r'\buint64_t\b', '__u64', text)
+text = _re.sub(r'\bbool\b', '_Bool', text)
+open(p, "w").write(text)
 PYEOF
-  echo "[mtk-drivers] ${UAPI#sources/}: añadida linux/types.h"
+  echo "[mtk-drivers] ${UAPI#sources/}: tipos de uapi resueltos"
 fi
 done
 
