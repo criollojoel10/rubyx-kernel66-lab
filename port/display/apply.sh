@@ -11,6 +11,9 @@ SRC="port/display/panel-m16-36-02-0b-dsc-vdo.c"
 [ -f "$SRC" ] || { echo "falta $SRC (panel todavia no portado)" >&2; exit 1; }
 
 cp "$SRC" "$DM/drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.c"
+mkdir -p "$DM/drivers/gpu/drm/panel/include"
+cp "port/display/include/panel-m16-36-02-0b-dsc-vdo.h" \
+   "$DM/drivers/gpu/drm/panel/include/panel-m16-36-02-0b-dsc-vdo.h"
 
 K="$DM/drivers/gpu/drm/panel/Kconfig"
 if ! grep -q '^config DRM_PANEL_M16_36_02_0B_DSC_VDO' "$K"; then
