@@ -63,8 +63,7 @@ jobs:
       - name: Modulos vendor de MTK 6.6 (GPS, GPU, camara)
         run: ./port/vendor-mods.sh sources/a34x
 
-      - name: Declarar el modulo del TEE en Kleaf
-        run: python3 scripts/patch-kleaf-outs.py --dm drivers/tee/teei/400/isee.ko
+      # el TEE va built-in: no hay isee.ko que declarar
 
       - name: Build con los modulos del GPS
         env:

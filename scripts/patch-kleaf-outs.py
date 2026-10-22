@@ -60,34 +60,24 @@ def patch_outs(mods) -> int:
 
 
 def patch_device_modules(mods) -> int:
-    """Los modulos que se compilan en el arbol de device modules.
+    """Declara los .ko del arbol de device modules en mgk_64_module_outs.
 
-    Los drivers de display/input/power de MTK viven en el GKI (en los device
-    modules no hay Makefiles intermedios), asi que sus .ko solo se declaran
-    en los outs; declararlos tambien en device_modules haria que el build
-    los buscara donde no se construyen.
+    Esa lista es la unica que se funde en las cuatro variantes
+    (mgk_64_common_*). Se escribe en el ancla literal de la lista vacia: nada
+    de regex sobre los limites de la lista ni funciones al final del fichero
+    (eso produjo "expected an indented block" y rompio el .bzl).
     """
     text = BZL_MODS.read_text()
-    bloque = ["", "# --- ruby: modulos propios del proyecto ---",
-              "def _ruby_add(mods, name):",
-              "    if name not in mods:",
-              "        mods.append(name)",
-              "",
-              "def _ruby_remove(mods, name):",
-              "    if name in mods:",
-              "        mods.remove(name)",
-              ""]
-    for viejo in TEE_REEMPLAZA:
-        bloque.append(f'_ruby_remove(mgk_64_device_modules, "{viejo}")')
-    for mod in mods:
-        bloque.append(f'_ruby_add(mgk_64_device_modules, "{mod}")')
-    bloque.append("")
-
-    if "# --- ruby: modulos propios del proyecto ---" in text:
-        print("[kleaf] la lista de device modules ya esta parcheada")
+    ancla = "mgk_64_module_outs = [\n]"
+    if ancla in text:
+        cuerpo = "".join(f'    "{m}",\n' for m in mods)
+        BZL_MODS.write_text(text.replace(ancla, "mgk_64_module_outs = [\n" + cuerpo + "]", 1))
+        return len(mods)
+    if all(f'"{m}"' in text for m in mods):
+        print("[kleaf] mgk_64_module_outs ya contiene los modulos")
         return 0
-    BZL_MODS.write_text(text.rstrip("\n") + "\n" + "\n".join(bloque))
-    return len(mods)
+    sys.exit("no encuentro la lista vacia 'mgk_64_module_outs = []' en "
+             f"{BZL_MODS}; no toco nada")
 
 
 def main() -> int:
@@ -102,14 +92,23 @@ def main() -> int:
             mode = "dm"; continue
         if a == "--gki":
             mode = "gki"; continue
+        if not a.endswith(".ko"):
+            sys.exit(f"'{a}' no es un .ko: no lo declaro (argumentos validos: "
+                     "--dm, --gki y rutas que acaben en .ko)")
         (dm_mods if mode == "dm" else gki_mods).append(a)
     mods = dm_mods + gki_mods
     if not mods:
         print("uso: patch-kleaf-outs.py [--dm|--gki] <rutas .ko> [...]", file=sys.stderr)
         return 1
 
-    n1 = patch_outs(mods)
+    n1 = patch_outs(gki_mods)
     n2 = patch_device_modules(dm_mods)
+    import py_compile
+    for f in (BZL_OUTS, BZL_MODS):
+        try:
+            py_compile.compile(str(f), doraise=True)
+        except py_compile.PyCompileError as e:
+            sys.exit(f"[kleaf] {f.name} ya no compila: {e}")
     print(f"[kleaf] outs: +{n1} entradas | device_modules: +{n2} modulos")
     return 0
 
