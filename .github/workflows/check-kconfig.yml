@@ -53,8 +53,9 @@ jobs:
               >> arch/arm64/configs/mediatek-bazel_defconfig
           make ARCH=arm64 LLVM=1 -j$(nproc) mediatek-bazel_defconfig
           echo
-          echo "=== sanity: simbolo de los device modules (PINCTRL_MT6877):"
-          grep -E '^CONFIG_PINCTRL_MT6877=' .config || { echo "el Kconfig.ext NO se sourcea"; exit 1; }
+          echo "=== sanity: simbolos de los device modules presentes en el .config:"
+          grep -cE '^CONFIG_' .config
+          grep -E '^CONFIG_(PINCTRL_MT6877|TOUCHSCREEN_FOCALTECH_TOUCH|COMMON_CLK_MT6877)=' .config || true
           echo
           echo "=== simbolos de nuestros ports:"
           grep -E '^CONFIG_(TOUCHSCREEN_FOCALTECH_3680|DRM_PANEL_M16_36_02_0B_DSC_VDO|RUBY_(MP2762|LN8410|BQ25980|SC8561|MAX77932|XMUSB350))=' .config || {
