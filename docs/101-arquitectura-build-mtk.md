@@ -21,25 +21,29 @@ sources/a34x/                              (UN1CA/kernel_samsung_a34x)
     └── drivers/power/supply/              mtk_charger y familia
 ```
 
-## El A34 ya trae el display y el tactil de ruby
+## El A34 es el mismo SoC, pero sus drivers de ruby hay que portarlos
 
-El A34 5G es un **MT6877** (Exynos 1380) con **el mismo panel m16 36-02-0b**
-y **el mismo tactil Focaltech FT3680** que ruby. Samsung ya los portó a 6.6:
+El A34 5G es un **MT6877** (Exynos 1380), el **mismo SoC que ruby**, asi que
+la base de drivers MTK 6.6 que trae sirve tal cual para ruby (PMIC mt6359p,
+charging de MTK, TEEI, mediatek_v2...).
 
-```
-kernel-6.6/drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.c
-    compatible = "m16_36_02_0b_dsc_vdo,lcm"     (el del dtbo de ruby)
-kernel-6.6/drivers/input/touchscreen/focaltech_3680/
-    compatible = "focaltech,3680-spi"           (el del dtbo de ruby)
-    _FT3680 = 0x3680008A
-```
+Ojo con una confusion facile: en el arbol del A34 **si** aparecen
+`panel-m16-36-02-0b-dsc-vdo.c` y `focaltech_3680/`, pero **no estan
+versionados**: son los ports que hizo este laboratorio
+(`git status` en el submodulo GKI los marca como `??`). Samsung no los trae.
 
-**⇒ No hay que portar display ni tactil**: solo activarlos en el config
-(`CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO`, `CONFIG_TOUCHSCREEN_FOCALTECH_3680`).
+Por tanto:
 
-Los ports que.Resolveiamos en el laboratorio (`port/display/`, `port/touch/`)
-eran redundantes: el panel m16 de los device modules del A34 es el mismo
-fichero, y el driver del tactil es identico al `focaltech_3680` del GKI.
+| Driver | De donde sale | Donde compila |
+|---|---|---|
+| panel m16 36-02-0b | port en `port/display/` (DCS sacada del 4.19 de ruby) | GKI |
+| tactil FT3680 por SPI | port en `port/touch/` (chip id `0x3680008A`) | GKI |
+| mediatek_v2 (API de display) | copiada de los device modules (`port/mtk-drivers/apply.sh`) | GKI |
+| TEEI 400 (Microtrust) | copiada de los device modules | GKI (built-in) |
+
+Los compatibles coinciden con los del dtbo de ruby
+(`m16_36_02_0b_dsc_vdo,lcm` y `focaltech,3680-spi`), asi que el DTB de ruby
+(6.6, ya extraido) + su dtboOriginal encajan sin cambios.
 
 ## Como se compila cada cosa (MGK)
 

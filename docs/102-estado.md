@@ -6,8 +6,8 @@
 |---|---|---|
 | Base del kernel | **OK** | GKI de MTK 6.6.127 (A34) + device modules de MTK para MT6877 |
 | Device Tree | **OK** | El DTB 6.6 de ruby ya esta extraido; el dtbo aporta `panel2@0` = `m16_36_02_0b_dsc_vdo,lcm` y `m16-touch@0` = `focaltech,3680-spi` |
-| Display | **listo** | El GKI del A34 ya trae `panel-m16-36-02-0b-dsc-vdo.c` portado a 6.6 (mismo panel que ruby). Solo hay que activarlo |
-| Tactil | **listo** | El GKI del A34 ya trae `focaltech_3680/` (chip FT3680 por SPI, el de ruby). Solo hay que activarlo |
+| Display | **listo** | El panel m16 36-02-0b esta portado a 6.6 en `port/display/` (copiado al GKI). El hardware es el mismo que en el A34: mismo SoC MT6877 |
+| Tactil | **listo** | El driver del FT3680 por SPI esta portado en `port/touch/` (copiado al GKI). Es el chip que monta ruby |
 | TEE (keymaster/FBE) | **en build** | Microtrust TEEI 400 de los device modules, compilado built-in como en ruby |
 | Carga | **en build** | mp2762, ln8410, bq25980, sc8561, max77932, xmusb350 portados del 4.19 de ruby |
 | GNSS / GPU / camara | **fuente localizada** | `vendor/mediatek/kernel_modules` publico de MTK 6.6 para MT6877 (gps_stp, mali, mtkcam) |
@@ -16,7 +16,7 @@
 
 ## El cambio de fondo de esta sesion
 
-El A34 5G es un **MT6877** (Exynos 1380) con **el mismo panel m16 36-02-0b** y
+El A34 5G es un **MT6877** (Exynos 1380) y ruby monta **el mismo panel m16 36-02-0b** y
 **el mismo tactil Focaltech FT3680** que ruby. Samsung ya los portó a 6.6, asi
 que **display y tactil no hay que portarlos**: se activan en el config.
 
