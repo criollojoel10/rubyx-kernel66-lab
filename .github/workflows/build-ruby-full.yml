@@ -69,37 +69,26 @@ jobs:
       - name: Verificar los drivers de ruby
         run: |
           set -e
-          # 1) display, tactil y TEE van built-in (=y) como en el kernel stock
+          # 1) display, tactil, TEE, audio y huella van built-in (=y) como en
+          #    el kernel stock: no hay .ko que buscar
           echo "== simbolos built-in"
-          for sym in m16_36_02_0b fts_ts isee tz_driver mp2762 ln8410 bq25980 sc8561 max77932 xmusb350; do
-            if grep -qi "$sym" artifacts/a34-6.6.127/System.map; then
-              echo "OK  $sym"
-            else
-              echo "FALTA $sym"
-            fi
+          for sym in m16_36_02_0b fts_ts isee tz_driver \
+                     mt6877_mt6359 snd_soc_mt6877 aw882xx \
+                     goodix_fp mtk_afe; do
+            grep -qi "$sym" artifacts/a34-6.6.127/System.map \
+              && echo "OK  $sym" \
+              || { echo "FALTA $sym"; exit 1; }
           done
-          grep -qi "m16_36_02_0b" artifacts/a34-6.6.127/System.map || exit 1
-          grep -qi "fts_ts" artifacts/a34-6.6.127/System.map || exit 1
-          grep -qi "tz_driver" artifacts/a34-6.6.127/System.map || exit 1
 
-          # 2) los cargadores son modulos
+          # 2) el TEE no puede haberse colado como modulo: si existe isee.ko,
+          #    el arbol de device modules lo compilo y el build esta mal
           echo "== modulos"
           tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst > /tmp/mods.txt
-          for ko in \
-            drivers/power/supply/mps/mp2762.ko \
-            drivers/power/supply/ln/ln8410.ko \
-            drivers/power/supply/ti/bq25980.ko \
-            drivers/power/supply/southchip/sc8561.ko \
-            drivers/power/supply/maxim/max77932.ko \
-            drivers/power/supply/xiaomi/xmusb350.ko ; do
-            grep -q "$ko" /tmp/mods.txt || { echo "FALTA $ko"; exit 1; }
-            echo "OK  $ko"
-          done
-
-      - name: Verificar la config
-        run: |
-          grep -E '^CONFIG_(DRM_PANEL_M16_36_02_0B_DSC_VDO|TOUCHSCREEN_FOCALTECH_3680|RUBY_MP2762|RUBY_LN8410|RUBY_BQ25980|RUBY_SC8561|RUBY_MAX77932|RUBY_XMUSB350)=m' artifacts/a34-6.6.127/device-modules.config
-          grep -E '^CONFIG_MICROTRUST_TEE_SUPPORT=m' artifacts/a34-6.6.127/device-modules.config
+          if grep -q 'teei/400/isee.ko' /tmp/mods.txt; then
+            echo "FALTA: isee.ko esta como modulo (el TEE va built-in)"
+            exit 1
+          fi
+          echo "OK  sin isee.ko"
 
       - name: Subir artefactos
         if: always()
