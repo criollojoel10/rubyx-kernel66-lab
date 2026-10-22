@@ -50,6 +50,12 @@ echo "### display y camara"
 f "drm"            "cat /sys/class/drm/card0-DSI-1/status 2>/dev/null; cat /sys/class/drm/card0-DSI-1/modes 2>/dev/null | head -1"
 f "camaras"        "dumpsys media.camera 2>/dev/null | grep -E \"Number of camera devices\" | tr \"\\n\" \" \""
 
+echo "### tactil (Focaltech FT3680 por SPI3)"
+f "input devices"  "cat /proc/bus/input/devices 2>/dev/null | grep -E "^N: Name" | tr "\\n" " \";""
+f "eventos touch"  "ls /dev/input/ 2>/dev/null | tr "\\n" " \";""
+f "driver del panel" "grep -m1 -E "fts_ts|focaltech|goodix|mtk_tpd" /proc/bus/input/drivers 2>/dev/null"
+f "multitouch"     "getevent -pl 2>/dev/null | grep -c ABS_MT_SLOT"
+
 echo "### TEE y GPS"
 f "tee nodes"      "ls /dev/teei_client /dev/teei_config /dev/ut_keymaster /dev/isee_tee0 2>/dev/null | tr \"\\n\" \" \""
 f "gps"            "ls /dev/gpsdl0 /dev/gps_emi /dev/socket/mnld 2>/dev/null | tr \"\\n\" \" \""
