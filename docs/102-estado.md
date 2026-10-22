@@ -53,3 +53,18 @@ scripts/test-ruby-kernel.sh <run-id>
 3. Carga real con cargador enchufado.
 4. GPS con fix (modulos vendor de MTK).
 5. Dejar el kernel en el slot A de forma permanente.
+
+## Pendiente: huella (goodix por SPI)
+
+El dtbo de ruby define el nodo de la huella como un dispositivo SPI con
+`compatible = "goodix,goodix-fp"` (`netlink-event = <0x1e>`,
+`vfp-supply = <&mt_pmic_vfp_ldo_reg>`).
+
+En el A34 (MT6877, 6.6) **no hay driver de huella goodix**: solo el del
+tactil (`drivers/input/touchscreen/goodix`). El de la huella en MTK 6.6
+vive en `vendor/mediatek/kernel_modules/mtk_input/fingerprint/goodix/6.6`,
+ruta que no esta en el repo publico de modulos vendor.
+
+Opciones: (a) portar `drivers/input/fingerprint/goodix_cap` del 4.19 de ruby
+(como se hizo con el tactil), (b) buscar el arbol de modulos vendor que lo
+incluya. No bloquea el arranque ni ninguna otra funcion.
