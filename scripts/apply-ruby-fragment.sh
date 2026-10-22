@@ -36,11 +36,13 @@ set_block() {
 
   # 1) simbolos del bloque anterior (para limpiarlos del resto del fichero)
   local prev
+  # Solo las lineas del bloque anterior: si se imprimiese el fichero entero,
+  # el sed del paso 3 borraria TODAS las lineas CONFIG_...= del fichero
+  # (incluida CONFIG_BUILD_CONFIG_FILE, que el build necesita).
   prev=$(awk -v mark="$mark" '
     $0 == mark { skip = 1; next }
-    skip && /^# --- / { skip = 0 }
+    skip && /^# --- / { skip = 0; next }
     skip { print; next }
-    { print }
   ' "$file" | grep -oE '^CONFIG_[A-Za-z0-9_]+' | sort -u || true)
 
   # 2) fuera el bloque anterior (marcador + sus lineas)
