@@ -1,0 +1,5 @@
+# Audio de ruby: altavoz Awinic aw882xx (SmartPA) y vibrador aw8697.
+# Portado desde el 4.19 de ruby; aun NO esta en el fragment del kernel de
+# producto (mientras no compile limpio).
+CONFIG_SND_SMARTPA_AW882XX=m
+CONFIG_INPUT_AW8697_HAPTIC=m

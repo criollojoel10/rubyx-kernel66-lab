@@ -56,6 +56,19 @@ def port_aw882xx() -> None:
         t = t.replace('\tset_fs(fs);\n', '')
         # class_create() sin THIS_MODULE desde 6.4
         t = re.sub(r'class_create\(THIS_MODULE,\s*', 'class_create(', t)
+        # 6.6: __ATTR() + class_create_file() ya no existen para las clases:
+        # se usa DEVICE_ATTR() + device_create_file(class_dev(...), &attr.dev_attr)
+        t = t.replace('class_att_', 'class_attr_')
+        t = re.sub(
+            r'static struct device_attribute class_attr_(\w+)\s*=\s*\\?\s*\n\s*__ATTR\(\s*\1\s*,',
+            r'static DEVICE_ATTR(\1,', t)
+        # variantes con otro nombre de variable
+        t = re.sub(
+            r'static struct device_attribute (\w+)\s*=\s*\\?\s*\n\s*__ATTR\(\s*(\w+)\s*,',
+            r'static DEVICE_ATTR(\2,', t)
+        t = re.sub(
+            r'class_create_file\(&(\w+),\s*&class_attr_(\w+)\)',
+            r'device_create_file(class_dev(&\1), &attr_\2.dev_attr)', t)
         if t != orig:
             c.write_text(t)
             n += 1
