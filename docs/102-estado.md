@@ -1,0 +1,55 @@
+# 102 — Estado del kernel 6.6 de ruby (2026-10-22)
+
+## Resumen
+
+| Subsistema | Estado | Detalle |
+|---|---|---|
+| Base del kernel | **OK** | GKI de MTK 6.6.127 (A34) + device modules de MTK para MT6877 |
+| Device Tree | **OK** | El DTB 6.6 de ruby ya esta extraido; el dtbo aporta `panel2@0` = `m16_36_02_0b_dsc_vdo,lcm` y `m16-touch@0` = `focaltech,3680-spi` |
+| Display | **listo** | El GKI del A34 ya trae `panel-m16-36-02-0b-dsc-vdo.c` portado a 6.6 (mismo panel que ruby). Solo hay que activarlo |
+| Tactil | **listo** | El GKI del A34 ya trae `focaltech_3680/` (chip FT3680 por SPI, el de ruby). Solo hay que activarlo |
+| TEE (keymaster/FBE) | **en build** | Microtrust TEEI 400 de los device modules, compilado built-in como en ruby |
+| Carga | **en build** | mp2762, ln8410, bq25980, sc8561, max77932, xmusb350 portados del 4.19 de ruby |
+| GNSS / GPU / camara | **fuente localizada** | `vendor/mediatek/kernel_modules` publico de MTK 6.6 para MT6877 (gps_stp, mali, mtkcam) |
+| Droidspaces | **en build** | Parche kABI oficial + config GKI (workflow dedicated) |
+| Flash de prueba | **OK** | `scripts/test-ruby-kernel.sh <run>`: artefacto -> boot.img -> slot B (tries=1) -> verificacion |
+
+## El cambio de fondo de esta sesion
+
+El A34 5G es un **MT6877** (Exynos 1380) con **el mismo panel m16 36-02-0b** y
+**el mismo tactil Focaltech FT3680** que ruby. Samsung ya los portó a 6.6, asi
+que **display y tactil no hay que portarlos**: se activan en el config.
+
+Lo que si faltaba era el **TEE** (ruby usa Microtrust TEEI 400, el A34 usa
+TEEGRIS de Samsung) y los **cargadores** de Xiaomi.
+
+## Como se compila cada cosa (resumen)
+
+- El GKI se compila con el `.config` de los device modules.
+- Los device modules solo se compilan si el GKI los incluye en su
+  `Makefile.ext` (`obj-y += ../kernel/kernel_device_modules-6.6/drivers/tee/`).
+- Los `.ko` que Kleaf recoge son los de `mgk_64_device_modules`; declarar uno
+  ahi hace que el build **falle si no se produce** (un build verde significa que
+  el modulo existe).
+
+Detalle completo en `docs/101-arquitectura-build-mtk.md`.
+
+## Comandos
+
+```sh
+# build (CI)
+gh workflow run -R criollojoel10/rubyx-kernel66-lab build-ruby-full.yml --ref main
+gh workflow run -R criollojoel10/rubyx-kernel66-lab build-ruby-full-droidspaces.yml --ref main
+
+# probar en el telefono (auto-retorno al slot A)
+scripts/test-ruby-kernel.sh <run-id>
+```
+
+## Lo que falta para el cierre
+
+1. Build verde del kernel completo (display + tactil + TEE + carga).
+2. Montar la imagen y arrancar en el slot B: comprobar imagen, tactil, TEE
+   (`/dev/ut_keymaster`), `init_user0` sin fallo y `droidspaces check`.
+3. Carga real con cargador enchufado.
+4. GPS con fix (modulos vendor de MTK).
+5. Dejar el kernel en el slot A de forma permanente.
