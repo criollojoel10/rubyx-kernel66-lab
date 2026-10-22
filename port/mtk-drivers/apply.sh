@@ -49,7 +49,7 @@ if [ -d "$DM/drivers/gpu/drm/mediatek/mediatek_v2" ]; then
     echo 'obj-$(CONFIG_DRM_MEDIATEK_V2) += mediatek_v2/' >> "$M"
   K="$GKI/drivers/gpu/drm/mediatek/Kconfig"
   grep -q 'mediatek_v2/Kconfig' "$K" ||
-    echo 'source "mediatek_v2/Kconfig"' >> "$K"
+    echo 'source "drivers/gpu/drm/mediatek/mediatek_v2/Kconfig"' >> "$K"
   echo "[mtk-drivers] mediatek_v2 copiada al GKI"
 fi
 
