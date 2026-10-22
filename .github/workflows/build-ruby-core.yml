@@ -46,13 +46,13 @@ jobs:
           key: a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('scripts/patch-gki-core.sh') }}-${{ github.sha }}
           restore-keys: |
             a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            ds-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            core-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            kabi-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            mt-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            panel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            fast-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            bazel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            ds-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            core-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            kabi-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            mt-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            panel-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            fast-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            bazel-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
       - name: Fetch A34
         run: make fetch
 

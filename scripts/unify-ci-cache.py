@@ -70,7 +70,7 @@ def process(path: Path, check: bool) -> bool:
                 # guardados por cada workflow (mismo contenido: cache de
                 # acciones de Bazel del arbol A34).
                 for legacy in LEGACY_PREFIXES:
-                    out.append(f"{indent}  {legacy}{MANIFEST}-\n")
+                    out.append(f"{indent}  {legacy}a34-{MANIFEST}-\n")
                 changed = True
                 i += 1
                 # salta el resto del bloque original
