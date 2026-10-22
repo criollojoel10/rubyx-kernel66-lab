@@ -53,12 +53,14 @@ jobs:
               >> arch/arm64/configs/mediatek-bazel_defconfig
           make ARCH=arm64 LLVM=1 -j$(nproc) mediatek-bazel_defconfig
           echo
-          echo "=== sanity: simbolos de los device modules presentes en el .config:"
-          grep -cE '^CONFIG_' .config
-          grep -E '^CONFIG_(PINCTRL_MT6877|TOUCHSCREEN_FOCALTECH_TOUCH|COMMON_CLK_MT6877)=' .config || true
+          CFG=.config
+          [ -f "$CFG" ] || CFG="$(find . -maxdepth 3 -name '.config' | head -1)"
+          echo "=== .config usado: $CFG"
+          grep -cE '^CONFIG_' "$CFG" || true
+          grep -E '^CONFIG_(PINCTRL_MT6877|TOUCHSCREEN_FOCALTECH_TOUCH|COMMON_CLK_MT6877)=' "$CFG" || true
           echo
           echo "=== simbolos de nuestros ports:"
-          grep -E '^CONFIG_(TOUCHSCREEN_FOCALTECH_3680|DRM_PANEL_M16_36_02_0B_DSC_VDO|RUBY_(MP2762|LN8410|BQ25980|SC8561|MAX77932|XMUSB350))=' .config || {
+          grep -E '^CONFIG_(TOUCHSCREEN_FOCALTECH_3680|DRM_PANEL_M16_36_02_0B_DSC_VDO|RUBY_(MP2762|LN8410|BQ25980|SC8561|MAX77932|XMUSB350))=' "$CFG" || {
             echo "FALTAN LOS SIMBOLOS: el Kconfig no los expone"; exit 1; }
 
       - name: Comprobar los Makefile
