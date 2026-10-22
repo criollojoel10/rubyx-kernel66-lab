@@ -62,14 +62,8 @@ jobs:
       - name: Modulos vendor de MTK 6.6 (GPS, GPU, camara)
         run: ./port/vendor-mods.sh sources/a34x
 
-      - name: Declarar los modulos del GPS en Kleaf
-        run: |
-          python3 scripts/patch-kleaf-outs.py --dm \
-            drivers/tee/teei/400/isee.ko \
-            ../vendor/mediatek/kernel_modules/connectivity/gps/gps_stp/gps_stp.ko \
-            ../vendor/mediatek/kernel_modules/connectivity/gps/data_link/data_link.ko \
-            ../vendor/mediatek/kernel_modules/connectivity/gps/gps_pwr/gps_pwr.ko \
-            ../vendor/mediatek/kernel_modules/connectivity/gps/gps_scp/gps_scp.ko
+      - name: Declarar el modulo del TEE en Kleaf
+        run: python3 scripts/patch-kleaf-outs.py --dm drivers/tee/teei/400/isee.ko
 
       - name: Build del kernel de release
         run: make build-fast

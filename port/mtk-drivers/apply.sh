@@ -47,9 +47,18 @@ if [ -d "$DM/drivers/gpu/drm/mediatek/mediatek_v2" ]; then
   M="$GKI/drivers/gpu/drm/mediatek/Makefile"
   grep -q 'mediatek_v2/' "$M" ||
     echo 'obj-$(CONFIG_DRM_MEDIATEK_V2) += mediatek_v2/' >> "$M"
-  K="$GKI/drivers/gpu/drm/mediatek/Kconfig"
+  # El GKI de A34 usa la v1 (mi_disp) y no sourcea la v2: hay que engancharla.
+  # kconfig resuelve los "source" relativos contra el cwd (la raiz del
+  # package), no contra el directorio del Kconfig que lo contiene: por eso
+  # el path es relativo y hace falta el symlink de abajo.
   grep -q 'mediatek_v2/Kconfig' "$K" ||
-    echo 'source "drivers/gpu/drm/mediatek/mediatek_v2/Kconfig"' >> "$K"
+    echo 'source "mediatek_v2/Kconfig"' >> "$K"
+  # kconfig resuelve los "source" relativos contra el cwd (la raiz del
+  # package), no contra el directorio del Kconfig que lo contiene: por eso
+  # el GKI de A34 sourcea "mediatek_v2/Kconfig" y hace falta el symlink.
+  ln -sfn drivers/gpu/drm/mediatek/mediatek_v2 "$GKI/mediatek_v2"
+  ln -sfn drivers/gpu/drm/mediatek/mediatek_v2 "$DM/mediatek_v2"
+  K="$GKI/drivers/gpu/drm/mediatek/Kconfig"
   echo "[mtk-drivers] mediatek_v2 copiada al GKI"
 fi
 
