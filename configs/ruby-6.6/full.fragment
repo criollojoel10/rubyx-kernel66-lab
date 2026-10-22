@@ -8,6 +8,9 @@ CONFIG_TOUCHSCREEN_FOCALTECH_3680=y
 
 # Display: se usa la API mediatek_v2 (device modules) y se apaga la v1 del
 # GKI para no duplicar simbolos (mtk_dsi_*, mtk_disp_*).
+# El TEEI 400 llama a bootprof_log_boot() si CONFIG_MTPROF=m y el bootprof
+# de MTK vive en los device modules (que no se compilan): se desactiva.
+CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
 CONFIG_DRM_MEDIATEK_V2=y
 CONFIG_DRM_MEDIATEK=n
 

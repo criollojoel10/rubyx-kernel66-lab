@@ -26,6 +26,10 @@ CONFIG_MICROTRUST_TZ_DRIVER=y
 CONFIG_MICROTRUST_VFS_DRIVER=y
 CONFIG_MICROTRUST_FP_DRIVER=y
 CONFIG_MICROTRUST_KEYMASTER_DRIVER=y
+# El TEEI 400 llama a bootprof_log_boot() si CONFIG_MTPROF=m y el bootprof
+# de MTK vive en los device modules (que no se compilan): se desactiva.
+CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
+
 
 # --- Droidspaces (doc oficial: droidspaces.org/docs/kernel-configuration) ---
 CONFIG_SYSVIPC=y
