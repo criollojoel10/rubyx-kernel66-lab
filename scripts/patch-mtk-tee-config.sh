@@ -42,3 +42,41 @@ print("[tee] Microtrust 400 habilitado en", path)
 PY
 
 grep -E 'MICROTRUST|TEEGRIS' "$O"
+
+# ---------------------------------------------------------------------------
+# El driver geniezone de MTK usa la API GlobalPlatform de TEEGRIS
+# (drivers/tee/tzdev/4/include/tzdev/tee_client_api.h). Al activar Microtrust,
+# su Makefile incluye el Makefile.include de teei y ese header deja de estar
+# en el path -> "use of undeclared identifier 'TEEC_UUID'".
+# Solucion: anadir el path de TEEGRIS tambien en la rama de Microtrust.
+# ---------------------------------------------------------------------------
+GZ="sources/a34x/kernel/kernel_device_modules-6.6/drivers/misc/mediatek/geniezone/Makefile"
+[ -f "$GZ" ] || { echo "falta $GZ; ejecuta make fetch" >&2; exit 1; }
+
+python3 - "$GZ" <<'PY'
+import sys
+
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+    text = f.read()
+
+old = """  else ifneq ($(filter y m, $(CONFIG_MICROTRUST_TEE_SUPPORT)),)
+    include $(DEVICE_MODULES_PATH)/drivers/tee/teei/Makefile.include
+"""
+new = """  else ifneq ($(filter y m, $(CONFIG_MICROTRUST_TEE_SUPPORT)),)
+    include $(DEVICE_MODULES_PATH)/drivers/tee/teei/Makefile.include
+    # ruby: geniezone sigue usando la API GlobalPlatform de TEEGRIS
+    ccflags-y += -I$(DEVICE_MODULES_PATH)/drivers/tee/tzdev/4/include/tzdev/
+"""
+
+if "drivers/tee/tzdev/4/include/tzdev/" in text:
+    print("[tee] geniezone ya tiene el path de TEEGRIS")
+elif old in text:
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text.replace(old, new, 1))
+    print("[tee] path de TEEGRIS anadido a geniezone/Makefile")
+else:
+    sys.exit("no se encontro la rama de Microtrust en geniezone/Makefile")
+PY
+
+grep -n 'tzdev' "$GZ"
