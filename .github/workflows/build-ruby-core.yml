@@ -43,11 +43,18 @@ jobs:
             ~/.cache/bazel-disk
             ~/.cache/bazel-repo
             ~/.cache/ruby/clang-r536225
-          key: core-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('scripts/patch-gki-core.sh') }}-${{ github.sha }}
+          key: a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('scripts/patch-gki-core.sh') }}-${{ github.sha }}
           restore-keys: |
-            core-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-            fast-a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
-
+            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            ds-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            core-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            kabi-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            mt-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            panel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            fast-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            storage-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            bazel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            bazel-pilot-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
       - name: Fetch A34
         run: make fetch
 

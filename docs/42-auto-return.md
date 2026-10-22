@@ -59,6 +59,23 @@ No se debe flashear un boot de prueba sin APatch y sin este servicio.
 
 ## Resultado real de la primera prueba APatch
 
+Tras el fallo de módulos, un segundo intento con `modules.dep` llegó más lejos
+pero Android B entró en **recovery**:
+
+```
+Can't load Android system.
+reason: init_user0 failed
+```
+
+El recovery no ejecuta `service.d`, así que el selfheal de Android no puede
+actuar ahí. El usuario salió con “Try again / reboot system now” y volvió a A;
+no se hizo factory reset.
+
+Para evitarlo, la imagen de test debe llevar un `/init` de primera etapa que
+arme un watchdog **antes** de `exec /system/bin/init` y vuelva a A si Android
+no confirma. Ese wrapper está en `port/device/selfheal/first-stage-init.sh`.
+
+
 Se flasheó `stock-modules-apatch.img` (sha256
 `59b5f01d3fa3f8748be1e79ffd97d2ce7bbb84a0efe28b2cd7264233c18fd8c7`)
 en B con `tries=1`.
