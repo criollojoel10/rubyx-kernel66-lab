@@ -64,12 +64,14 @@ old = """  else ifneq ($(filter y m, $(CONFIG_MICROTRUST_TEE_SUPPORT)),)
     include $(DEVICE_MODULES_PATH)/drivers/tee/teei/Makefile.include
 """
 new = """  else ifneq ($(filter y m, $(CONFIG_MICROTRUST_TEE_SUPPORT)),)
+    # ruby: geniezone usa la API GlobalPlatform de TEEGRIS (typedef TEEC_UUID).
+    # El header de Microtrust solo declara "struct TEEC_UUID", asi que su
+    # include path debe ir ANTES que el de teei para que gane el de TEEGRIS.
+    ccflags-y += -I$(DEVICE_MODULES_PATH)/drivers/tee/tzdev/$(CONFIG_TEEGRIS_VERSION)/include/tzdev/
     include $(DEVICE_MODULES_PATH)/drivers/tee/teei/Makefile.include
-    # ruby: geniezone sigue usando la API GlobalPlatform de TEEGRIS
-    ccflags-y += -I$(DEVICE_MODULES_PATH)/drivers/tee/tzdev/4/include/tzdev/
 """
 
-if "drivers/tee/tzdev/4/include/tzdev/" in text:
+if "ruby: geniezone usa la API GlobalPlatform de TEEGRIS" in text:
     print("[tee] geniezone ya tiene el path de TEEGRIS")
 elif old in text:
     with open(path, "w", encoding="utf-8") as f:
