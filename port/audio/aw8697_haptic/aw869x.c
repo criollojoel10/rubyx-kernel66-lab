@@ -317,7 +317,7 @@ static int aw869x_rtp_update(struct aw869x *aw869x)
 {
 	aw_info("%s enter\n", __func__);
 
-	return request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
+	return request_firmware_nowait(THIS_MODULE, true,
 				       awinic_rtp_name[aw869x->rtp_file_num],
 				       aw869x->dev, GFP_KERNEL, aw869x,
 				       aw869x_rtp_loaded);
@@ -515,7 +515,7 @@ static int aw869x_ram_update(struct aw869x *aw869x)
 	aw869x->rtp_init = 0;
 	aw_info("%s enter\n", __func__);
 
-	return request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
+	return request_firmware_nowait(THIS_MODULE, true,
 				       awinic_ram_name, aw869x->dev, GFP_KERNEL,
 				       aw869x, aw869x_ram_loaded);
 }

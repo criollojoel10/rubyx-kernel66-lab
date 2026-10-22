@@ -44,6 +44,13 @@ echo "== TEEI 400 y mediatek_v2 (vienen de los device modules)"
 
 echo "== carga: el cargador del PMIC mt6360 ya esta en el A34 (no hay nada que portar)"
 
+echo "== audio: card MT6877 + altavoz aw882xx"
+if [ -n "${1:-}" ]; then
+  ./port/audio/apply-card.sh "$1"
+else
+  ./port/audio/apply-card.sh
+fi
+
 echo "== audio (altavoz aw882xx + vibrador aw8697)"
 ./port/audio/apply.sh "$GKI"
 

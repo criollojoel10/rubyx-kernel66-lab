@@ -111,6 +111,53 @@ def port_haptic() -> None:
                       '/* ruby: linux/hwid.h no existe en 6.6 */\n'
                       '#include <linux/extcon.h>')
         t = re.sub(r'class_create\(THIS_MODULE,\s*', 'class_create(', t)
+        # 6.6: linux/minmax.h ya define MIN
+        t = t.replace('#define MIN(x, y) ((x) < (y) ? (x) : (y))\n', '')
+        # 6.5+: request_firmware_nowait() ya no lleva el action; el segundo
+        # argumento es ahora el booleano "uevent"
+        t = re.sub(r'request_firmware_nowait\(THIS_MODULE,\s*\n?\s*'
+                   r'(FW_ACTION_HOTPLUG|FIRMWARE_HOTPLUG),',
+                   'request_firmware_nowait(THIS_MODULE, true,', t)
+        # 6.6: FW_ACTION_HOTPLUG vive en linux/firmware.h
+        if 'FW_ACTION_HOTPLUG' in t and '#include <linux/firmware.h>' not in t:
+            if '#include <linux/i2c.h>' in t:
+                t = t.replace('#include <linux/i2c.h>',
+                              '#include <linux/i2c.h>\n#include <linux/firmware.h>')
+            else:
+                t = t.replace('#include <linux/module.h>',
+                              '#include <linux/module.h>\n#include <linux/firmware.h>', 1)
+        # 6.2+: devm_gpio_free() ya no existe (los GPIO devm se liberan solos)
+        t = re.sub(r'\n[ \t]*devm_gpio_free\([^;]*\);', '', t)
+        # 6.x: el probe de i2c ya no recibe el i2c_device_id
+        t = re.sub(r'(static int \w+_probe\(struct i2c_client \*\w+,)\s*\n?\s*'
+                   r'const struct i2c_device_id \*id\)', r'\1', t)
+        # 6.x: el remove de i2c devuelve void (y sin return 0)
+        # (cuerpo con llaves anidadas: se busca el cierre contando llaves)
+        def _fix_remove(txt):
+            m = re.search(r'static int (\w+_remove)\(struct i2c_client \*(\w+)\)', txt)
+            if not m:
+                return txt
+            i = txt.find('{', m.end())
+            if i < 0:
+                return txt
+            nivel, j = 0, i
+            while j < len(txt):
+                if txt[j] == '{':
+                    nivel += 1
+                elif txt[j] == '}':
+                    nivel -= 1
+                    if nivel == 0:
+                        break
+                j += 1
+            cuerpo = txt[i:j + 1].replace('return 0;', '')
+            return (txt[:m.start()] +
+                    'static void %s(struct i2c_client *%s)\n' % (m.group(1), m.group(2)) +
+                    cuerpo + txt[j + 1:])
+        t = _fix_remove(t)
+        # 6.6: el pinctrl necesita su include explicito
+        if 'pinctrl_select_state' in t and '#include <linux/pinctrl/consumer.h>' not in t:
+            t = t.replace('#include <linux/i2c.h>',
+                          '#include <linux/i2c.h>\n#include <linux/pinctrl/consumer.h>')
         if t != orig:
             c.write_text(t)
             n += 1

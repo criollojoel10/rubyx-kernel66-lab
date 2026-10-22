@@ -29,6 +29,13 @@ CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
 # Carga: no hay nada que portar. ruby carga con el cargador del PMIC
 # mt6360, que el A34 ya trae (CONFIG_DEVICE_MODULES_CHARGER_MT6360).
 
-# --- audio (altavoz Awinic aw882xx + vibrador aw8697) ---
-# CONFIG_SND_SMARTPA_AW882XX=y   (port pendiente: no compila todavia)
-# CONFIG_INPUT_AW8697_HAPTIC=y   (port pendiente: no compila todavia)
+# --- audio: card MT6877 + altavoz Awinic aw882xx ---
+# La card de MT6877 vive en los device modules (que no se compilan con
+# ALLOW_BUILTIN=n), asi que port/audio/apply-card.sh la copia al GKI y le
+# engancha el dai_link del altavoz. El port del aw882xx ya compila.
+CONFIG_SND_SOC_MT6877=y
+CONFIG_SND_SOC_MT6877_MT6359P=y
+CONFIG_SND_SMARTPA_AW882XX=y
+
+# El vibrador (aw8697) sigue pendiente: no compila todavia.
+# CONFIG_INPUT_AW8697_HAPTIC=y
