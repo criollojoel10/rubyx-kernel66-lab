@@ -33,27 +33,44 @@ if [ -d "$DM/drivers/tee/teei/400" ]; then
 obj-$(CONFIG_MICROTRUST_TEE_SUPPORT) += $(subst ",,$(CONFIG_MICROTRUST_TEE_VERSION))/
 EOF
   K="$GKI/drivers/tee/Makefile"
-  grep -q 'CONFIG_MICROTRUST_TEE_SUPPORT' "$K" ||
-    echo 'obj-$(CONFIG_MICROTRUST_TEE_SUPPORT) += teei/' >> "$K"
-  echo "[mtk-drivers] TEEI 400 copiado al GKI"
+  python3 - "$K" <<'PY'
+import sys
+from pathlib import Path
 
-  # El arbol de device modules TAMBIEN tiene tee/teei, pero su config trae
-  # CONFIG_MICROTRUST_TEE_SUPPORT=m: Kleaf lo compila como modulo y el build
-  # muere con "isee.ko built but not copied" (y antes con
-  # modpost: bootprof_log_boot undefined). Aqui el driver ya va built-in.
+p = Path(sys.argv[1])
+# quita cualquier variante previa (la linea suelta de antes o el bloque)
+lineas = [l for l in p.read_text().splitlines()
+          if "MICROTRUST_TEE_SUPPORT" not in l and "ruby: TEEI" not in l]
+lineas += [
+    "# ruby: el TEE va built-in. Con =m (el config de los device modules lo",
+    "# pone asi) se compilaria isee.ko y Kleaf aborta con 'built but not",
+    "# copied'; el mismo arbol se compila en los dos builds.",
+    "ifeq ($(CONFIG_MICROTRUST_TEE_SUPPORT),y)",
+    "obj-y += teei/",
+    "endif",
+]
+p.write_text("\n".join(lineas) + "\n")
+print("[mtk-drivers] teei enlazado solo con =y (built-in)")
+PY
+
+  # El arbol de device modules TAMBIEN tiene tee/teei: si el build superpone
+  # esa copia sobre la del GKI, su Makefile lo volveria a enganchar con =m.
   DMT="$DM/drivers/tee/Makefile"
   if [ -f "$DMT" ]; then
     python3 - "$DMT" <<'PY'
+import re
 import sys
 from pathlib import Path
 
 p = Path(sys.argv[1])
 t = p.read_text()
-viejo = "obj-$(CONFIG_MICROTRUST_TEE_SUPPORT) += teei/\n"
-if viejo in t:
-    t = t.replace(viejo,
-                  "# ruby: TEEI va built-in en el GKI, no como modulo\n# " + viejo, 1)
-    p.write_text(t)
+linea = "obj-$(CONFIG_MICROTRUST_TEE_SUPPORT) += teei/"
+# anclado al principio de linea: no vuelve a tocar una ya comentada
+nuevo, n = re.subn(r"(?m)^" + re.escape(linea) + r"$",
+                   "# ruby: TEEI va built-in en el GKI, no como modulo\n# " + linea,
+                   t, count=1)
+if n:
+    p.write_text(nuevo)
     print("[mtk-drivers] teei desenganchado del arbol de device modules")
 PY
   fi
