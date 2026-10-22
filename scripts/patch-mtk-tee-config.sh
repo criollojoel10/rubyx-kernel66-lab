@@ -82,3 +82,42 @@ else:
 PY
 
 grep -n 'tzdev' "$GZ"
+
+# ---------------------------------------------------------------------------
+# Segundo sitio con el mismo problema: el subsistema "trusted_mem" de MTK
+# (drivers/misc/mediatek/trusted_mem) incluye tambien "tee_client_api.h" y
+# usa los tipos TEEC_* sin "struct" (typedef de TEEGRIS). Con Microtrust
+# habilitado su Makefile anade el include path de teei, que gana y rompe la
+# compilacion. Se anade tambien el path de TEEGRIS por delante.
+# ---------------------------------------------------------------------------
+TM="sources/a34x/kernel/kernel_device_modules-6.6/drivers/misc/mediatek/trusted_mem/Makefile"
+[ -f "$TM" ] || { echo "falta $TM; ejecuta make fetch" >&2; exit 1; }
+
+python3 - "$TM" <<'PY'
+import sys
+
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+    text = f.read()
+
+old = """ifneq ($(filter y m,$(CONFIG_MICROTRUST_TEE_SUPPORT)),)
+ccflags-y += -I$(DEVICE_MODULES_PATH)/drivers/tee/teei/$(CONFIG_MICROTRUST_TEE_VERSION)/common/include
+"""
+new = """ifneq ($(filter y m,$(CONFIG_MICROTRUST_TEE_SUPPORT)),)
+# ruby: el codigo de trusted_mem usa los tipos TEEC_* de TEEGRIS (typedef).
+# El include path de TEEGRIS debe ir antes que el de teei.
+ccflags-y += -I$(DEVICE_MODULES_PATH)/drivers/tee/tzdev/$(CONFIG_TEEGRIS_VERSION)/include/tzdev
+ccflags-y += -I$(DEVICE_MODULES_PATH)/drivers/tee/teei/$(CONFIG_MICROTRUST_TEE_VERSION)/common/include
+"""
+
+if "# ruby: el codigo de trusted_mem" in text:
+    print("[tee] trusted_mem ya tiene el path de TEEGRIS")
+elif old in text:
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text.replace(old, new, 1))
+    print("[tee] path de TEEGRIS anadido a trusted_mem/Makefile")
+else:
+    sys.exit("no se encontro la rama de Microtrust en trusted_mem/Makefile")
+PY
+
+grep -n 'tzdev' "$TM"
