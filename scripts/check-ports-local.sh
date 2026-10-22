@@ -67,6 +67,11 @@ export DEVICE_MODULES_DIR="kernel_device_modules-6.6"
 export DEVICE_MODULES_REL_DIR="kernel_device_modules-6.6"
 export DEVICE_MODULES_PATH="$(cd ../kernel/kernel_device_modules-6.6 && pwd)"
 export MTK_PLATFORM="mt6877"
+# el .config apunta la clave de firma a $(DEVICE_MODULES_REL_DIR)/certs/..., que
+# se resuelve desde el GKI: hace falta el enlace al arbol de device modules
+if [ ! -e "$GKI/kernel_device_modules-6.6" ]; then
+  ln -sfn ../kernel/kernel_device_modules-6.6 "$GKI/kernel_device_modules-6.6"
+fi
 cp "$OLDPWD/$REF" .config
 ./scripts/kconfig/merge_config.sh -m .config \
   ../kernel/kernel_device_modules-6.6/arch/arm64/configs/mediatek-bazel_defconfig \
