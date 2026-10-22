@@ -45,39 +45,18 @@ KERNEL="$ART/Image.gz"
 [ -f "$KERNEL" ] || KERNEL="$ART/Image"
 [ -f "$KERNEL" ] || { echo "no encuentro el kernel en $ART" >&2; exit 1; }
 MODTAR="$ART/a34-all-modules.tar.zst"
-[ -f "$MODTAR" ] || { echo "no encuentro $MODTAR" >&2; exit 1; }
+# opcional: los drivers de ruby van built-in, el tar solo sirve como informe
 
-# 2) modulos de ruby
+# 2) modulos de ruby: los drivers de ruby (display, tactil, huella, TEE)
+#    van built-in en el kernel, asi que aqui no hay nada que cargar. El
+#    ramdisk solo lleva el init de primera etapa con el watchdog.
 MODDIR="artifacts/ruby-mods"
 rm -rf "$MODDIR"; mkdir -p "$MODDIR"
-echo "[boot] extrayendo modulos de ruby de $MODTAR"
-tar --zstd -xf "$MODTAR" -C "$MODDIR"
-
-MODS=$(cd "$MODDIR" && find . -name '*.ko' | sed 's|^\./||' | grep -E \
-  'drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo\.ko|drivers/input/touchscreen/focaltech_3680/focaltech_3680\.ko|drivers/power/supply/(mps/mp2762|ln/ln8410|ti/bq25980|southchip/sc8561|maxim/max77932|xiaomi/xmusb350)\.ko|drivers/tee/teei/400/isee\.ko' \
-  | sort)
-if [ -z "$MODS" ]; then
-  echo "[boot] AVISO: el artefacto no contiene modulos de ruby" >&2
-else
-  echo "$MODS" | sed 's/^/   /'
+if [ -f "$MODTAR" ]; then
+  echo "[boot] modulos del build (informativo)"
+  tar --zstd -tf "$MODTAR" 2>/dev/null | grep -E 'panel-m16|focaltech_3680|goodix|isee' | head -8 | sed 's/^/   /' || true
 fi
-
-# modules.load: orden de carga (TEE antes que el resto)
-ORDER=""
-for m in drivers/tee/teei/400/isee.ko \
-         drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.ko \
-         drivers/input/touchscreen/focaltech_3680/focaltech_3680.ko \
-         drivers/power/supply/mps/mp2762.ko \
-         drivers/power/supply/ln/ln8410.ko \
-         drivers/power/supply/ti/bq25980.ko \
-         drivers/power/supply/southchip/sc8561.ko \
-         drivers/power/supply/maxim/max77932.ko \
-         drivers/power/supply/xiaomi/xmusb350.ko; do
-  case "$MODS" in *"$m"*) ORDER="$ORDER$m
-";; esac
-done
-printf '%s' "$ORDER" > "$MODDIR/modules.load"
-echo "[boot] modules.load: $(wc -l < "$MODDIR/modules.load") modulos"
+printf '' > "$MODDIR/modules.load"
 
 # 3) ramdisk con los modulos
 UNPACKED="/root/ruby-gki/work/boot_unpacked"
@@ -86,8 +65,8 @@ RAMDISK_LZ4="artifacts/ramdisk-ruby.lz4"
 ./scripts/pack-ramdisk-modules.sh "$UNPACKED" "$MODDIR" "$RAMDISK_LZ4"
 
 # 4) boot.img
-DTB="dts/ruby-stock-base.dtb"
-[ -f "$DTB" ] || DTB="/root/ruby-gki/work/dtb_boot/01_dtbdump_MT6877.dtb"
+DTB="${RUBY_DTB:-/root/ruby-gki/work/dtb_boot/01_dtbdump_MT6877.dtb}"
+[ -f "$DTB" ] || { echo "no encuentro el DTB de ruby: $DTB" >&2; exit 1; }
 ORIG="device/backups/boot_b-stock.img"
 [ -f "$ORIG" ] || ORIG="/root/ruby-gki/work/boot_b.img"
 
