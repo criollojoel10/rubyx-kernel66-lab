@@ -24,9 +24,7 @@
 #include "tee_client_api.h"
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
-#ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
-#endif
 #else
 #include <linux/notifier.h>
 #endif
@@ -42,6 +40,7 @@
 #endif
 
 #ifdef CONFIG_MTK_CLKMGR
+#include "mach/mt_clkmgr.h"
 #else
 #include <linux/clk.h>
 #endif
@@ -53,8 +52,6 @@
 /* MTK header */
 /*
 #ifndef CONFIG_SPI_MT65XX_MODULE
-#include "mtk_spi.h"
-#include "mtk_spi_hal.h"
 #endif
 */
 
@@ -454,7 +451,7 @@ static void gf_spi_clk_enable(struct gf_device *gf_dev, u8 bonoff)
 		if (atomic_read(&clk_ref) == 0) {
 			pr_debug("%s : ree control spi clk, enable spi clk\n",
 			       __func__);
-			mt_spi_enable_master_clk(gf_dev->spi);
+			/* 6.6: el driver de SPI gestiona el clock maestro */
 		}
 		atomic_inc(&clk_ref);
 		gf_debug(DEBUG_LOG, "%s : increase spi clk ref to %d\n",
@@ -466,7 +463,7 @@ static void gf_spi_clk_enable(struct gf_device *gf_dev, u8 bonoff)
 		if (atomic_read(&clk_ref) == 0) {
 			pr_debug("%s :ree control spi clk, disable spi clk\n",
 			       __func__);
-			mt_spi_disable_master_clk(gf_dev->spi);
+			/* 6.6: el driver de SPI gestiona el clock maestro */
 		}
 	}
 }
@@ -934,11 +931,7 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		gf_dev->early_suspend.suspend =
 		    gf_early_suspend, gf_dev->early_suspend.resume =
 		    gf_late_resume,
-		    #ifdef CONFIG_HAS_EARLYSUSPEND
-
-		    	register_early_suspend(&gf_dev->early_suspend);
-
-		    #endif
+		    register_early_suspend(&gf_dev->early_suspend);
 #else
 #ifndef GOODIX_DRM_INTERFACE_WA
 		/* register screen on/off callback */
@@ -980,11 +973,7 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		}
 #ifdef CONFIG_HAS_EARLYSUSPEND
 		if (gf_dev->early_suspend.suspend)
-			#ifdef CONFIG_HAS_EARLYSUSPEND
-
-				unregister_early_suspend(&gf_dev->early_suspend);
-
-			#endif
+			unregister_early_suspend(&gf_dev->early_suspend);
 #else
 #ifndef GOODIX_DRM_INTERFACE_WA
 		//fb_unregister_client(&gf_dev->notifier);
@@ -1361,13 +1350,13 @@ static ssize_t gf_debug_store(struct device *dev,
 		gf_debug(INFO_LOG,
 			 "%s: parameter is -8, enable spi clock test===============\n",
 			 __func__);
-		mt_spi_enable_master_clk(gf_dev->spi);
+		/* 6.6: el driver de SPI gestiona el clock maestro */
 
 	} else if (!strncmp(buf, "-9", 2)) {
 		gf_debug(INFO_LOG,
 			 "%s: parameter is -9, disable spi clock test===============\n",
 			 __func__);
-		mt_spi_disable_master_clk(gf_dev->spi);
+		/* 6.6: el driver de SPI gestiona el clock maestro */
 
 	} else if (!strncmp(buf, "-10", 3)) {
 		gf_debug(INFO_LOG,
@@ -1398,11 +1387,7 @@ static ssize_t gf_debug_store(struct device *dev,
 		gf_dev->early_suspend.suspend =
 		    gf_early_suspend, gf_dev->early_suspend.resume =
 		    gf_late_resume,
-		    #ifdef CONFIG_HAS_EARLYSUSPEND
-
-		    	register_early_suspend(&gf_dev->early_suspend);
-
-		    #endif
+		    register_early_suspend(&gf_dev->early_suspend);
 #else
 #ifndef GOODIX_DRM_INTERFACE_WA
 		/* register screen on/off callback */
@@ -2531,11 +2516,7 @@ static int gf_remove(struct spi_device *spi)
 	}
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	if (gf_dev->early_suspend.suspend)
-		#ifdef CONFIG_HAS_EARLYSUSPEND
-
-			unregister_early_suspend(&gf_dev->early_suspend);
-
-		#endif
+		unregister_early_suspend(&gf_dev->early_suspend);
 #else
 #ifndef GOODIX_DRM_INTERFACE_WA
 	//fb_unregister_client(&gf_dev->notifier);

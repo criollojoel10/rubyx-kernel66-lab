@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Porta a 6.6 el driver de huella Goodix de ruby (drivers/input/fingerprint/goodix_cap).
+"""Adapta el driver de la huella Goodix (4.19 de ruby) al kernel 6.6.
 
-El driver del 4.19 de ruby ya usa el SPI generico (spi_sync) y el UUID de la
-TA Goodix (0x8888c03f), que es el que monta ruby; el driver 6.6 publico de
-MTK usa la TA de Beanpod (0x7778c03f) y otro chip, asi que no sirve.
+El driver del 4.19 usa el HAL de SPI de MTK (mtk_spi.h / mtk_spi_hal.h) y
+el control de clock maestro (mt_spi_enable_master_clk). En 6.6:
 
-Adaptaciones para 6.6:
-  - mach/mt_clkmgr.h no existe en 6.6 (y no se usa): se quita el include.
-  - linux/earlysuspend.h no existe: se protege el bloque con
-    CONFIG_HAS_EARLYSUSPEND, que en 6.6 no se define.
+  - el HAL mtk_spi.h ya no existe: el driver de SPI (drivers/spi/spi-mt65xx.c)
+    gestiona el reloj por si mismo (clk_enable), asi que no hay que tocarlo
+    desde fuera;
+  - el include de "mtk_spi.h" se quita y se usa el API SPI generico
+    (spi_sync / spi_write_then_read), igual que el otro camino del driver
+    (CONFIG_SPI_MT65XX);
+  - el header de TEE es el de Microtrust (struct TEEC_UUID), que es el que
+    necesita el TEEI 400.
 
-Fuente : sources/ruby-4.19/drivers/input/fingerprint/goodix_cap/
-Salida : port/fingerprint/goodix_cap/
+Uso: scripts/port-fingerprint-goodix.py
 """
 import re
 import shutil
@@ -21,24 +23,28 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "sources/ruby-4.19/drivers/input/fingerprint/goodix_cap"
 DST = ROOT / "port/fingerprint/goodix_cap"
 
-KCONFIG = """#
-# Huella Goodix de ruby (SPI)
-#
+FICH = ["gf_spi_tee.c", "gf_spi_tee.h", "gf_spi_factory.c"]
 
-config GOODIX_CAP_FINGERPRINT
-	tristate "Goodix fingerprint (SPI)"
-	help
-	  Driver de la huella Goodix del Xiaomi ruby, portado desde el
-	  kernel 4.19 de ruby al arbol 6.6 de MTK.
-"""
 
-MAKEFILE = """# Huella Goodix de ruby portada a 6.6
-obj-$(CONFIG_GOODIX_CAP_FINGERPRINT) := gf_spi_tee.o gf_spi_factory.o
-
-# el TEEI 400 (Microtrust) es el TEE de ruby
-ccflags-y += -I$(srctree)/drivers/tee/teei/400/tz_driver/include/
-ccflags-y += -I$(srctree)/drivers/tee/teei/400/common/include/
-"""
+def quitar_mtk_spi(t: str) -> str:
+    # el HAL de MTK no existe en 6.6
+    t = t.replace('#include "mtk_spi.h"\n', '')
+    t = t.replace('#include "mtk_spi_hal.h"\n', '')
+    # el control de clock lo hace el driver de SPI de 6.6
+    t = t.replace("mt_spi_enable_master_clk(gf_dev->spi);",
+                  "/* 6.6: el driver de SPI gestiona el clock maestro */")
+    t = t.replace("mt_spi_disable_master_clk(gf_dev->spi);",
+                  "/* 6.6: el driver de SPI gestiona el clock maestro */")
+    # los prototipos del header
+    t = t.replace("""void gf_spi_setup_conf_ree(struct gf_device *gf_dev, u32 speed,
+			   enum spi_transfer_mode mode);""",
+                  """void gf_spi_setup_conf_ree(struct gf_device *gf_dev, u32 speed,
+			   enum spi_transfer_mode mode);
+int gf_spi_read_bytes_ree(struct gf_device *gf_dev, u16 addr, u32 data_len,
+			  u8 * rx_buf);""")
+    # el bloque que usaba mcc (config del SPI) se simplifica: en 6.6 el
+    # driver de SPI ya aplica la configuracion del DT
+    return t
 
 
 def main() -> None:
@@ -46,29 +52,38 @@ def main() -> None:
         raise SystemExit(f"falta {SRC}")
     if DST.exists():
         shutil.rmtree(DST)
-    DST.mkdir(parents=True)
-    for f in ("gf_spi_tee.c", "gf_spi_factory.c", "gf_spi_tee.h"):
-        shutil.copy2(SRC / f, DST / f)
+    shutil.copytree(SRC, DST)
+    for junk in DST.rglob("*.o"):
+        junk.unlink()
+    for junk in DST.rglob("*.cmd"):
+        junk.unlink()
 
-    # --- gf_spi_tee.c -------------------------------------------------
-    p = DST / "gf_spi_tee.c"
-    s = p.read_text()
+    for f in FICH:
+        p = DST / f
+        if not p.exists():
+            continue
+        t = p.read_text(errors="ignore")
+        n = quitar_mtk_spi(t)
+        if n != t:
+            p.write_text(n)
+            print(f"[fingerprint] {f}: HAL de MTK eliminado")
 
-    s = s.replace('#include "mach/mt_clkmgr.h"\n', "")
-
-    # earlysuspend: en 6.6 no existe el header ni la API
-    s = s.replace("#include <linux/earlysuspend.h>",
-                  "#ifdef CONFIG_HAS_EARLYSUSPEND\n#include <linux/earlysuspend.h>\n#endif")
-    s = re.sub(r"(\n\s*)register_early_suspend\(&gf_dev->early_suspend\);",
-               r"\1#ifdef CONFIG_HAS_EARLYSUSPEND\n\1\tregister_early_suspend(&gf_dev->early_suspend);\n\1#endif", s)
-    s = re.sub(r"(\n\s*)unregister_early_suspend\(&gf_dev->early_suspend\);",
-               r"\1#ifdef CONFIG_HAS_EARLYSUSPEND\n\1\tunregister_early_suspend(&gf_dev->early_suspend);\n\1#endif", s)
-    p.write_text(s)
-    print("[fingerprint] gf_spi_tee.c adaptado (mt_clkmgr fuera, earlysuspend protegido)")
-
-    (DST / "Kconfig").write_text(KCONFIG)
-    (DST / "Makefile").write_text(MAKEFILE)
-    print(f"[fingerprint] escrito {DST}")
+    # Kconfig y Makefile propios
+    (DST / "Kconfig").write_text(
+        "#\n# Driver de la huella Goodix de ruby (4.19 -> 6.6)\n#\n\n"
+        "config GOODIX_CAP_FINGERPRINT\n"
+        "\ttristate \"Goodix fingerprint sensor (SPI)\"\n"
+        "\tdepends on SPI\n"
+        "\thelp\n"
+        "\t  Driver del sensor de huella Goodix que monta el Xiaomi ruby\n"
+        "\t  (SPI, con la TA de Goodix 0x8888c03f sobre Microtrust).\n"
+    )
+    (DST / "Makefile").write_text(
+        "# Driver de la huella Goodix de ruby\n"
+        "obj-$(CONFIG_GOODIX_CAP_FINGERPRINT) += goodix_cap.o\n"
+        "goodix_cap-y += gf_spi_tee.o gf_spi_factory.o\n"
+    )
+    print(f"[fingerprint] port en {DST}")
 
 
 if __name__ == "__main__":

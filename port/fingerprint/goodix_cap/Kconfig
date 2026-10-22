@@ -1,9 +1,10 @@
 #
-# Huella Goodix de ruby (SPI)
+# Driver de la huella Goodix de ruby (4.19 -> 6.6)
 #
 
 config GOODIX_CAP_FINGERPRINT
-	tristate "Goodix fingerprint (SPI)"
+	tristate "Goodix fingerprint sensor (SPI)"
+	depends on SPI
 	help
-	  Driver de la huella Goodix del Xiaomi ruby, portado desde el
-	  kernel 4.19 de ruby al arbol 6.6 de MTK.
+	  Driver del sensor de huella Goodix que monta el Xiaomi ruby
+	  (SPI, con la TA de Goodix 0x8888c03f sobre Microtrust).

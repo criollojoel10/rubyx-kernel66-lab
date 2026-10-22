@@ -10,7 +10,6 @@
 #include <linux/cdev.h>
 #include <linux/input.h>
 #ifndef CONFIG_SPI_MT65XX
-#include "mtk_spi.h"
 #endif
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
@@ -232,6 +231,8 @@ struct gf_device {
 #ifndef CONFIG_SPI_MT65XX
 void gf_spi_setup_conf_ree(struct gf_device *gf_dev, u32 speed,
 			   enum spi_transfer_mode mode);
+int gf_spi_read_bytes_ree(struct gf_device *gf_dev, u16 addr, u32 data_len,
+			  u8 * rx_buf);
 #endif
 int gf_spi_read_bytes_ree(struct gf_device *gf_dev, u16 addr, u32 data_len,
 			  u8 * rx_buf);

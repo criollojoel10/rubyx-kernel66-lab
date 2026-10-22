@@ -19,9 +19,7 @@
 //#include "mt_gpio.h"
 //#include "mach/gpio_const.h"
 
-//#include "mtk_spi.h"
-//#include "mtk_spi_hal.h"
-
+////
 /*
 int  gf_ioctl_spi_init_cfg_cmd(struct mt_chip_conf *mcc, unsigned long arg){
     return 0;
