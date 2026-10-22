@@ -16,10 +16,16 @@ REF="volla-16.0"
 
 [ -d "$SRC" ] || { echo "falta $SRC; ejecuta make fetch" >&2; exit 1; }
 
-if [ ! -d "$DST/.git" ]; then
+if [ ! -f "$DST/.git/HEAD" ] && [ ! -d "$DST/connectivity/gps" ]; then
   mkdir -p "$(dirname "$DST")"
   echo "[vendor-mods] clonando $REPO @ $REF (~450 MB)"
-  git clone --depth 1 --branch "$REF" "$REPO" "$DST"
+  TMP="$(mktemp -d)"
+  git clone --depth 1 --branch "$REF" "$REPO" "$TMP/mods"
+  mkdir -p "$DST"
+  # el arbol del A34 ya trae su propio vendor/mediatek/kernel_modules:
+  # se fusiona el de MTK 6.6 encima sin borrar lo que ya haya
+  cp -a "$TMP/mods/." "$DST/"
+  rm -rf "$TMP"
 else
   echo "[vendor-mods] ya esta en $DST"
 fi
