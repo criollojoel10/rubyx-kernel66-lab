@@ -70,7 +70,13 @@ jobs:
         run: |
           set -e
           IMG=artifacts/a34-6.6.127/Image
-          CFG=artifacts/a34-6.6.127/config
+          # El config que lleva el Image (IKCONFIG) solo tiene simbolos del
+          # GKI: los de los device modules (panel, touch, huella, TEE, audio)
+          # viven en el .config del arbol de device modules, que collect copia
+          # como device-modules.config. Comprobar los =y/=m contra $CFG hacia
+          # fallar la verificacion con un build correcto.
+          CFG=artifacts/a34-6.6.127/device-modules.config
+          IMGCFG=artifacts/a34-6.6.127/config
 
           # 1) drivers built-in: su cadena de compatible viaja en el Image.
           #    El audio de MT6877 no esta aqui: va como .ko del arbol de
@@ -85,9 +91,10 @@ jobs:
               || { echo "FALTA $s"; exit 1; }
           done
 
-          # 2) built-in (=y) en la config que lleva el Image
+          # 2) built-in (=y) en la config del arbol que compila los device modules
+          [ -s "$CFG" ] || CFG="$IMGCFG"
           if [ -s "$CFG" ]; then
-            echo "== config del Image (built-in)"
+            echo "== config de los device modules (built-in)"
             for sym in \
               CONFIG_DRM_MEDIATEK_V2 \
               CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO \
@@ -115,7 +122,7 @@ jobs:
                 || { echo "FALTA $sym=m"; exit 1; }
             done
           else
-            echo "AVISO: el Image no lleva config (IKCONFIG), me quedo con las cadenas"
+            echo "AVISO: no hay config de los device modules; me quedo con las cadenas"
           fi
 
           # 4) los .ko de ruby tienen que estar en el tar de modulos, y el TEE
