@@ -45,9 +45,14 @@ jobs:
             ~/.cache/ruby/clang-r536225
           key: a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('port/**', 'configs/ruby-6.6/*', 'scripts/patch-*.py', 'configs/ruby-6.6/droidspaces-safe.fragment') }}-${{ github.sha }}
           restore-keys: |
-            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-${{ hashFiles('port/**', 'configs/ruby-6.6/*', 'scripts/patch-*.py') }}-
-      - name: Fetch A34
-        run: make fetch
+            a34-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            ds-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            core-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            kabi-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            mt-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            panel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            fast-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
+            bazel-${{ hashFiles('manifests/a34-6.6.127.lock.json') }}-
 
       - name: Patch core GKI (Droidspaces seguro)
         run: ./scripts/patch-gki-core.sh configs/ruby-6.6/droidspaces-safe.fragment
