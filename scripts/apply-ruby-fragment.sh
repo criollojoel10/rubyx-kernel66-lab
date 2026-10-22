@@ -27,11 +27,26 @@ if grep -qF "$MARK" "$OVERLAY"; then
   exit 0
 fi
 
+LINES="$(grep -vE '^\s*#\s*CONFIG_.*is not set\s*$' "$FRAG" | grep -vE '^\s*$')"
+
 {
   echo
   echo "$MARK"
-  grep -vE '^\s*#\s*CONFIG_.*is not set\s*$' "$FRAG" | grep -vE '^\s*$'
+  echo "$LINES"
 } >> "$OVERLAY"
 
+# y tambien en el defconfig de los device modules: es la base del merge, asi
+# que el valor llega aunque el overlay no se llegue a fusionar.
+DEFCONFIG="$DM/arch/arm64/configs/mediatek-bazel_defconfig"
+if [ -f "$DEFCONFIG" ]; then
+  if ! grep -qF "$MARK" "$DEFCONFIG"; then
+    {
+      echo
+      echo "$MARK"
+      echo "$LINES"
+    } >> "$DEFCONFIG"
+    echo "[cfg] $(basename "$FRAG") -> $(basename "$DEFCONFIG")"
+  fi
+fi
+
 echo "[cfg] $(basename "$FRAG") -> $(basename "$OVERLAY")"
-tail -6 "$OVERLAY"

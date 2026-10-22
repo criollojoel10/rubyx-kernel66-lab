@@ -1,0 +1,81 @@
+name: Diagnose config ruby
+
+# Reproduce el paso de configuracion del build (merge del defconfig + overlays)
+# sin compilar, para ver que valores llegan realmente al .config.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout laboratorio
+        uses: actions/checkout@v4
+
+      - name: Dependencias
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git bc bison flex libssl-dev libelf-dev
+          git config --global user.name "rubyx-kernel66-lab"
+          git config --global user.email "lab@users.noreply.github.com"
+
+      - name: Fetch A34
+        run: make fetch
+
+      - name: Aplicar los ports y el parche del TEE
+        run: |
+          ./port/display/apply.sh
+          ./port/touch/apply.sh
+          ./port/charger/apply.sh
+          ./scripts/patch-mtk-tee-config.sh
+
+      - name: Ver el estado de los overlays
+        run: |
+          set -e
+          DM=sources/a34x/kernel/kernel_device_modules-6.6
+          echo "=== overlay de TEE (device modules):"
+          grep -n 'MICROTRUST_TEE_SUPPORT' $DM/kernel/configs/mt6877_teegris_5_overlay.config || echo "  (no aparece)"
+          echo "=== overlay mt6877 (device modules):"
+          grep -nE 'RUBY_MP2762|FOCALTECH_3680|DRM_PANEL_M16' $DM/kernel/configs/mt6877_overlay.config || echo "  (no aparece)"
+          echo "=== defconfig (device modules):"
+          grep -nE 'RUBY_MP2762|MICROTRUST_TEE_SUPPORT' $DM/arch/arm64/configs/mediatek-bazel_defconfig || echo "  (no aparece)"
+          echo "=== el GKI tiene los overlays?"
+          ls sources/a34x/kernel-6.6/kernel/configs/ | head -20
+
+      - name: Generar el build.config como hace el build
+        run: |
+          set -e
+          cd sources/a34x/kernel
+          python3 kernel_device_modules-6.6/scripts/gen_build_config.py \
+            --kernel-defconfig mediatek-bazel_defconfig \
+            --kernel-defconfig-overlays "sec_ogki_fragment.config mt6877_overlay.config mt6877_teegris_5_overlay.config ruby_overlay.config" \
+            --kernel-build-config-overlays "" -m user \
+            -o /tmp/build.config 2>/dev/null
+          echo "=== KERNEL_DIR y DEFCONFIG:"
+          grep -E 'KERNEL_DIR=|KERNEL_DEFCONFIG_FILE=' /tmp/build.config
+          grep -o 'merge_config.sh[^;]*' /tmp/build.config | head -2 | fold -w 180 | head -12
+
+      - name: Reproducir el merge del build
+        run: |
+          set -e
+          cd sources/a34x/kernel
+          export ROOT_DIR=$(pwd)
+          export KERNEL_DIR=kernel-6.6
+          export KCONFIG_EXT_PREFIX=../kernel/kernel_device_modules-6.6/
+          DM=$ROOT_DIR/kernel_device_modules-6.6
+          rm -rf /tmp/merge && mkdir -p /tmp/merge && cd /tmp/merge
+          bash $ROOT_DIR/kernel-6.6/scripts/kconfig/merge_config.sh -m .config \
+            $DM/arch/arm64/configs/mediatek-bazel_defconfig \
+            $DM/kernel/configs/sec_ogki_fragment.config \
+            $DM/kernel/configs/mt6877_overlay.config \
+            $DM/kernel/configs/mt6877_teegris_5_overlay.config \
+            $DM/kernel/configs/ruby_overlay.config \
+            $DM/kernel/configs/sign.config 2>&1 | grep -E 'Merging|New value' | tail -12
+          echo "=== .config resultante:"
+          grep -E '^CONFIG_(TOUCHSCREEN_FOCALTECH_3680|DRM_PANEL_M16_36_02_0B_DSC_VDO|RUBY_MP2762|RUBY_XMUSB350|MICROTRUST_TEE_SUPPORT|PINCTRL_MT6877)=' .config || echo "  (nada)"

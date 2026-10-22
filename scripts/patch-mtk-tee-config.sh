@@ -41,6 +41,20 @@ with open(path, "w", encoding="utf-8") as f:
 print("[tee] Microtrust 400 habilitado en", path)
 PY
 
+# Los valores tambien se meten en el defconfig de los device modules (base del
+# merge), para que lleguen aunque el overlay no se fusione.
+DEFCONFIG="sources/a34x/kernel/kernel_device_modules-6.6/arch/arm64/configs/mediatek-bazel_defconfig"
+if [ -f "$DEFCONFIG" ]; then
+  if ! grep -qF "# --- ruby: Microtrust 400 (TEE real de ruby) ---" "$DEFCONFIG"; then
+    {
+      echo
+      echo "# --- ruby: Microtrust 400 (TEE real de ruby) ---"
+      grep -E '^CONFIG_MICROTRUST' "$O"
+    } >> "$DEFCONFIG"
+    echo "[tee] Microtrust 400 anadido a $(basename "$DEFCONFIG")"
+  fi
+fi
+
 grep -E 'MICROTRUST|TEEGRIS' "$O"
 
 # ---------------------------------------------------------------------------
