@@ -19,7 +19,20 @@ MTK** (`kernel_device_modules-6.6/kernel/configs/mt6877_overlay.config`),
 que es el mecanismo que si funciona (es el mismo que usa el parche de
 Microtrust para el TEE).
 
-## 2. Kleaf exige declarar los modulos nuevos
+## 2. Kleaf tiene DOS listas y hay que tocar las dos
+
+La lista que decide **que modulos se compilan** es
+`mgk_64_device_modules` (en `kernel/kleaf/mgk_64.bzl`): si el modulo no
+esta ahi, no se construye aunque el Kconfig lo deje en `m`. Y la lista que
+decide **que ficheros se copian** son los `outs`
+(`kernel/kleaf/mgk_modules.bzl`).
+
+Por eso el `isee.ko` de Microtrust no aparecia (no estaba en la lista de
+modulos) y despues daba "built but not copied" (no estaba en los outs).
+`scripts/patch-kleaf-outs.py` toca las dos, y de paso cambia el TEEGRIS
+510/515 por el Microtrust 400.
+
+## 2 bis. Kleaf exige declarar los modulos nuevos
 
 ```
 ERROR: The following kernel modules are built but not copied. Add these lines
