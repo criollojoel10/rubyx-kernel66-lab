@@ -24,13 +24,15 @@ fi
 [ -d "$GKI/drivers/gpu/drm/panel" ] || { echo "falta $GKI" >&2; exit 1; }
 [ -d "$DM/drivers/tee/teei" ] || { echo "falta $DM" >&2; exit 1; }
 
-echo "== display (panel m16)"
-./port/display/apply.sh "$GKI"
+# El GKI del A34 (mismo SoC MT6877, mismo panel m16) YA trae portados a 6.6
+# el panel m16 36-02-0b y el tactil Focaltech FT3680:
+#   kernel-6.6/drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.c
+#   kernel-6.6/drivers/input/touchscreen/focaltech_3680/
+# con los compatibles que usa el dtbo de ruby ("m16_36_02_0b_dsc_vdo,lcm" y
+# "focaltech,3680-spi"). Solo hay que activarlos en el config.
+echo "== display y touch: drivers del GKI (ya portados por el A34)"
 
-echo "== touch (Focaltech FT3680)"
-./port/touch/apply.sh "$GKI"
-
-echo "== charger (drivers de Xiaomi)"
+echo "== charger (drivers de Xiaomi, hay que portarlos)"
 ./port/charger/apply.sh "$GKI"
 
 echo "== tee (Microtrust TEEI 400)"
