@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-DM="${1:-sources/a34x/kernel-6.6}"
+DM="${1:-sources/a34x/kernel/kernel_device_modules-6.6}"
 PS="$DM/drivers/power/supply"
 [ -d "$PS" ] || { echo "no existe $PS" >&2; exit 1; }
 

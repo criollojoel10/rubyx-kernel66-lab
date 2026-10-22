@@ -33,7 +33,7 @@ fi
 echo "== display y touch: drivers del GKI (ya portados por el A34)"
 
 echo "== charger (drivers de Xiaomi, hay que portarlos)"
-./port/charger/apply.sh "$GKI"
+./port/charger/apply.sh "$DM"
 
 echo "== tee (Microtrust TEEI 400)"
 ./scripts/patch-mtk-tee-config.sh
@@ -42,15 +42,15 @@ echo "== config (fragmento combinado)"
 ./scripts/apply-ruby-fragment.sh configs/ruby-6.6/full.fragment
 
 echo "== modulos declarados en Kleaf"
-./scripts/patch-kleaf-outs.py --gki \
-  drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.ko \
-  drivers/input/touchscreen/focaltech_3680/focaltech_3680.ko \
+# El panel y el tactil van built-in (=y) como en el kernel stock de ruby, asi
+# que no producen .ko. Los cargadores y el TEE si son modulos.
+./scripts/patch-kleaf-outs.py --dm \
   drivers/power/supply/mps/mp2762.ko \
   drivers/power/supply/ln/ln8410.ko \
   drivers/power/supply/ti/bq25980.ko \
   drivers/power/supply/southchip/sc8561.ko \
   drivers/power/supply/maxim/max77932.ko \
-  drivers/power/supply/xiaomi/xmusb350.ko
-./scripts/patch-kleaf-outs.py --dm drivers/tee/teei/400/isee.ko
+  drivers/power/supply/xiaomi/xmusb350.ko \
+  drivers/tee/teei/400/isee.ko
 
 echo "[apply-all] listo"

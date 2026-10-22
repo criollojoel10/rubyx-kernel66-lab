@@ -1,11 +1,12 @@
-# Kernel de producto de ruby: display + tactil + carga.
-# (display.fragment + touch.fragment + charger.fragment)
+# Kernel de producto de ruby.
 #
-# Panel m16 36-02-0b (mediatek_v2)
-CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=m
-# Tactil Focaltech FT3680 por SPI3
-CONFIG_TOUCHSCREEN_FOCALTECH_3680=m
-# Carga: mp2762, ln8410, bq25980, sc8561, max77932, xmusb350
+# Display y tactil: el GKI del A34 (mismo SoC MT6877, mismo panel m16) ya
+# trae portados a 6.6 el panel m16 36-02-0b y el tactil Focaltech FT3680.
+# Se compilan built-in (=y), igual que en el kernel stock de ruby.
+CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=y
+CONFIG_TOUCHSCREEN_FOCALTECH_3680=y
+
+# Carga: drivers de chip de ruby portados desde el 4.19 (modulos).
 CONFIG_RUBY_MP2762=m
 CONFIG_RUBY_LN8410=m
 CONFIG_RUBY_BQ25980=m
