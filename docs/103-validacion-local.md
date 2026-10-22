@@ -74,3 +74,4 @@ Y cuando el build de CI sea verde:
 | `must use 'struct' tag to refer to type 'TEEC_Context'` | el include path de TEEGRIS debe ir **antes** del de teei |
 | `undefined! bootprof_log_boot` | `CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n` (el símbolo está en los device modules, que no se compilan) |
 | `illegal rule name: .../../vendor/...` | bazel no admite rutas `../` en las listas de outs de Kleaf |
+| `mediatek_drm.h: unknown type name 'uint32_t'` | el header UAPI de MTK no incluye los tipos base; con el PCH de clang falla (gcc local no lo detecta) -> `port/mtk-drivers/apply.sh` le añade `linux/types.h` |
