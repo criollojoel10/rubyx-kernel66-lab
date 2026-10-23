@@ -1,74 +1,87 @@
 #!/usr/bin/env bash
-# Ruby necesita el TEE de Microtrust (TEEI), no TEEGRIS de Samsung.
-# El overlay de A34 (mt6877_teegris_5_overlay.config) apaga Microtrust DESPUES
-# de nuestro fragmento, asi que hay que editar ese overlay directamente.
+# Ruby usa el TEE de Microtrust (TEEI 400), pero va BUILT-IN en la Image: lo
+# enciende configs/ruby-6.6/gki-builtins.fragment y el port copia sus fuentes
+# al arbol del GKI. El arbol de device modules no puede construir su propia
+# copia: modpost aborta con "exported twice" (tee.ko redefine teedev_open,
+# tee_client_*, tee_shm_*, ... que ya exporta el vmlinux).
+#
+# Por eso aqui se APAGA el TEE en los device modules, en sign.config (el
+# ultimo fragmento del merge: lo que se ponga ahi gana), y se limpian los
+# restos que lo encienden en el overlay de TEEGRIS y en el defconfig.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-O="sources/a34x/kernel/kernel_device_modules-6.6/kernel/configs/mt6877_teegris_5_overlay.config"
+DM="sources/a34x/kernel/kernel_device_modules-6.6"
+O="$DM/kernel/configs/mt6877_teegris_5_overlay.config"
+DEFCONFIG="$DM/arch/arm64/configs/mediatek-bazel_defconfig"
+SIGN="$DM/kernel/configs/sign.config"
 [ -f "$O" ] || { echo "falta $O; ejecuta make fetch" >&2; exit 1; }
+[ -f "$SIGN" ] || { echo "falta $SIGN; ejecuta make fetch" >&2; exit 1; }
 
-python3 - "$O" <<'PY'
-import re
+python3 - "$O" "$DEFCONFIG" "$SIGN" <<'PY'
+import os
 import sys
 
-path = sys.argv[1]
-with open(path, "r", encoding="utf-8") as f:
-    lines = f.read().splitlines()
+MARK = "# --- ruby: TEE built-in en la Image (no como modulo) ---"
 
-wanted = [
-    "CONFIG_MICROTRUST_TEE_SUPPORT=y",
-    'CONFIG_MICROTRUST_TEE_VERSION="400"',
-    "CONFIG_MICROTRUST_TZ_DRIVER=y",
-    "CONFIG_MICROTRUST_VFS_DRIVER=y",
-    "CONFIG_MICROTRUST_FP_DRIVER=y",
-    "CONFIG_MICROTRUST_KEYMASTER_DRIVER=y",
+# Simbolos del TEE que se apagan en el arbol de device modules.
+N = [
+    "CONFIG_TEE",
+    "CONFIG_MICROTRUST_TEE_SUPPORT",
+    "CONFIG_MICROTRUST_TZ_DRIVER",
+    "CONFIG_MICROTRUST_DYNAMIC_CORE",
+    "CONFIG_MICROTRUST_VFS_DRIVER",
+    "CONFIG_MICROTRUST_FP_DRIVER",
+    "CONFIG_MICROTRUST_KEYMASTER_DRIVER",
 ]
+KEYS = set(N)
 
-out = []
-for line in lines:
-    if line.strip() == "# CONFIG_MICROTRUST_TEE_SUPPORT is not set":
-        continue
-    if any(line.startswith(w.split("=")[0] + "=") for w in wanted):
-        continue
-    out.append(line)
 
-out.append("# --- ruby: Microtrust TEEI 400 (TEE real de ruby) ---")
-out.extend(wanted)
+def key_of(line):
+    s = line.strip()
+    if s.startswith("# ") and s.endswith(" is not set"):
+        return s[2:-len(" is not set")].strip()
+    return s.split("=")[0].strip()
 
-with open(path, "w", encoding="utf-8") as f:
-    f.write("\n".join(out) + "\n")
-print("[tee] Microtrust 400 habilitado en", path)
+
+def clean(path):
+    """Quita todo lo que encienda o apague los simbolos del TEE."""
+    with open(path, encoding="utf-8") as f:
+        lines = f.read().splitlines()
+    out, skip = [], False
+    for line in lines:
+        if line.strip() == MARK:
+            skip = True
+            continue
+        if skip:
+            if key_of(line) in KEYS:
+                continue
+            skip = False
+        if key_of(line) in KEYS:
+            continue
+        out.append(line)
+    return out
+
+
+def write(path, lines):
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines).rstrip("\n") + "\n")
+
+
+# 1) overlay de TEEGRIS y defconfig: fuera todo lo que encienda el TEE
+for path in (sys.argv[1], sys.argv[2]):
+    if os.path.exists(path):
+        write(path, clean(path))
+        print("[tee] TEE limpio en", os.path.basename(path))
+
+# 2) sign.config: ultimo del merge, aqui se apaga de forma definitiva
+lines = clean(sys.argv[3])
+lines += [MARK] + [k + "=n" for k in N]
+write(sys.argv[3], lines)
+print("[tee] TEE apagado en sign.config (va built-in en la Image)")
 PY
 
-# Los valores tambien se meten en el defconfig de los device modules (base del
-# merge), para que lleguen aunque el overlay no se fusione.
-DEFCONFIG="sources/a34x/kernel/kernel_device_modules-6.6/arch/arm64/configs/mediatek-bazel_defconfig"
-if [ -f "$DEFCONFIG" ]; then
-  if ! grep -qF "# --- ruby: Microtrust 400 (TEE real de ruby) ---" "$DEFCONFIG"; then
-    {
-      echo
-      echo "# --- ruby: Microtrust 400 (TEE real de ruby) ---"
-      grep -E '^CONFIG_MICROTRUST' "$O" || true
-    } >> "$DEFCONFIG"
-    echo "[tee] Microtrust 400 anadido a $(basename "$DEFCONFIG")"
-  fi
-fi
-
-# sign.config es el ultimo fragmento del merge: lo que se ponga ahi gana.
-SIGN="sources/a34x/kernel/kernel_device_modules-6.6/kernel/configs/sign.config"
-if [ -f "$SIGN" ]; then
-  if ! grep -qF "# --- ruby: Microtrust 400 (TEE real de ruby) ---" "$SIGN"; then
-    {
-      echo
-      echo "# --- ruby: Microtrust 400 (TEE real de ruby) ---"
-      grep -E '^CONFIG_MICROTRUST' "$O" || true
-    } >> "$SIGN"
-    echo "[tee] Microtrust 400 anadido a sign.config"
-  fi
-fi
-
-grep -E 'MICROTRUST|TEEGRIS' "$O" || true
+grep -E 'MICROTRUST|TEEGRIS|^CONFIG_TEE' "$O" || true
 
 # ---------------------------------------------------------------------------
 # El driver geniezone de MTK usa la API GlobalPlatform de TEEGRIS
