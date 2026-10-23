@@ -69,6 +69,18 @@ echo "== tee (overlay de Microtrust TEEI 400)"
 echo "== samsung: sec_ext.ko sin el nodo sec_debug (el DTB de ruby no lo trae)"
 ./port/samsung/apply.sh "${1:-sources/a34x}"
 
+echo "== clk: power-gates mtcmos (PG_DISP y demas) descomentados en clk-mt6877-pg.c"
+# El DTB de ruby usa el nodo scpsys como proveedor de relojes (#clock-cells=1):
+# los consumidores (mtk-smi-common/larb, mtk_iommu, mediatek-drm) hacen
+# devm_clk_get(dev,"power") -> SCP_SYS_DISP. En el A34 esos PGATE estan
+# comentados (el A34 mueve mtcmos a mtk-scpsys genpd), asi que "power" no
+# existe y SMI falla con CLK0:power get failed. Se descomentan todos, igual
+# que en el kernel stock de ruby.
+./port/clk/apply.sh "${1:-sources/a34x}"
+
+echo "== iommu: guard de m4u_data en mtk_iommu_port_idx (evita NULL deref del display)"
+./port/iommu/apply.sh "${1:-sources/a34x}"
+
 echo "== config (fragmento combinado)"
 FRAG="${RUBY_FRAGMENT:-configs/ruby-6.6/full.fragment}"
 ./scripts/apply-ruby-fragment.sh "$FRAG"
