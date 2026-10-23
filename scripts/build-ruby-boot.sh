@@ -47,16 +47,15 @@ KERNEL="$ART/Image.gz"
 MODTAR="$ART/a34-all-modules.tar.zst"
 # opcional: los drivers de ruby van built-in, el tar solo sirve como informe
 
-# 2) modulos de ruby: los drivers de ruby (display, tactil, huella, TEE)
-#    van built-in en el kernel, asi que aqui no hay nada que cargar. El
-#    ramdisk solo lleva el init de primera etapa con el watchdog.
+# 2) modulos de primera etapa: el GKI de ruby no trae UFS/IOMMU/pmic
+#    built-in (en el kernel de stock si lo estan), asi que el primer init
+#    necesita cargarlos desde el ramdisk. scripts/make-boot-moddir.py arma
+#    artifacts/ruby-mods con el cierre de dependencias y su modules.load.
 MODDIR="artifacts/ruby-mods"
-rm -rf "$MODDIR"; mkdir -p "$MODDIR"
-if [ -f "$MODTAR" ]; then
-  echo "[boot] modulos del build (informativo)"
-  tar --zstd -tf "$MODTAR" 2>/dev/null | grep -E 'panel-m16|focaltech_3680|goodix|isee' | head -8 | sed 's/^/   /' || true
+if [ ! -f "$MODDIR/modules.load" ] && [ -f "$MODTAR" ]; then
+  ./scripts/make-boot-moddir.py --modules-tar "$MODTAR" --out "$MODDIR"
 fi
-printf '' > "$MODDIR/modules.load"
+[ -f "$MODDIR/modules.load" ] || { echo "faltan modulos de primera etapa en $MODDIR" >&2; exit 1; }
 
 # 3) ramdisk con los modulos
 UNPACKED="/root/ruby-gki/work/boot_unpacked"

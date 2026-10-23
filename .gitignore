@@ -11,3 +11,4 @@ dts/*.dtb
 port/modules/closure/
 device/backups/
 logs/
+port/device/selfheal/module-loader

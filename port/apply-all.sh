@@ -57,6 +57,9 @@ echo "== audio (altavoz aw882xx + vibrador aw8697)"
 echo "== tee (overlay de Microtrust TEEI 400)"
 ./scripts/patch-mtk-tee-config.sh
 
+echo "== samsung: sec_ext.ko sin el nodo sec_debug (el DTB de ruby no lo trae)"
+./port/samsung/apply.sh "${1:-sources/a34x}"
+
 echo "== config (fragmento combinado)"
 FRAG="${RUBY_FRAGMENT:-configs/ruby-6.6/full.fragment}"
 ./scripts/apply-ruby-fragment.sh "$FRAG"

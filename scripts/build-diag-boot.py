@@ -112,12 +112,21 @@ def main():
     image = bytearray(len(orig))
     if footer[0] == b"AVBf":
         orig_size, vbmeta_offset, vbmeta_size = footer[3], footer[4], footer[5]
-        if not len(raw) < orig_size <= vbmeta_offset:
-            raise SystemExit("el payload no cabe antes del vbmeta original")
-        image[:len(raw)] = raw
-        image[vbmeta_offset:vbmeta_offset + vbmeta_size] = orig[vbmeta_offset:vbmeta_offset + vbmeta_size]
-        image[-64:] = orig[-64:]
-        print(f"AVB footer conservado (vbmeta {vbmeta_offset}+{vbmeta_size})")
+        if len(raw) < orig_size <= vbmeta_offset:
+            image[:len(raw)] = raw
+            image[vbmeta_offset:vbmeta_offset + vbmeta_size] = orig[vbmeta_offset:vbmeta_offset + vbmeta_size]
+            image[-64:] = orig[-64:]
+            print(f"AVB footer conservado (vbmeta {vbmeta_offset}+{vbmeta_size})")
+        else:
+            # El payload ya no cabe donde estaba el vbmeta del boot original.
+            # El dispositivo esta desbloqueado (verifiedbootstate=orange) y la
+            # firma ya no cuadraba con la imagen parcheada, asi que se ignora:
+            # escribimos el payload desde 0 y dejamos el footer al final.
+            if len(raw) > len(image) - 64:
+                raise SystemExit(f"el payload ({len(raw)}) no cabe en {len(image)} bytes")
+            image[:len(raw)] = raw
+            image[-64:] = orig[-64:]
+            print(f"payload grande: se sobrescribe el vbmeta original (offset {vbmeta_offset})")
     else:
         image[:len(raw)] = raw
         print("sin AVB footer; imagen rellenada con ceros")
