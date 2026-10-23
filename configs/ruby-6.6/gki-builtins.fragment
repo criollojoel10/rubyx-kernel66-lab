@@ -1,29 +1,19 @@
 # Built-ins de ruby que viven en el arbol del GKI (la Image).
 #
 # La Image del A34 se construye solo con el arbol kernel-6.6 y su
-# gki_defconfig; los simbolos que se escriben en el .config de los device
-# modules NO llegan a la Image. Como los ports de display/tactil/huella/TEE
-# copian sus drivers al arbol del GKI, sus simbolos tienen que estar aqui
-# (=y) para que queden dentro de la Image.
+# gki_defconfig; lo que se escribe en el .config de los device modules no
+# llega a la Image.
 #
-# Este fichero es el bloque =y de configs/ruby-6.6/full.fragment; el bloque
-# =m (audio) se queda en el lado de los device modules.
-
-# Display: API mediatek_v2 (copiada al GKI) y se apaga la v1 para no
-# duplicar simbolos (mtk_dsi_*, mtk_disp_*).
-CONFIG_DRM_MEDIATEK_V2=y
-CONFIG_DRM_MEDIATEK=n
-
-# Los tres paneles m16 de ruby (el dtbo declara el 42-0d-0a y el 36-02-0b).
-CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO=y
-CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=y
-CONFIG_DRM_PANEL_M16_45_02_0C_DSC_VDO=y
-
-# Tactil Focaltech FT3680 por SPI3.
-CONFIG_TOUCHSCREEN_FOCALTECH_3680=y
-
-# Huella Goodix por SPI (UUID de la TA Goodix 0x8888c03f).
-CONFIG_GOODIX_CAP_FINGERPRINT=y
+# De todo el stack de ruby, lo unico que tiene que ir DENTRO de la Image es
+# el TEE: el TEEI esta enganchado como built-in en el arbol del GKI y su
+# simbolo solo existe en los Kconfig de los device modules.
+#
+# El resto (mediatek_v2, paneles m16, tactil FT3680, huella Goodix) se queda
+# como estaba en el A34: modulos del arbol de device modules o modulos de
+# vendor que ya trae el dispositivo. Meterlos en la Image obliga a arrastrar
+# medio arbol de vendor (mtk_disp_notify, mtk_panel_ext, prize, ...) y no
+# aporta nada: el modo que arrancaba con pantalla y tactil no los tenia
+# built-in.
 
 # TEE Microtrust TEEI 400 (el TEE de ruby). El port copia los fuentes y el
 # Kconfig al arbol del GKI, asi que aqui solo hay que encenderlo; la version
