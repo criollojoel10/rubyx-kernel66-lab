@@ -139,5 +139,24 @@ for rel, mods in targets.items():
             out.append(line)
     path.write_text("".join(out))
 print(f"[kleaf] {n_static} entradas estaticas comentadas (teeperf/mstdrv/tuihw)")
+# 6) red de seguridad: aunque los .append() esten comentados, si tzdev.ko o
+#    tuihw*.ko quedan en la lista (por cache de bazel o por otra fuente) se
+#    eliminan aqui de forma segura (guardado por 'in').
+BZL64 = BASE / "kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_64.bzl"
+if BZL64.exists():
+    text64 = BZL64.read_text()
+    guard = '\n# ruby: red de seguridad - eliminar tzdev/tuihw si quedaron en la lista\n'
+    for mod in ("drivers/tee/tzdev/4/tzdev.ko", "drivers/tee/tzdev/5/tzdev.ko",
+                "drivers/tee/tzdev/6/tzdev.ko",
+                "drivers/misc/mediatek/tui/tuihw.ko",
+                "drivers/misc/mediatek/tui/tuihw-inf.ko",
+                "drivers/tee/teeperf/teeperf.ko",
+                "drivers/mstdrv/mstdrv.ko"):
+        guard += (f'if "{mod}" in mgk_64_device_modules:\n'
+                  f'    mgk_64_device_modules.remove("{mod}")\n')
+    if guard.strip() not in text64:
+        text64 = text64.rstrip() + "\n" + guard
+        BZL64.write_text(text64)
+        print("[kleaf] red de seguridad anadida a mgk_64.bzl")
 print(f"[kleaf] {n_core} entradas de drivers/tee/tee.ko quitadas, "
       f"{n_tz} append de tzdev/tuihw comentados")
