@@ -38,22 +38,41 @@ for par in $PANELES; do
   cp "$SRC/include/panel-m16-$p-dsc-vdo.h" "$PANELDIR/include/"
 
   K="$PANELDIR/Kconfig"
-  if ! grep -q "^config $sym" "$K"; then
-    cat >> "$K" <<EOF
+  python3 - "$K" "$sym" "Xiaomi m16 $p DSC VDO panel" "$p" <<'PY'
+import sys
+kconf, sym, title, p = sys.argv[1:5]
+lines = open(kconf).read().splitlines()
+out, skip = [], False
+for l in lines:
+    if l.startswith("config "):
+        skip = (l.split()[1] == sym)
+    if not skip:
+        out.append(l)
+out += [
+    "",
+    f"config {sym}",
+    f'\ttristate "{title}"',
+    "\tdepends on OF",
+    "\tdepends on DRM_MIPI_DSI",
+    "\tdepends on BACKLIGHT_CLASS_DEVICE",
+    "\thelp",
+    f"\t  Panel m16 {p} de ruby (1080x2400, DSC VDO). El DCS y los timings",
+    "\t  salen del driver 4.19 de ruby (scripts/port-m16-panel.py).",
+]
+open(kconf, "w").write("\n".join(out) + "\n")
+PY
 
-config $sym
-	tristate "Xiaomi m16 $p DSC VDO panel"
-	depends on DRM_MEDIATEK_V2
-	help
-	  Panel m16 $p de ruby (1080x2400, DSC VDO). El DCS y los timings
-	  salen del driver 4.19 de ruby (scripts/port-m16-panel.py).
-EOF
-  fi
-
+  # obj-m incondicional: el .ko tiene que existir aunque el merge de Kleaf
+  # vuelva a perder el simbolo. Reescribe cualquier linea previa para que
+  # apply.sh sea idempotente.
   M="$PANELDIR/Makefile"
-  if ! grep -q "panel-m16-$p-dsc-vdo.o" "$M"; then
-    echo "obj-\$(CONFIG_$sym) += panel-m16-$p-dsc-vdo.o" >> "$M"
-  fi
+  python3 - "$M" "panel-m16-$p-dsc-vdo.o" <<'PY'
+import sys
+p, obj = sys.argv[1], sys.argv[2]
+lines = [l for l in open(p).read().splitlines() if obj not in l]
+lines.append("obj-m += " + obj)
+open(p, "w").write("\n".join(lines) + "\n")
+PY
   echo "[display] panel m16 $p aplicado"
 done
 

@@ -81,6 +81,20 @@ fdtput -t s "$D" /pwrap@10026000/mt6359-pmic/mt6359regulator/ldo_vemc \
 fdtput -t s "$D" /pwrap@10026000/mt6359-pmic/mt6359regulator/ldo_vufs \
   regulator-compatible ldo-vufs
 
+# 7. scpsys: el nodo power-controller@10006000 del DTS stock matchea el driver
+#    antiguo ("mediatek,mt6877-scpsys", nombre "clk-mt6877-scpsys" en el kernel
+#    stock). En el arbol 6.6 del A34 ese mismo driver se llama
+#    "clk-mt6877-scpsys-clk" y matchea "mediatek,mt6877-scpsys-clk", asi que
+#    sin este compatible NADIE registra el proveedor de relojes del nodo.
+#    Consecuencia en v27: devm_clk_get(dev, "power") falla en mtk-smi-common y
+#    en todos los larb (CLK0:power get failed) -> SMI no sondea -> mtk_iommu
+#    no encuentra smicommon_node phase1 (-22) -> sin display.
+#    "syscon" no lo reclama el driver syscon del GKI (solo casa por id de
+#    plataforma "syscon"), y "simple-mfd" solo hace populate de los hijos, asi
+#    que el modulo clk puede enlazar el nodo sin pelearse con nadie.
+fdtput -t s "$D" /power-controller@10006000 compatible \
+  "mediatek,mt6877-scpsys-clk" "mediatek,mt6877-scpsys" "syscon" "simple-mfd"
+
 # 6. UFS: sin el regulador microtrust registrado, el probe de UFS devuelve -517.
 if [ "$KEEP_VCC" = "0" ]; then
   fdtput -d "$D" /ufshci@11270000 vcc-supply 2>/dev/null || true
