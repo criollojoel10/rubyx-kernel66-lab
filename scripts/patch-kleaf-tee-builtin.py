@@ -83,6 +83,7 @@ if BZL64.exists():
     out = []
     for line in text64.splitlines(keepends=True):
         if (not line.lstrip().startswith("#")
+                and "ruby: TEE off" not in line
                 and ".append(" in line
                 and any(m in line for m in ("tzdev/4/tzdev.ko",
                                             "tzdev/5/tzdev.ko",
@@ -91,7 +92,7 @@ if BZL64.exists():
                                             "tui/tuihw-inf.ko"))):
             n_tz += 1
             indent = line[:len(line) - len(line.lstrip())]
-            out.append(f"{indent}# ruby: TEE off -> {line.strip()}\n")
+            out.append(f"{indent}pass  # ruby: TEE off, was: {line.strip()}\n")
         else:
             out.append(line)
     nuevo = "".join(out)
