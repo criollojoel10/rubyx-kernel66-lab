@@ -139,6 +139,18 @@ for rel, mods in targets.items():
             out.append(line)
     path.write_text("".join(out))
 print(f"[kleaf] {n_static} entradas estaticas comentadas (teeperf/mstdrv/tuihw)")
+# 5b) _ruby_add(... isee.ko) anade isee.ko como modulo, pero va built-in.
+#     Se cambia por _ruby_remove para que no se espere el .ko.
+BZL64 = BASE / "kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_64.bzl"
+if BZL64.exists():
+    text64 = BZL64.read_text()
+    old_line = '_ruby_add(mgk_64_device_modules, "drivers/tee/teei/400/isee.ko")'
+    new_line = '_ruby_remove(mgk_64_device_modules, "drivers/tee/teei/400/isee.ko")  # ruby: built-in'
+    if old_line in text64:
+        text64 = text64.replace(old_line, new_line, 1)
+        BZL64.write_text(text64)
+        print("[kleaf] _ruby_add(isee.ko) -> _ruby_remove")
+
 # 6) red de seguridad: aunque los .append() esten comentados, si tzdev.ko o
 #    tuihw*.ko quedan en la lista (por cache de bazel o por otra fuente) se
 #    eliminan aqui de forma segura (guardado por 'in').
