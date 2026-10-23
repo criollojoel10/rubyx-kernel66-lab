@@ -165,6 +165,14 @@ if BZL64.exists():
         # haya tocado alguna linea del guard anterior.
         text64 = text64[:idx].rstrip() + "\n"
     guard = '\n# ruby: red de seguridad - eliminar tzdev/tuihw si quedaron en la lista\n'
+    if "def _ruby_remove(" not in text64:
+        # el arbol de CI no siempre trae los helpers de ruby: se definen aqui.
+        guard += ('def _ruby_add(mods, name):\n'
+                  '    if name not in mods:\n'
+                  '        mods.append(name)\n\n'
+                  'def _ruby_remove(mods, name):\n'
+                  '    if name in mods:\n'
+                  '        mods.remove(name)\n\n')
     for mod in ("drivers/tee/tzdev/4/tzdev.ko", "drivers/tee/tzdev/5/tzdev.ko",
                 "drivers/tee/tzdev/6/tzdev.ko",
                 "drivers/misc/mediatek/tui/tuihw.ko",
