@@ -1,0 +1,38 @@
+# Built-ins de ruby que viven en el arbol del GKI (la Image).
+#
+# La Image del A34 se construye solo con el arbol kernel-6.6 y su
+# gki_defconfig; los simbolos que se escriben en el .config de los device
+# modules NO llegan a la Image. Como los ports de display/tactil/huella/TEE
+# copian sus drivers al arbol del GKI, sus simbolos tienen que estar aqui
+# (=y) para que queden dentro de la Image.
+#
+# Este fichero es el bloque =y de configs/ruby-6.6/full.fragment; el bloque
+# =m (audio) se queda en el lado de los device modules.
+
+# Display: API mediatek_v2 (copiada al GKI) y se apaga la v1 para no
+# duplicar simbolos (mtk_dsi_*, mtk_disp_*).
+CONFIG_DRM_MEDIATEK_V2=y
+CONFIG_DRM_MEDIATEK=n
+
+# Los tres paneles m16 de ruby (el dtbo declara el 42-0d-0a y el 36-02-0b).
+CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO=y
+CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=y
+CONFIG_DRM_PANEL_M16_45_02_0C_DSC_VDO=y
+
+# Tactil Focaltech FT3680 por SPI3.
+CONFIG_TOUCHSCREEN_FOCALTECH_3680=y
+
+# Huella Goodix por SPI (UUID de la TA Goodix 0x8888c03f).
+CONFIG_GOODIX_CAP_FINGERPRINT=y
+
+# TEE Microtrust TEEI 400 (el TEE de ruby). El port copia los fuentes y el
+# Kconfig al arbol del GKI, asi que aqui solo hay que encenderlo; la version
+# 400 es la que existe en el arbol. El bootprof vive en los device modules
+# (que no se compilan) y lo unico que hace es un log: se apaga.
+# El TEEI vive dentro de `if TEE` en drivers/tee/Kconfig: sin el menuconfig
+# TEE encendido sus simbolos ni se evaluan.
+CONFIG_TEE=y
+CONFIG_MICROTRUST_TEE_SUPPORT=y
+CONFIG_MICROTRUST_TEE_VERSION="400"
+CONFIG_MICROTRUST_TZ_DRIVER=y
+CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n

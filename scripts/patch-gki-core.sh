@@ -23,6 +23,11 @@ while IFS= read -r line; do
             sed -i "s|^${key}=.*|${line}|" "$K"
             echo "[gki] actualizado $key"
         fi
+    elif grep -qxF "# ${key} is not set" "$K"; then
+        # esta desactivado con la forma comentada: lo sustituimos en su sitio
+        sed -i "s|^# ${key} is not set$|${line}|" "$K"
+        echo "[gki] cambiado (# ${key} is not set) -> $line"
+        added=$((added + 1))
     else
         echo "$line" >> "$K"
         echo "[gki] añadido $line"

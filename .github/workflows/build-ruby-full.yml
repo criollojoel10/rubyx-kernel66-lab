@@ -60,6 +60,14 @@ jobs:
       - name: Aplicar todos los ports de ruby
         run: ./port/apply-all.sh
 
+      # apply-all mete el fragmento en el .config de los device modules, y ese
+      # .config no llega a la Image: la Image se genera solo desde
+      # kernel-6.6/gki_defconfig. Los ports de display/tactil/huella/TEE
+      # copian sus drivers al arbol del GKI, asi que sus simbolos =y se
+      # aplican aqui para que de verdad entren en la Image.
+      - name: Built-ins de ruby en el GKI
+        run: ./scripts/patch-gki-core.sh configs/ruby-6.6/gki-builtins.fragment
+
       - name: Build del kernel de producto
         run: make build-fast
 
@@ -99,12 +107,19 @@ jobs:
               CONFIG_DRM_MEDIATEK_V2 \
               CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO \
               CONFIG_TOUCHSCREEN_FOCALTECH_3680 \
-              CONFIG_GOODIX_CAP_FINGERPRINT \
-              CONFIG_MICROTRUST_TEE_SUPPORT ; do
+              CONFIG_GOODIX_CAP_FINGERPRINT ; do
               grep -qx "$sym=y" "$CFG" \
                 && echo "OK  $sym=y" \
                 || { echo "FALTA $sym=y"; exit 1; }
             done
+
+            # El TEE es built-in del GKI (en los device modules su simbolo
+            # vale =m y su Makefile esta desenganchado): lo que importa es que
+            # isee acabe enlazado en el kernel, no en el tar de modulos.
+            echo "== TEE built-in en el kernel"
+            grep -q "isee" artifacts/a34-6.6.127/System.map \
+              && echo "OK  isee en System.map" \
+              || { echo "FALTA isee en el kernel (TEE)"; exit 1; }
 
             # 3) la cadena de audio de MT6877 va como modulos y se compila en
             #    el arbol de device modules; si desaparece de la config, el
@@ -126,24 +141,26 @@ jobs:
           fi
 
           # 4) los .ko de ruby tienen que estar en el tar de modulos, y el TEE
-          #    no puede haberse colado como modulo (isee.ko va built-in)
+          #    no puede haberse colado como modulo (isee.ko va built-in).
+          #    Ojo: el tar aplana las rutas de los modulos, asi que se busca
+          #    por nombre de fichero y no por sound/soc/...
           echo "== modulos"
           tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst > /tmp/mods.txt
           for ko in \
-            "sound/soc/mediatek/mt6877/mt6877-mt6359.ko" \
-            "sound/soc/mediatek/mt6877/snd-soc-mt6877-afe.ko" \
-            "sound/soc/mediatek/common/snd-soc-mtk-common.ko" \
-            "sound/soc/codecs/snd-soc-mt6359.ko" ; do
-            grep -qF "$ko" /tmp/mods.txt \
+            "mt6877-mt6359.ko" \
+            "snd-soc-mt6877-afe.ko" \
+            "snd-soc-mtk-common.ko" \
+            "snd-soc-mt6359.ko" ; do
+            grep -q "/$ko$" /tmp/mods.txt \
               && echo "OK  $ko" \
               || { echo "FALTA $ko"; exit 1; }
           done
-          if grep -qF "sound/soc/mediatek/common/mtk-afe-external.ko" /tmp/mods.txt; then
+          if grep -q "/mtk-afe-external.ko$" /tmp/mods.txt; then
             echo "OK  mtk-afe-external.ko"
           else
             echo "AVISO: falta mtk-afe-external.ko (SMART_PHONE)"
           fi
-          if grep -q 'teei/400/isee.ko' /tmp/mods.txt; then
+          if grep -q "/isee.ko$" /tmp/mods.txt; then
             echo "FALTA: isee.ko esta como modulo (el TEE va built-in)"
             exit 1
           fi

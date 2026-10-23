@@ -27,6 +27,10 @@ if [ -d "$DM/drivers/tee/teei/400" ]; then
   rm -rf "$GKI/drivers/tee/teei"
   mkdir -p "$GKI/drivers/tee/teei"
   cp -a "$DM/drivers/tee/teei/400" "$GKI/drivers/tee/teei/400"
+  # El Kconfig del TEEI vive en los device modules y nadie lo copiaba: sin el,
+  # CONFIG_MICROTRUST_TEE_SUPPORT no existe en el arbol del GKI y olddefconfig
+  # lo tira, asi que el TEE nunca entraba en la Image.
+  cp "$DM/drivers/tee/teei/Kconfig" "$GKI/drivers/tee/teei/Kconfig"
   cp "$DM/drivers/tee/teei/Makefile.include" "$GKI/drivers/tee/teei/" 2>/dev/null || true
   cat > "$GKI/drivers/tee/teei/Makefile" <<'EOF'
 # Microtrust TEEI: el TEE real de ruby (el A34 usa TEEGRIS de Samsung).
@@ -40,7 +44,12 @@ from pathlib import Path
 p = Path(sys.argv[1])
 # quita cualquier variante previa (la linea suelta de antes o el bloque)
 lineas = [l for l in p.read_text().splitlines()
-          if "MICROTRUST_TEE_SUPPORT" not in l and "ruby: TEEI" not in l]
+          if "MICROTRUST_TEE_SUPPORT" not in l
+          and "obj-y += teei/" not in l
+          and not l.strip().startswith(("# ruby:", "# pone asi)",
+                                       "# copied'; el mismo arbol",
+                                       "ifeq ($(CONFIG_MICROTRUST",
+                                       "endif"))]
 lineas += [
     "# ruby: el TEE va built-in. Con =m (el config de los device modules lo",
     "# pone asi) se compilaria isee.ko y Kleaf aborta con 'built but not",
@@ -52,6 +61,27 @@ lineas += [
 p.write_text("\n".join(lineas) + "\n")
 print("[mtk-drivers] teei enlazado solo con =y (built-in)")
 PY
+
+  # Sin el `source` en drivers/tee/Kconfig el simbolo que escribimos en
+  # gki_defconfig no existe, y olddefconfig lo borra: el TEE no se compila.
+  KC="$GKI/drivers/tee/Kconfig"
+  if [ -f "$KC" ] && ! grep -q 'tee/teei/Kconfig' "$KC"; then
+    python3 - "$KC" <<'PY'
+import sys
+from pathlib import Path
+
+p = Path(sys.argv[1])
+lineas = p.read_text().splitlines()
+for i in range(len(lineas) - 1, -1, -1):
+    if lineas[i].startswith("source "):
+        lineas.insert(i + 1, 'source "drivers/tee/teei/Kconfig"')
+        break
+else:
+    raise SystemExit("no hay ningun source en drivers/tee/Kconfig")
+p.write_text("\n".join(lineas) + "\n")
+print("[mtk-drivers] teei/Kconfig enganchado en drivers/tee/Kconfig")
+PY
+  fi
 
   # El arbol de device modules TAMBIEN tiene tee/teei: si el build superpone
   # esa copia sobre la del GKI, su Makefile lo volveria a enganchar con =m.
