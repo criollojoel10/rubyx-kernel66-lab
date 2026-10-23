@@ -33,7 +33,22 @@ mkdir -p "$TMP/root"
     mkdir -p lib/modules
     cp "$MODDIR"/*.ko lib/modules/
     if [ -f "$MODDIR/modules.load" ]; then
-      cp "$MODDIR/modules.load" lib/modules/
+      # RUBY_MODLIMIT=N: solo los N primeros modulos (biseccion de un crash
+      # durante la carga; 0 = ninguno, para validar el loader en si).
+      if [ -n "${RUBY_MODLIMIT:-}" ]; then
+        head -n "$RUBY_MODLIMIT" "$MODDIR/modules.load" > lib/modules/modules.load
+      else
+        cp "$MODDIR/modules.load" lib/modules/
+      fi
+      # RUBY_MODLOADER_DRYRUN=1: el loader recorre la lista pero no carga nada.
+      if [ "${RUBY_MODLOADER_DRYRUN:-0}" = "1" ]; then
+        touch lib/modules/.dryrun
+      fi
+      # RUBY_MODLOADER_PROBE=1: el loader se cuelga si no aparece ningun
+      # device de bloque en 6 s (senal de "UFS no probado" sin logs).
+      if [ "${RUBY_MODLOADER_PROBE:-0}" = "1" ]; then
+        touch lib/modules/.probe-block
+      fi
     fi
   fi
 

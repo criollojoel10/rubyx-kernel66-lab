@@ -94,6 +94,7 @@ def main():
     ap.add_argument("--initramfs", required=True, type=Path)
     ap.add_argument("--dtb", type=Path)
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument("--extra-cmdline", default="")
     args = ap.parse_args()
 
     orig = args.original.read_bytes()
@@ -101,6 +102,9 @@ def main():
     dtb = args.dtb.read_bytes() if args.dtb else h["dtb"]
 
     cmdline = "bootopt=64S3,32N2,64N2 androidboot.tee_type=2"
+    if args.extra_cmdline:
+        cmdline += " " + args.extra_cmdline.strip()
+    print(f"cmdline: {cmdline}")
 
     raw = pack_boot_v2(
         args.kernel.read_bytes(), args.initramfs.read_bytes(), dtb,

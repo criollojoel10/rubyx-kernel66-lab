@@ -27,8 +27,17 @@ fi
 [ -d "$GKI/drivers/gpu/drm/panel" ] || { echo "falta $GKI" >&2; exit 1; }
 [ -d "$DM/drivers/tee/teei" ] || { echo "falta $DM" >&2; exit 1; }
 
-echo "== display: panel m16 42-0d-0a (el A34 no lo trae)"
-./port/display/apply.sh "$GKI"
+# Los paneles m16 van como MODULOS (=m) y se compilan en el arbol de device
+# modules, junto a mediatek-drm.ko: los CRCs de mtk_panel_ext_* solo cuadran
+# si los dos salen del mismo build. Por eso apply.sh apunta al arbol de
+# device modules y hay que declararlos en mtk_device_modules (la lista que
+# Kleaf compila de verdad).
+echo "== display: paneles m16 (el A34 no los trae)"
+./port/display/apply.sh "${1:+$1/kernel/kernel_device_modules-6.6/drivers/gpu/drm/panel}"
+python3 scripts/patch-kleaf-outs.py \
+  --dm drivers/gpu/drm/panel/panel-m16-42-0d-0a-dsc-vdo.ko \
+  --dm drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.ko \
+  --dm drivers/gpu/drm/panel/panel-m16-45-02-0c-dsc-vdo.ko
 
 echo "== touch: Focaltech FT3680 por SPI3 (el A34 no lo trae)"
 ./port/touch/apply.sh "$GKI"
@@ -67,8 +76,8 @@ FRAG="${RUBY_FRAGMENT:-configs/ruby-6.6/full.fragment}"
 echo "== lista de Kleaf sin los .ko de TEEGRIS (el TEE de ruby va built-in)"
 ./scripts/patch-kleaf-tee-builtin.py "${1:-sources/a34x}"
 
-# El panel, el tactil y el TEE van BUILT-IN (=y), igual que en el kernel stock
-# de ruby: no producen .ko y no hay que declararlos en las listas de Kleaf.
+# El tactil y el TEE van BUILT-IN (=y), igual que en el kernel stock de ruby:
+# no producen .ko. El panel SI es modulo (ver arriba).
 # (La lista de device modules ya queda sin los .ko de TEEGRIS, que es lo que
 # hace patch-kleaf-tee-builtin.py.)
 

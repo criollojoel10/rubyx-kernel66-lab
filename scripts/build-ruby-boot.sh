@@ -51,11 +51,17 @@ MODTAR="$ART/a34-all-modules.tar.zst"
 #    built-in (en el kernel de stock si lo estan), asi que el primer init
 #    necesita cargarlos desde el ramdisk. scripts/make-boot-moddir.py arma
 #    artifacts/ruby-mods con el cierre de dependencias y su modules.load.
-MODDIR="artifacts/ruby-mods"
+MODDIR="${RUBY_MODDIR:-artifacts/ruby-mods}"
 if [ ! -f "$MODDIR/modules.load" ] && [ -f "$MODTAR" ]; then
   ./scripts/make-boot-moddir.py --modules-tar "$MODTAR" --out "$MODDIR"
 fi
 [ -f "$MODDIR/modules.load" ] || { echo "faltan modulos de primera etapa en $MODDIR" >&2; exit 1; }
+
+# mrdump.ko es obligatorio (ufs-mediatek-dbg usa sus simbolos) pero su init
+# borra el canal de log. Se neutraliza el init dejando intactos simbolos/CRCs.
+if [ "${RUBY_PATCH_MRDUMP:-1}" = "1" ] && [ -f "$MODDIR/mrdump.ko" ]; then
+  python3 scripts/patch-mrdump-init.py "$MODDIR/mrdump.ko"
+fi
 
 # 3) ramdisk con los modulos
 UNPACKED="/root/ruby-gki/work/boot_unpacked"
@@ -66,6 +72,13 @@ RAMDISK_LZ4="artifacts/ramdisk-ruby.lz4"
 # 4) boot.img
 DTB="${RUBY_DTB:-/root/ruby-gki/work/dtb_boot/01_dtbdump_MT6877.dtb}"
 [ -f "$DTB" ] || { echo "no encuentro el DTB de ruby: $DTB" >&2; exit 1; }
+# Parchea el DTB (pinctrl/eint/PMIC/reguladores). Imprescindible para que el
+# MFD mt6397.ko sondee y mt6359p-regulator registre ldo_vemc (UFS lo pide).
+if [ "${RUBY_PATCH_DTB:-1}" = "1" ]; then
+  PATCHED="artifacts/ruby-dtb-patched.dtb"
+  ./scripts/patch-ruby-dtb.sh "$DTB" "$PATCHED" --keep-vcc >/dev/null
+  DTB="$PATCHED"
+fi
 ORIG="device/backups/boot_b-stock.img"
 [ -f "$ORIG" ] || ORIG="/root/ruby-gki/work/boot_b.img"
 
@@ -74,6 +87,7 @@ python3 scripts/build-diag-boot.py \
   --kernel "$KERNEL" \
   --initramfs "$RAMDISK_LZ4" \
   --dtb "$DTB" \
+  --extra-cmdline "${RUBY_CMDLINE_EXTRA:-}" \
   --out "$OUT"
 
 sha256sum "$OUT"

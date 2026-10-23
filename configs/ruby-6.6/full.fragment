@@ -12,10 +12,13 @@ CONFIG_DRM_MEDIATEK=n
 
 # Panel m16 42-0d-0a (1080x2400, DSC VDO): el que declara el cmdline del
 # kernel stock. Port en port/display (DCS y timings del 4.19 de ruby).
-# los tres paneles m16 de ruby (el dtbo declara el 42-0d-0a y el 36-02-0b)
-CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO=y
-CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=y
-CONFIG_DRM_PANEL_M16_45_02_0C_DSC_VDO=y
+# los tres paneles m16 de ruby (el dtbo declara el 42-0d-0a y el 36-02-0b).
+# Van como MODULO: se compilan en el arbol de device modules en el mismo
+# build que mediatek-drm.ko y mtk_panel_ext.ko, para que los CRCs de los
+# simbolos que exporta mediatek_v2 coincidan al cargar.
+CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO=m
+CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=m
+CONFIG_DRM_PANEL_M16_45_02_0C_DSC_VDO=m
 
 # Tactil Focaltech FT3680 por SPI3: port en port/touch.
 CONFIG_TOUCHSCREEN_FOCALTECH_3680=y
