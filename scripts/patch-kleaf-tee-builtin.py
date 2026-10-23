@@ -53,9 +53,30 @@ for line in text.splitlines(keepends=True):
         out.append(line)
 text = "".join(out)
 
+# 3) tee.ko (el core del TEE) tambien va dentro de la Image: al apagar
+#    CONFIG_TEE en los device modules el .ko ya no existe y kleaf aborta con
+#    "Unable to find drivers/tee/tee.ko". Vive en mgk_modules.bzl.
+n_core = 0
+for BZL_CORE in (BASE / "kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_modules.bzl",):
+    if not BZL_CORE.exists():
+        continue
+    text_core = BZL_CORE.read_text()
+    out = []
+    for line in text_core.splitlines(keepends=True):
+        if re.match(r'^\s*"drivers/tee/tee\.ko",\s*$', line):
+            n_core += 1
+            out.append("# ruby: TEE built-in (Microtrust 400) -> "
+                       + line.strip() + "\n")
+        else:
+            out.append(line)
+    nuevo = "".join(out)
+    if nuevo != text_core:
+        BZL_CORE.write_text(nuevo)
+
 if text != orig:
     BZL.write_text(text)
     print(f"[kleaf] {n_entries} entradas de TEEGRIS quitadas, "
           f"{n_calls} remove/append comentados")
 else:
     print("[kleaf] la lista ya estaba sin TEEGRIS")
+print(f"[kleaf] {n_core} entradas de drivers/tee/tee.ko quitadas")
