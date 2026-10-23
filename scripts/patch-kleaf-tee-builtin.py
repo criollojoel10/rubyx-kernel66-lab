@@ -73,10 +73,37 @@ for BZL_CORE in (BASE / "kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_modul
     if nuevo != text_core:
         BZL_CORE.write_text(nuevo)
 
+# 4) tzdev.ko y tuihw*.ko dependen de TZDEV/TEEGRIS_TUI, apagados
+#    (viven dentro del submenu de TEE). Se comentan sus .append() en
+#    mgk_64.bzl para que kleaf no aborte con "Unable to find ... .ko".
+n_tz = 0
+BZL64 = BASE / "kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_64.bzl"
+if BZL64.exists():
+    text64 = BZL64.read_text()
+    out = []
+    for line in text64.splitlines(keepends=True):
+        if (not line.lstrip().startswith("#")
+                and ".append(" in line
+                and any(m in line for m in ("tzdev/4/tzdev.ko",
+                                            "tzdev/5/tzdev.ko",
+                                            "tzdev/6/tzdev.ko",
+                                            "tui/tuihw.ko",
+                                            "tui/tuihw-inf.ko"))):
+            n_tz += 1
+            indent = line[:len(line) - len(line.lstrip())]
+            out.append(f"{indent}# ruby: TEE off -> {line.strip()}\n")
+        else:
+            out.append(line)
+    nuevo = "".join(out)
+    if nuevo != text64:
+        BZL64.write_text(nuevo)
+print(f"[kleaf] {n_tz} append de tzdev/tuihw comentados")
+
 if text != orig:
     BZL.write_text(text)
     print(f"[kleaf] {n_entries} entradas de TEEGRIS quitadas, "
           f"{n_calls} remove/append comentados")
 else:
     print("[kleaf] la lista ya estaba sin TEEGRIS")
-print(f"[kleaf] {n_core} entradas de drivers/tee/tee.ko quitadas")
+print(f"[kleaf] {n_core} entradas de drivers/tee/tee.ko quitadas, "
+      f"{n_tz} append de tzdev/tuihw comentados")
