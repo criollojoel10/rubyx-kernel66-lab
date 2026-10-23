@@ -166,6 +166,49 @@ IMK="$GKI/drivers/input/Makefile"
 grep -q 'ruby_compat.o' "$IMK" || printf '\nobj-y += ruby_compat.o\n' >> "$IMK"
 echo "[mtk-drivers] ruby_compat.c instalado"
 
+# --- 2c) rpmb-mtk: macros que solo venian de drrpmb_Api.h ------------------
+# rpmb-mtk.c incluye drrpmb_Api.h solo en las ramas de Trustonic y de TEEGRIS,
+# y de ahi salen RPMB_MULTI_BLOCK_ACCESS y MAX_RPMB_REQUEST_SIZE. El TEE de
+# ruby es Microtrust y ademas va built-in en la Image, asi que el arbol de
+# device modules compila sin TEEGRIS: sin esas macros el archivo no compila
+# ("use of undeclared identifier 'MAX_RPMB_REQUEST_SIZE'") y ademas cae en la
+# rama vieja, que usa param->key / param->data, campos que no existen en
+# struct rpmb_ioc_param (alli se llaman keybytes / databytes).
+RPMB_C="$DM/drivers/char/rpmb/rpmb-mtk.c"
+if [ -f "$RPMB_C" ] && ! grep -q 'ruby: macros de drrpmb_Api.h' "$RPMB_C"; then
+  python3 - "$RPMB_C" <<'PYEOF'
+import sys
+
+p = sys.argv[1]
+text = open(p, encoding="utf-8").read()
+anchor = "#define __RPMB_IOCTL_SUPPORT\n"
+add = (
+    "\n/* ruby: macros de drrpmb_Api.h (los mismos valores que drrpmb_gp).\n"
+    " * Ese header solo se incluia con Trustonic o TEEGRIS; el TEE de ruby es\n"
+    " * Microtrust y ademas va built-in, asi que el arbol de device modules\n"
+    " * compila sin ninguno de los dos y el archivo se queda sin estas macros:\n"
+    " * 'use of undeclared identifier MAX_RPMB_REQUEST_SIZE'. Y sin\n"
+    " * RPMB_MULTI_BLOCK_ACCESS cae en la rama vieja, que usa\n"
+    " * param->key/param->data, campos que en struct rpmb_ioc_param se llaman\n"
+    " * keybytes/databytes.\n"
+    " */\n"
+    "#if !IS_ENABLED(CONFIG_TRUSTONIC_TEE_SUPPORT) && \\\n"
+    "    !IS_ENABLED(CONFIG_TEEGRIS_TEE_SUPPORT)\n"
+    "#define RPMB_MULTI_BLOCK_ACCESS 1\n"
+    "#define MAX_RPMB_TRANSFER_BLK (32U)\n"
+    "#define MAX_RPMB_REQUEST_SIZE (512U*MAX_RPMB_TRANSFER_BLK)\n"
+    "#endif\n"
+)
+if anchor not in text:
+    print("[mtk-drivers] aviso: no encuentro __RPMB_IOCTL_SUPPORT en rpmb-mtk.c")
+    sys.exit(0)
+text = text.replace(anchor, anchor + add, 1)
+open(p, "w", encoding="utf-8").write(text)
+print("[mtk-drivers] rpmb-mtk.c: RPMB_MULTI_BLOCK_ACCESS y "
+      "MAX_RPMB_REQUEST_SIZE definidos")
+PYEOF
+fi
+
 # 3) cabeceros UAPI de MTK (los usa la mediatek_v2 y el panel m16) --------
 # El GKI del A34 no los tiene; estan en los device modules.
 for h in include/uapi/drm/mediatek_drm.h \
