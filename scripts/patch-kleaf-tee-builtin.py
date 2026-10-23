@@ -131,6 +131,7 @@ for rel, mods in targets.items():
     out = []
     for line in lines:
         if (not line.lstrip().startswith("#")
+                and "_ruby_remove(" not in line
                 and any(m in line for m in mods)):
             n_static += 1
             indent = line[:len(line) - len(line.lstrip())]
@@ -157,6 +158,12 @@ if BZL64.exists():
 BZL64 = BASE / "kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_64.bzl"
 if BZL64.exists():
     text64 = BZL64.read_text()
+    marker = "\n# ruby: red de seguridad"
+    idx = text64.find(marker)
+    if idx != -1:
+        # reescribir siempre el bloque: garantiza idempotencia aunque el paso 5
+        # haya tocado alguna linea del guard anterior.
+        text64 = text64[:idx].rstrip() + "\n"
     guard = '\n# ruby: red de seguridad - eliminar tzdev/tuihw si quedaron en la lista\n'
     for mod in ("drivers/tee/tzdev/4/tzdev.ko", "drivers/tee/tzdev/5/tzdev.ko",
                 "drivers/tee/tzdev/6/tzdev.ko",
@@ -164,11 +171,11 @@ if BZL64.exists():
                 "drivers/misc/mediatek/tui/tuihw-inf.ko",
                 "drivers/tee/teeperf/teeperf.ko",
                 "drivers/mstdrv/mstdrv.ko"):
-        guard += (f'if "{mod}" in mgk_64_device_modules:\n'
-                  f'    mgk_64_device_modules.remove("{mod}")\n')
-    if guard.strip() not in text64:
-        text64 = text64.rstrip() + "\n" + guard
-        BZL64.write_text(text64)
-        print("[kleaf] red de seguridad anadida a mgk_64.bzl")
+        # Starlark no permite 'if' a nivel superior: usar el helper existente.
+        guard += (f'_ruby_remove(mgk_64_device_modules, "{mod}")'
+                  f'  # ruby: sin modulo TEE\n')
+    text64 = text64.rstrip() + "\n" + guard
+    BZL64.write_text(text64)
+    print("[kleaf] red de seguridad reescrita en mgk_64.bzl")
 print(f"[kleaf] {n_core} entradas de drivers/tee/tee.ko quitadas, "
       f"{n_tz} append de tzdev/tuihw comentados")
