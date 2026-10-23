@@ -209,6 +209,30 @@ print("[mtk-drivers] rpmb-mtk.c: RPMB_MULTI_BLOCK_ACCESS y "
 PYEOF
 fi
 
+# `open_th` solo se usa en los kthread de las ramas Trustonic/TEEGRIS, que en
+# este arbol estan apagadas: con -Werror el compilador aborta por variable no
+# usada. Se marca __maybe_unused (no cambia el codigo generado).
+if [ -f "$RPMB_C" ] && ! grep -q 'ruby: open_th' "$RPMB_C"; then
+  python3 - "$RPMB_C" <<'PYEOF'
+import sys
+
+p = sys.argv[1]
+text = open(p, encoding="utf-8").read()
+old = "static struct task_struct *open_th;"
+new = (
+    "/* ruby: open_th solo se usa en los kthread de las ramas\n"
+    " * Trustonic/TEEGRIS, apagadas en el arbol de device modules.\n"
+    " */\n"
+    "static struct task_struct *open_th __maybe_unused;"
+)
+if old not in text:
+    print("[mtk-drivers] aviso: no encuentro la declaracion de open_th")
+    sys.exit(0)
+open(p, "w", encoding="utf-8").write(text.replace(old, new, 1))
+print("[mtk-drivers] rpmb-mtk.c: open_th marcado __maybe_unused")
+PYEOF
+fi
+
 # 3) cabeceros UAPI de MTK (los usa la mediatek_v2 y el panel m16) --------
 # El GKI del A34 no los tiene; estan en los device modules.
 for h in include/uapi/drm/mediatek_drm.h \
