@@ -166,6 +166,28 @@ IMK="$GKI/drivers/input/Makefile"
 grep -q 'ruby_compat.o' "$IMK" || printf '\nobj-y += ruby_compat.o\n' >> "$IMK"
 echo "[mtk-drivers] ruby_compat.c instalado"
 
+# --- 2b2) geniezone tz_system: el codigo weak de teec asume TEEGRIS --------
+# tz_system.c guarda el include de "tee_client_api.h" y las funciones weak
+# teec_* bajo "#if IS_ENABLED(CONFIG_TEE)". Pero CONFIG_TEE esta encendido en
+# la Image (el TEEI va built-in), mientras que el backend TEEGRIS esta
+# apagado, asi que ese bloque intenta incluir un header que no existe y a
+# usar tipos TEEC_* sin definir. Se acota a CONFIG_TEEGRIS_TEE_SUPPORT.
+GZTS="$DM/drivers/misc/mediatek/geniezone/tz_system.c"
+if [ -f "$GZTS" ] && ! grep -q 'ruby: IS_ENABLED(CONFIG_TEE) -> TEEGRIS' "$GZTS"; then
+  python3 - "$GZTS" <<'PYEOF'
+import sys
+
+p = sys.argv[1]
+text = open(p, encoding="utf-8").read()
+old = "#if IS_ENABLED(CONFIG_TEE)\n"
+new = "#if IS_ENABLED(CONFIG_TEEGRIS_TEE_SUPPORT)  /* ruby: IS_ENABLED(CONFIG_TEE) -> TEEGRIS */\n"
+n = text.count(old)
+text = text.replace(old, new)
+open(p, "w", encoding="utf-8").write(text)
+print(f"[mtk-drivers] geniezone tz_system.c: {n} guardas CONFIG_TEE -> TEEGRIS")
+PYEOF
+fi
+
 # --- 2c) rpmb-mtk: macros que solo venian de drrpmb_Api.h ------------------
 # rpmb-mtk.c incluye drrpmb_Api.h solo en las ramas de Trustonic y de TEEGRIS,
 # y de ahi salen RPMB_MULTI_BLOCK_ACCESS y MAX_RPMB_REQUEST_SIZE. El TEE de
