@@ -58,7 +58,11 @@ jobs:
         run: ./port/display/apply.sh
 
       - name: Declarar los modulos nuevos en Kleaf
-        run: python3 scripts/patch-kleaf-outs.py --gki drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.ko
+        run: |
+          python3 scripts/patch-kleaf-outs.py \
+            --dm drivers/gpu/drm/panel/panel-m16-42-0d-0a-dsc-vdo.ko \
+            --dm drivers/gpu/drm/panel/panel-m16-36-02-0b-dsc-vdo.ko \
+            --dm drivers/gpu/drm/panel/panel-m16-45-02-0c-dsc-vdo.ko
 
       - name: Build con el panel m16
         env:
@@ -68,10 +72,14 @@ jobs:
       - name: Recolectar
         run: make collect
 
-      - name: Verificar el modulo del panel
+      - name: Verificar los modulos del panel
         run: |
-          grep -E '^CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=m' artifacts/a34-6.6.127/device-modules.config
-          tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst | grep -E 'panel-m16-36-02-0b-dsc-vdo\.ko$'
+          for p in 42-0d-0a 36-02-0b 45-02-0c; do
+            sym="CONFIG_DRM_PANEL_M16_$(echo "$p" | tr 'a-z-' 'A-Z_')_DSC_VDO"
+            grep -E "^${sym}=m" artifacts/a34-6.6.127/device-modules.config
+            tar --zstd -tf artifacts/a34-6.6.127/a34-all-modules.tar.zst \
+              | grep -E "panel-m16-${p}-dsc-vdo\.ko$"
+          done
 
       - name: Subir artefactos
         if: always()

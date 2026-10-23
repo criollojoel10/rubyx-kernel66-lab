@@ -1,2 +1,8 @@
-# Panel m16 de ruby para mediatek_v2 6.6
-CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO=y
+# Paneles m16 de ruby para mediatek_v2 6.6.
+#
+# Se construyen como modulos (=m) desde el arbol de device modules, en el
+# mismo build que mediatek-drm.ko/mtk_panel_ext.ko: los CRCs de los simbolos
+# que exporta mediatek_v2 solo cuadran si salen del mismo artefacto.
+CONFIG_DRM_PANEL_M16_42_0D_0A_DSC_VDO=m
+CONFIG_DRM_PANEL_M16_36_02_0B_DSC_VDO=m
+CONFIG_DRM_PANEL_M16_45_02_0C_DSC_VDO=m

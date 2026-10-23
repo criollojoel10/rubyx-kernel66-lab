@@ -59,6 +59,30 @@ def patch_outs(mods) -> int:
     return cambiados
 
 
+def patch_build_list(mods) -> int:
+    """Anade los .ko a `mtk_device_modules`, la lista que Kleaf COMPILA.
+
+    Sin estar aqui, el modulo no se construye aunque el Kconfig lo deje =m y
+    aunque figure en los outs. El ancla es la entrada de mtk_panel_ext.ko
+    (los paneles viven al lado en el arbol), asi que el parche es estable
+    frente a cambios en el resto de la lista.
+    """
+    text = BZL_MODS.read_text()
+    ancla = '    "drivers/gpu/drm/mediatek/mediatek_v2/mtk_panel_ext.ko",\n'
+    if ancla not in text:
+        if all(f'"{m}"' in text for m in mods):
+            return 0
+        sys.exit(f"no encuentro el ancla mtk_panel_ext.ko en {BZL_MODS}; "
+                 "no toco nada")
+    nuevos = [m for m in mods if f'"{m}"' not in text.split(ancla, 1)[1][:4000]]
+    if not nuevos:
+        print("[kleaf] mtk_device_modules ya contiene los modulos")
+        return 0
+    cuerpo = "".join(f'    "{m}",\n' for m in nuevos)
+    BZL_MODS.write_text(text.replace(ancla, ancla + cuerpo, 1))
+    return len(nuevos)
+
+
 def patch_device_modules(mods) -> int:
     """Declara los .ko del arbol de device modules en mgk_64_module_outs.
 
@@ -103,13 +127,15 @@ def main() -> int:
 
     n1 = patch_outs(gki_mods)
     n2 = patch_device_modules(dm_mods)
+    n3 = patch_build_list(dm_mods)
     import py_compile
     for f in (BZL_OUTS, BZL_MODS):
         try:
             py_compile.compile(str(f), doraise=True)
         except py_compile.PyCompileError as e:
             sys.exit(f"[kleaf] {f.name} ya no compila: {e}")
-    print(f"[kleaf] outs: +{n1} entradas | device_modules: +{n2} modulos")
+    print(f"[kleaf] outs: +{n1} entradas | device_modules: +{n2} modulos | "
+          f"compilados: +{n3}")
     return 0
 
 

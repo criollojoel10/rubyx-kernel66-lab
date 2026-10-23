@@ -7,11 +7,16 @@
 #   panel2@0 -> "m16_36_02_0b_dsc_vdo,lcm"
 # y el 4.19 de ruby trae tambien el 45-02-0c.
 #
+# Los paneles se compilan como modulos (=m) desde el arbol de device
+# modules, en el mismo build que mediatek-drm.ko: los CRCs de
+# mtk_panel_ext_create/mtk_panel_ext_param_set solo cuadran si ambos salen
+# del mismo artefacto.
+#
 # Uso: ./port/display/apply.sh [raiz/del/arbol-con-drivers/gpu/drm/panel]
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-PANELDIR="${1:-sources/a34x/kernel-6.6/drivers/gpu/drm/panel}"
+PANELDIR="${1:-sources/a34x/kernel/kernel_device_modules-6.6/drivers/gpu/drm/panel}"
 [ -d "$PANELDIR" ] || { echo "no existe $PANELDIR" >&2; exit 1; }
 
 SRC="port/display"
