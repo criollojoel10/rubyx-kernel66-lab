@@ -134,8 +134,37 @@ if [ -d "$DM/drivers/gpu/drm/mediatek/mediatek_v2" ]; then
   ln -sfn drivers/gpu/drm/mediatek/mediatek_v2 "$GKI/mediatek_v2"
   ln -sfn drivers/gpu/drm/mediatek/mediatek_v2 "$DM/mediatek_v2"
   K="$GKI/drivers/gpu/drm/mediatek/Kconfig"
+  # ruby: mtk_panel_ext.o y mtk_disp_notify.o los usan los paneles m16 y el
+  # tactil built-in, no solo el modulo de drm. Su Makefile los ata a
+  # CONFIG_DEVICE_MODULES_DRM_MEDIATEK, que kleaf solo pone en el build de
+  # modulos; sin esto el vmlinux no enlaza (mtk_panel_tch_handle_init,
+  # mtk_disp_notifier_register/unregister indefinidos).
+  V2MK="$GKI/drivers/gpu/drm/mediatek/mediatek_v2/Makefile"
+  if [ -f "$V2MK" ] && ! grep -q 'ruby: panel_ext/notify built-in' "$V2MK"; then
+    cat >> "$V2MK" <<'MKEOF'
+
+# ruby: panel_ext/notify built-in cuando no hay bundle de device modules.
+ifeq ($(strip $(CONFIG_DEVICE_MODULES_DRM_MEDIATEK)),)
+ifeq ($(CONFIG_DRM_MEDIATEK_V2),y)
+obj-y += mtk_panel_ext.o mtk_disp_notify.o
+endif
+endif
+MKEOF
+  fi
   echo "[mtk-drivers] mediatek_v2 copiada al GKI"
 fi
+
+# --- 2b) compatibilidad de ruby para los drivers built-in ------------------
+# El tactil Focaltech FT3680 y la huella Goodix son codigo de Xiaomi y llaman
+# a prize_common_node_register() y mtk_drm_early_resume(), que solo existen en
+# el arbol de vendor de ruby (no en el del A34). Se instalan no-ops en el GKI
+# para que la Image enlace.
+COMPAT="$GKI/drivers/input/ruby_compat.c"
+mkdir -p "$GKI/drivers/input"
+cp -a "$(cd "$(dirname "$0")" && pwd)/files/ruby_compat.c" "$COMPAT"
+IMK="$GKI/drivers/input/Makefile"
+grep -q 'ruby_compat.o' "$IMK" || printf '\nobj-y += ruby_compat.o\n' >> "$IMK"
+echo "[mtk-drivers] ruby_compat.c instalado"
 
 # 3) cabeceros UAPI de MTK (los usa la mediatek_v2 y el panel m16) --------
 # El GKI del A34 no los tiene; estan en los device modules.
