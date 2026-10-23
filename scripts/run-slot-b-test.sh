@@ -48,10 +48,11 @@ say "esperando retorno a Android A"
 OK=0
 for i in $(seq 1 72); do
   sleep 5
-  if OUT="$("${SSH[@]}" 'getprop sys.boot_completed; getprop ro.boot.slot_suffix' 2>/dev/null)"; then
+  if OUT="$("${SSH[@]}" 'getprop sys.boot_completed; getprop ro.boot.slot_suffix; uname -r' 2>/dev/null)"; then
     BOOTED="$(printf '%s\n' "$OUT" | sed -n 1p)"
     SLOT="$(printf '%s\n' "$OUT" | sed -n 2p)"
-    say "ssh responde (intento $i): boot_completed=$BOOTED slot=$SLOT"
+    KREL="$(printf '%s\n' "$OUT" | sed -n 3p)"
+    say "ssh responde (intento $i): boot_completed=$BOOTED slot=$SLOT kernel=$KREL"
     if [ "$BOOTED" = "1" ]; then
       OK=1
       break
