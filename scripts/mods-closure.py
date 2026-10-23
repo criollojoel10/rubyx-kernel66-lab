@@ -122,7 +122,7 @@ def main():
     (out / "modules.load").write_text("\n".join(final) + "\n")
     print(f"[closure] {len(orden)} modulos en el cierre, {len(nuevos)} nuevos: "
           f"{' '.join(n + '.ko' for n in nuevos)}")
-    print(f"[closure] modules.load: {len(linea)} lineas -> {out}")
+    print(f"[closure] modules.load: {len(final)} lineas -> {out}")
     return 0
 
 
