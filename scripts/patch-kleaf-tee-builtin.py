@@ -105,5 +105,38 @@ if text != orig:
           f"{n_calls} remove/append comentados")
 else:
     print("[kleaf] la lista ya estaba sin TEEGRIS")
+# 5) modulos que dependen de TEE/TZDEV/TEEGRIS y ya no se construyen:
+#    teeperf.ko (mgk_64.bzl), mstdrv.ko (lego.bzl), tuihw*.ko
+#    (samsung_product_modules.bzl). Se comentan para que kleaf no aborte con
+#    "Unable to find ... .ko".
+targets = {
+    "kernel/kernel_device_modules-6.6/kernel/kleaf/mgk_64.bzl": [
+        "drivers/tee/teeperf/teeperf.ko",
+    ],
+    "kernel/kernel_device_modules-6.6/lego.bzl": [
+        "drivers/mstdrv/mstdrv.ko",
+    ],
+    "kernel/kernel_device_modules-6.6/kernel/kleaf/samsung_product_modules.bzl": [
+        "drivers/tee/tui/tuihw.ko",
+        "drivers/tee/tui/tuihw-inf.ko",
+    ],
+}
+n_static = 0
+for rel, mods in targets.items():
+    path = BASE / rel
+    if not path.exists():
+        continue
+    lines = path.read_text().splitlines(keepends=True)
+    out = []
+    for line in lines:
+        if (not line.lstrip().startswith("#")
+                and any(m in line for m in mods)):
+            n_static += 1
+            indent = line[:len(line) - len(line.lstrip())]
+            out.append(f"{indent}# ruby: TEE off -> {line.strip()}\n")
+        else:
+            out.append(line)
+    path.write_text("".join(out))
+print(f"[kleaf] {n_static} entradas estaticas comentadas (teeperf/mstdrv/tuihw)")
 print(f"[kleaf] {n_core} entradas de drivers/tee/tee.ko quitadas, "
       f"{n_tz} append de tzdev/tuihw comentados")
