@@ -149,6 +149,43 @@ for h in include/uapi/drm/mediatek_drm.h \
   fi
 done
 
+# 3b) tipos de cmdq fuera del ifdef -------------------------------------
+# mtk-cmdq-mailbox-ext.h declara cmdq_usage_cb / cmdq_mminfra_power /
+# cmdq_mminfra_gce_cg dentro de "#if IS_ENABLED(CONFIG_MTK_CMDQ_MBOX_EXT)",
+# pero luego los usa fuera (struct mbox_chan y prototipos). Ese CONFIG solo
+# existe en los Kconfig de los device modules, asi que en el build GKI (y en
+# el de modulos, que compila con la config del GKI) queda a 0 y el driver de
+# touch no compila: "unknown type name 'cmdq_usage_cb'".
+# Se suben los typedefs por encima del ifdef en ambas copias.
+for CMDQ_H in "$GKI/include/linux/mailbox/mtk-cmdq-mailbox-ext.h" \
+              "$DM/include/linux/mailbox/mtk-cmdq-mailbox-ext.h"; do
+  [ -f "$CMDQ_H" ] || continue
+  python3 - "$CMDQ_H" <<'PYEOF'
+import sys
+p = sys.argv[1]
+text = open(p).read()
+if "ruby: typedefs de cmdq" in text:
+    sys.exit(0)
+tipos = ("typedef bool (*cmdq_mminfra_power)(void);\n"
+         "typedef bool (*cmdq_mminfra_gce_cg)(u32);\n"
+         "\n"
+         "typedef void (*cmdq_usage_cb)(u32);\n")
+if tipos not in text:
+    sys.exit(0)
+text = text.replace(tipos, "", 1)
+marca = "#if IS_ENABLED(CONFIG_MTK_CMDQ_MBOX_EXT)\n"
+i = text.find(marca)
+if i < 0:
+    sys.exit(0)
+text = (text[:i] + "/* ruby: typedefs de cmdq fuera del ifdef: el resto del\n"
+        " * header los usa y CONFIG_MTK_CMDQ_MBOX_EXT solo existe en los\n"
+        " * device modules, no en la config del GKI.\n"
+        " */\n" + tipos + "\n" + text[i:])
+open(p, "w").write(text)
+PYEOF
+  echo "[mtk-drivers] typedefs de cmdq liberados en $CMDQ_H"
+done
+
 # El header UAPI de MTK usa uint32_t/bool pero no incluye los tipos base:
 # con clang (PCH) falla con "unknown type name 'uint32_t'". Se hace
 # autosuficiente.
