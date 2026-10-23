@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -28,14 +29,37 @@ static int kmsg = -1;
 
 static void klog(const char *fmt, ...)
 {
-    char buf[512];
+    char msg[448], out[512];
     va_list ap;
     int n;
     va_start(ap, fmt);
-    n = vsnprintf(buf, sizeof(buf), fmt, ap);
+    n = vsnprintf(msg, sizeof(msg), fmt, ap);
     va_end(ap);
-    if (n > 0 && kmsg >= 0)
-        (void)write(kmsg, buf, (size_t)n);
+    if (n <= 0 || kmsg < 0)
+        return;
+    /* <3> = KERN_ERR: pase lo que pase el loglevel, se registra. */
+    n = snprintf(out, sizeof(out), "<3>%s", msg);
+    if (n > 0)
+        (void)write(kmsg, out, (size_t)((size_t)n < sizeof(out) ? (size_t)n
+                                                                 : sizeof(out) - 1));
+}
+
+/*
+ * En el ramdisk de primera etapa /dev puede estar vacio (devtmpfs lo monta el
+ * init de Android), asi que /dev/kmsg no existe y los mensajes se perdian. Se
+ * monta devtmpfs y, si aun asi no hay kmsg, se escribe en /dev/console, aunque
+ * ahi conviene que el mensaje acabe en '\n'.
+ */
+static void log_open(void)
+{
+    kmsg = open("/dev/kmsg", O_WRONLY | O_CLOEXEC);
+    if (kmsg >= 0)
+        return;
+    (void)mount("devtmpfs", "/dev", "devtmpfs", 0, "");
+    kmsg = open("/dev/kmsg", O_WRONLY | O_CLOEXEC);
+    if (kmsg >= 0)
+        return;
+    kmsg = open("/dev/console", O_WRONLY | O_CLOEXEC);
 }
 
 static int load_one(const char *name)
@@ -63,7 +87,7 @@ int main(void)
     char line[512];
     int total = 0, failed = 0;
 
-    kmsg = open("/dev/kmsg", O_WRONLY | O_CLOEXEC);
+    log_open();
     klog("rubyload: start (root modules from %s)\n", LOADFILE);
 
     f = fopen(LOADFILE, "r");
@@ -82,6 +106,9 @@ int main(void)
             if (!*p || *p == '#')
                 continue;
             total++;
+            /* Si el kernel peta dentro de finit_module(), esta linea dice
+             * cual era el modulo. */
+            klog("rubyload: [%d] %s\n", total, p);
             if (load_one(p) != 0)
                 failed++;
         }
