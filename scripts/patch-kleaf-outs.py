@@ -84,24 +84,35 @@ def patch_build_list(mods) -> int:
 
 
 def patch_device_modules(mods) -> int:
-    """Declara los .ko del arbol de device modules en mgk_64_module_outs.
+    """Saca los .ko del arbol de device modules de mgk_64_module_outs.
 
-    Esa lista es la unica que se funde en las cuatro variantes
-    (mgk_64_common_*). Se escribe en el ancla literal de la lista vacia: nada
-    de regex sobre los limites de la lista ni funciones al final del fichero
-    (eso produjo "expected an indented block" y rompio el .bzl).
+    `mgk_64_module_outs` se funde en `mgk_64_common_*`, que es el `module_outs`
+    del kernel_build del ACK (`kernel-6.6`): Kleaf los busca en el staging de
+    ESA compilacion. Un .ko del arbol de device modules (los paneles, por
+    ejemplo) nunca sale de ahi, asi que declararlo alli rompe el build con
+    "Unable to find drivers/gpu/drm/panel/panel-m16-...ko".
+
+    Los modulos del arbol de device modules solo van en `mtk_device_modules`
+    (ver patch_build_list): eso alimenta `kernel_module(outs = ...)`, que es
+    quien los compila de verdad. Aqui solo se limpia lo que versiones
+    anteriores del script metieron por error.
     """
     text = BZL_MODS.read_text()
-    ancla = "mgk_64_module_outs = [\n]"
-    if ancla in text:
-        cuerpo = "".join(f'    "{m}",\n' for m in mods)
-        BZL_MODS.write_text(text.replace(ancla, "mgk_64_module_outs = [\n" + cuerpo + "]", 1))
-        return len(mods)
-    if all(f'"{m}"' in text for m in mods):
-        print("[kleaf] mgk_64_module_outs ya contiene los modulos")
+    m = re.search(r"^mgk_64_module_outs = (\[[^\]]*\])", text, re.M)
+    if not m:
+        print("aviso: no se encontro mgk_64_module_outs", file=sys.stderr)
         return 0
-    sys.exit("no encuentro la lista vacia 'mgk_64_module_outs = []' en "
-             f"{BZL_MODS}; no toco nada")
+    cuerpo = m.group(1)
+    quitados = 0
+    for mod in mods:
+        nuevo = re.sub(rf'^\s*"{re.escape(mod)}",?\n', '', cuerpo, flags=re.M)
+        if nuevo != cuerpo:
+            cuerpo = nuevo
+            quitados += 1
+    if quitados:
+        BZL_MODS.write_text(text.replace(m.group(0),
+                                         f"mgk_64_module_outs = {cuerpo}", 1))
+    return quitados
 
 
 def main() -> int:
@@ -134,8 +145,8 @@ def main() -> int:
             py_compile.compile(str(f), doraise=True)
         except py_compile.PyCompileError as e:
             sys.exit(f"[kleaf] {f.name} ya no compila: {e}")
-    print(f"[kleaf] outs: +{n1} entradas | device_modules: +{n2} modulos | "
-          f"compilados: +{n3}")
+    print(f"[kleaf] outs: +{n1} entradas | fuera de mgk_64_module_outs: "
+          f"{n2} | compilados (mtk_device_modules): +{n3}")
     return 0
 
 

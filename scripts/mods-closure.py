@@ -26,7 +26,9 @@ def deps(path):
     r = subprocess.run(["modinfo", "-F", "depends", str(path)],
                        capture_output=True, text=True)
     if r.returncode:
-        sys.exit(f"modinfo falla en {path}: {r.stderr.strip()}")
+        print(f"[closure] aviso: modinfo falla en {path}: "
+              f"{r.stderr.strip()}", file=sys.stderr)
+        return []
     return [d for d in r.stdout.strip().split(",") if d]
 
 
@@ -92,11 +94,34 @@ def main():
     viejos = [l.strip() for l in (base / "modules.load").read_text().splitlines()
               if l.strip() and not l.strip().startswith("#")]
     viejos = [m for m in viejos if (out / m).exists() and m not in a.exclude]
-    linea = viejos + nuevos
 
-    (out / "modules.load").write_text("\n".join(linea) + "\n")
+    # modules.load lleva el nombre del fichero CON extension: el loader del
+    # ramdisk hace snprintf(".../%s", name) sin anadir ".ko".
+    stems_viejos = [m[:-3] if m.endswith(".ko") else m for m in viejos]
+    presentes = {p.stem for p in out.glob("*.ko")}
+    todos = set(stems_viejos) | set(nuevos)
+
+    # Orden final deps-first para la union (viejos + nuevos): un modulo nuevo
+    # puede ser dependencia de uno viejo (clk-mt6877-pg antes de mtk-smi) y al
+    # reves, asi que concatenar las dos listas no basta.
+    final, visto = [], set()
+
+    def emitir(name):
+        if name in visto or name not in todos:
+            return
+        visto.add(name)
+        for d in deps(out / f"{name}.ko"):
+            emitir(d)
+        final.append(f"{name}.ko")
+
+    for name in stems_viejos + nuevos:
+        emitir(name)
+    for name in sorted(todos - visto):
+        final.append(f"{name}.ko")
+
+    (out / "modules.load").write_text("\n".join(final) + "\n")
     print(f"[closure] {len(orden)} modulos en el cierre, {len(nuevos)} nuevos: "
-          f"{' '.join(nuevos)}")
+          f"{' '.join(n + '.ko' for n in nuevos)}")
     print(f"[closure] modules.load: {len(linea)} lineas -> {out}")
     return 0
 
