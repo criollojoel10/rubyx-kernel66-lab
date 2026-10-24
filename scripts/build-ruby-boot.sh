@@ -33,9 +33,10 @@ if [ -n "$RUN" ]; then
   mkdir -p "$ART"
   export HOME=/root
   echo "[boot] descargando artefactos del run $RUN"
+  ANAME="$(gh api "repos/criollojoel10/rubyx-kernel66-lab/actions/runs/$RUN/artifacts" \
+            --jq '.artifacts[0].name')"
   gh run download -R criollojoel10/rubyx-kernel66-lab "$RUN" \
-      -n "$(gh run view -R criollojoel10/rubyx-kernel66-lab "$RUN" --json artifacts \
-            --jq '.artifacts[0].name')" -D "$ART" || true
+      -n "$ANAME" -D "$ART" || true
   # el artefacto viene en artifacts/<nombre>/
   SUB="$(find "$ART" -maxdepth 2 -name 'a34-6.6.127' -type d | head -1)"
   [ -n "$SUB" ] && ART="$SUB"
@@ -52,6 +53,11 @@ MODTAR="$ART/a34-all-modules.tar.zst"
 #    necesita cargarlos desde el ramdisk. scripts/make-boot-moddir.py arma
 #    artifacts/ruby-mods con el cierre de dependencias y su modules.load.
 MODDIR="${RUBY_MODDIR:-artifacts/ruby-mods}"
+if [ "${RUBY_REGEN_MODS:-0}" = "1" ] && [ -f "$MODTAR" ]; then
+  # Regenera el cierre desde port/modules/boot-modules.list. Necesario cuando
+  # cambia el tar de modulos del CI o el orden de la lista.
+  ./scripts/make-boot-moddir.py --modules-tar "$MODTAR" --out "$MODDIR"
+fi
 if [ ! -f "$MODDIR/modules.load" ] && [ -f "$MODTAR" ]; then
   ./scripts/make-boot-moddir.py --modules-tar "$MODTAR" --out "$MODDIR"
 fi
