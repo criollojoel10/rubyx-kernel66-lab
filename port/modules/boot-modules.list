@@ -41,8 +41,21 @@ mtk_iommu.ko
 mtk_iommu_util.ko
 mtk_wdt.ko
 nvmem-mt635x-efuse.ko
+# Orden del stack UFS. El PHY tiene que estar registrado antes de que
+# ufshcd_pltfrm_init() llame a devm_phy_get(): si no, el probe de ufshci
+# devuelve -EPROBE_DEFER DESPUES de haber hecho pm_runtime_enable()+get_sync()
+# sobre el device del phy, y el phy acaba con el runtime PM desbalanceado
+# ("Unbalanced pm_runtime_enable!", visto 8 veces en v47); el enlace UFS puede
+# quedarse sin arrancar aunque el probe finalmente tenga exito.
 phy-mtk-ufs.ko
-pinctrl-mt6877.ko
+ufs-mediatek-mod.ko
+ufs-mediatek-dbg.ko
 rtc-mt6397.ko
 snd-soc-mt6359.ko
 spmi-mtk-mpu.ko
+# Thermal MTK (legacy): sin estos modulos no se crean los thermal zones y
+# android.hardware.thermal-service.mediatek aborta (SIGABRT) -> boot_completed
+# nunca se alcanza. thermal_monitor.ko arrastra ~12 dependencias (ccci_md_all,
+# sspm, mcupm, apu_top, ...) que el cierre de dependencias resuelve solo.
+thermal_monitor.ko
+thermal-generic-adc.ko

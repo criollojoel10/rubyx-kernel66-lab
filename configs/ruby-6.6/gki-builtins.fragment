@@ -26,3 +26,14 @@ CONFIG_MICROTRUST_TEE_SUPPORT=y
 CONFIG_MICROTRUST_TEE_VERSION="400"
 CONFIG_MICROTRUST_TZ_DRIVER=y
 CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
+
+# Namespaces requeridos por Android 15 (zygote) y DroidSpaces.
+# El GKI del A34 los deja desactivados; sin PID_NS/IPC_NS zygote aborta
+# (SIGABRT) y DroidSpaces no puede crear contenedores.
+CONFIG_NAMESPACES=y
+CONFIG_UTS_NS=y
+CONFIG_IPC_NS=y
+CONFIG_PID_NS=y
+CONFIG_NET_NS=y
+CONFIG_USER_NS=y
+CONFIG_CGROUP_PIDS=y
