@@ -74,9 +74,17 @@ DTB="${RUBY_DTB:-/root/ruby-gki/work/dtb_boot/01_dtbdump_MT6877.dtb}"
 [ -f "$DTB" ] || { echo "no encuentro el DTB de ruby: $DTB" >&2; exit 1; }
 # Parchea el DTB (pinctrl/eint/PMIC/reguladores). Imprescindible para que el
 # MFD mt6397.ko sondee y mt6359p-regulator registre ldo_vemc (UFS lo pide).
+#
+# OJO: NO se pasa --keep-vcc. Con vcc-supply=<&ldo_vemc> el driver UFS hace
+# devm_regulator_get("vcc") y, mientras el MFD mt6397 no haya sondeado, eso
+# devuelve -EPROBE_DEFER: bucle de "probe failed -517", nunca aparece sdc, init
+# no encuentra boot_b/metadata/super/vbmeta_b y muere con InitFatalReboot
+# (signal 6) a los ~11.3 s (v47). Sin la propiedad, ufshcd_populate_vreg asume
+# el rail encendido (ldo_vemc es regulator-always-on en el DTB stock) y el UFS
+# arranca aunque el PMIC falle.
 if [ "${RUBY_PATCH_DTB:-1}" = "1" ]; then
   PATCHED="artifacts/ruby-dtb-patched.dtb"
-  ./scripts/patch-ruby-dtb.sh "$DTB" "$PATCHED" --keep-vcc >/dev/null
+  ./scripts/patch-ruby-dtb.sh "$DTB" "$PATCHED" >/dev/null
   DTB="$PATCHED"
 fi
 ORIG="device/backups/boot_b-stock.img"
