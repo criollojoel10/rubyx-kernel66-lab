@@ -49,6 +49,29 @@ mkdir -p "$TMP/root"
       if [ "${RUBY_MODLOADER_PROBE:-0}" = "1" ]; then
         touch lib/modules/.probe-block
       fi
+      # RUBY_LOGSINK=1: el loader bifurca un hijo que vuelca /dev/kmsg a la
+      # particion raw "oops" (sdc65), traza que sobrevive al reset y al boot A.
+      if [ "${RUBY_LOGSINK:-0}" = "1" ]; then
+        touch lib/modules/.log-sink
+      fi
+      # RUBY_WDT_SECS=N: el watchdog de diagnostico del loader dispara a los N
+      # segundos (por defecto 60). El watchdog por hardware de MTK resetea
+      # ~30 s, asi que hay que ponerlo mas corto para que el panic por sysrq-c
+      # alcance a volcar el ring buffer a ramoops antes del reset.
+      if [ -n "${RUBY_WDT_SECS:-}" ]; then
+        printf '%s\n' "$RUBY_WDT_SECS" > lib/modules/.wdt-secs
+      fi
+      # RUBY_PANIC_SECS=N: tras cargar los modulos, el loader espera N s y fuerza
+      # panic (sysrq-c) para volcar el ring buffer completo a ramoops. Sirve para
+      # ver el estado real de UFS/display tras los probe diferidos.
+      if [ -n "${RUBY_PANIC_SECS:-}" ]; then
+        printf '%s\n' "$RUBY_PANIC_SECS" > lib/modules/.panic-secs
+      fi
+      # RUBY_PANIC_NOW=1: el loader hace _exit(42) como PID 1 en cuanto arranca
+      # (beacon "Attempted to kill init" -> ramoops) para validar que se ejecuta.
+      if [ "${RUBY_PANIC_NOW:-0}" = "1" ]; then
+        touch lib/modules/.panic-now
+      fi
     fi
   fi
 

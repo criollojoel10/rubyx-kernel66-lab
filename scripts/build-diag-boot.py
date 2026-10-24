@@ -101,7 +101,11 @@ def main():
     h = parse_header_v2(orig)
     dtb = args.dtb.read_bytes() if args.dtb else h["dtb"]
 
-    cmdline = "bootopt=64S3,32N2,64N2 androidboot.tee_type=2"
+    cmdline = ("bootopt=64S3,32N2,64N2 androidboot.tee_type=2 "
+               "ramoops.mem_address=0x48090000 ramoops.mem_size=0xe0000 "
+               "ramoops.pmsg_size=0x10000 ramoops.console_size=0x40000 "
+               "fw_devlink=permissive androidboot.selinux=permissive "
+               "log_buf_len=2M")
     if args.extra_cmdline:
         cmdline += " " + args.extra_cmdline.strip()
     print(f"cmdline: {cmdline}")
