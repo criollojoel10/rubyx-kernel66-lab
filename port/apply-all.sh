@@ -81,6 +81,9 @@ echo "== clk: power-gates mtcmos (PG_DISP y demas) descomentados en clk-mt6877-p
 echo "== iommu: guard de m4u_data en mtk_iommu_port_idx (evita NULL deref del display)"
 ./port/iommu/apply.sh "${1:-sources/a34x}"
 
+echo "== mfd: IRQ del PMIC mt6359p no fatal (sin celdas mt6359p-* el UFS queda -517)"
+./port/mfd/apply.sh "${1:-sources/a34x}"
+
 echo "== config (fragmento combinado)"
 FRAG="${RUBY_FRAGMENT:-configs/ruby-6.6/full.fragment}"
 ./scripts/apply-ruby-fragment.sh "$FRAG"

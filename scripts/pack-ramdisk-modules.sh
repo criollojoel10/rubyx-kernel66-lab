@@ -28,6 +28,19 @@ mkdir -p "$TMP/root"
   cd "$TMP/root"
   cpio -idm < "$TMP/ramdisk.cpio" 2>/dev/null
 
+  # Recorta del ramdisk generico los binarios que solo usa recovery/fastbootd.
+  # En boot normal init nunca los executa, y quitarlos baja el cpio ~10 MiB
+  # (~4.5 MiB comprimido), que es el margen que necesita LZ4 para que el
+  # payload quede por debajo de orig_size=41918464 (offset del vbmeta de
+  # boot_b). Con gzip sobraba margen pero el arranque no llego al kernel;
+  # LZ4 es el formato con el que la imagen SI arranco (v45/v46).
+  # RUBY_RAMDISK_TRIM=0 lo desactiva.
+  if [ "${RUBY_RAMDISK_TRIM:-1}" = "1" ]; then
+    rm -f system/bin/recovery system/bin/update_engine_sideload \
+          system/bin/fastbootd system/bin/snapuserd \
+          system/lib64/librecovery_ui.so system/lib64/libncurses_recovery.so
+  fi
+
   # modulos extra (si los hay)
   if [ -d "$MODDIR" ] && ls "$MODDIR"/*.ko >/dev/null 2>&1; then
     mkdir -p lib/modules
@@ -124,7 +137,7 @@ if [ "${RUBY_RAMDISK_GZIP:-0}" = "1" ]; then
   gzip -9 -n -c "$TMP/new.cpio" > "$OUT"
   gzip -t "$OUT"
 else
-  lz4 -l -9 -f "$TMP/new.cpio" "$OUT" >/dev/null
+  lz4 -l -12 -f "$TMP/new.cpio" "$OUT" >/dev/null
   lz4 -t "$OUT" >/dev/null
 fi
 n=0

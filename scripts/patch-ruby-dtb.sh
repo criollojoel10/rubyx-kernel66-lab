@@ -136,6 +136,18 @@ for L in smi_larb13@1a001000 smi_larb14@1a002000 smi_larb16@1a00f000 \
   fdtput -d "$D" "/$L" power-domains 2>/dev/null || true
 done
 
+# 8d. OVL 2L: el DTB stock de ruby usa "mediatek,mt6877-disp-ovl-2l" para
+#     disp_ovl0_2l y disp_ovl1_2l, pero el driver 6.6 (mtk_disp_ovl.c) solo
+#     matchea "mediatek,mt6877-disp-ovl" y distingue el 2L por el alias
+#     (ovl3/ovl4). Sin esto esos dos componentes no se enlazan: mtk_drm_crtc_create
+#     aborta "component 31 (OVL0_2L) disabled or missing" en main/minor y
+#     "component 32 (OVL1_2L)" en third -> no se crea ningun crtc ->
+#     private->crtc[0]=NULL -> panic en mtk_drm_top_clk_disable_unprepare.
+fdtput -t s "$D" /disp_ovl0_2l@14006000 compatible \
+  mediatek,disp_ovl0_2l mediatek,mt6877-disp-ovl
+fdtput -t s "$D" /disp_ovl1_2l@1401f000 compatible \
+  mediatek,disp_ovl1_2l mediatek,mt6877-disp-ovl
+
 # 9. UFS: sin el regulador microtrust registrado, el probe de UFS devuelve -517.
 if [ "$KEEP_VCC" = "0" ]; then
   fdtput -d "$D" /ufshci@11270000 vcc-supply 2>/dev/null || true
