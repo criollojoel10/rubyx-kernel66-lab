@@ -28,6 +28,11 @@ mtk-dvfsrc-start.ko
 mtk-dvfsrc.ko
 mtk-mmc-mod.ko
 mtk-mmc-wp.ko
+# pinctrl-mt6877 debe cargarse ANTES de mtk-pmic-wrap/mt6397: mt6397_probe()
+# pide el IRQ del PMIC a traves de interrupt-parent=<&pio>, y si el EINT
+# (irq_chip del pinctrl) no esta registrado devuelve -ENOSYS, el MFD aborta y
+# no se crean las celdas mt6359p-* (sin reguladores el UFS queda en -517).
+pinctrl-mt6877.ko
 mtk-pmic-keys.ko
 mtk-pmic-wrap.ko
 mtk-spmi-pmic.ko
