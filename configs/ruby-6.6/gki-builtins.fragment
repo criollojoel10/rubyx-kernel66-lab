@@ -30,10 +30,15 @@ CONFIG_MICROTRUST_TZ_DRIVER_MTK_BOOTPROF=n
 # Namespaces requeridos por Android 15 (zygote) y DroidSpaces.
 # El GKI del A34 los deja desactivados; sin PID_NS/IPC_NS zygote aborta
 # (SIGABRT) y DroidSpaces no puede crear contenedores.
+#
+# v51 (2026-10-24): bisect de UNA variable. CGROUP_PIDS se elimina para
+# probar si el controlador pids es lo que rompe a zygote cuando empieza a
+# crear procesos. La linea se ELIMINA, no se comenta: patch-gki-core.sh
+# ignora las lineas que empiezan por '#' y el simbolo quedaria como estaba.
+# NAMESPACES/UTS_NS/IPC_NS/PID_NS/NET_NS/USER_NS no cambian.
 CONFIG_NAMESPACES=y
 CONFIG_UTS_NS=y
 CONFIG_IPC_NS=y
 CONFIG_PID_NS=y
 CONFIG_NET_NS=y
 CONFIG_USER_NS=y
-CONFIG_CGROUP_PIDS=y
