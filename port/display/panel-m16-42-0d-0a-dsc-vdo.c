@@ -39,7 +39,8 @@ struct lcm {
 	struct drm_panel panel;
 	struct backlight_device *backlight;
 	struct gpio_desc *reset_gpio;
-	struct gpio_desc *bias_pos, *bias_neg;
+	struct gpio_desc *vdd_gpio;
+	struct gpio_desc *vddi_gpio;
 
 	bool prepared;
 	bool enabled;
@@ -51,13 +52,6 @@ struct lcm {
 
 static int current_fps = 60;
 static u32 bdg_support = 1;
-static struct AW37501_SETTING_TABLE aw37501_cmd_data[5] = {
-	{ 0x00, 0x12 }, //AVDD 5.8
-	{ 0x01, 0x12 }, //AVEE 5.8
-	{ 0x03, 0x43 }, //Applications configure register,default:0x43
-	{ 0x04, 0x01 }, //Control State configure register,default:0x01
-	{ 0x21, 0x00 }  //Written protect functional register,default:0x00
-};
 
 #define lcm_dcs_write_seq(ctx, seq...) \
 ({\
@@ -128,104 +122,80 @@ static void lcm_dcs_write(struct lcm *ctx, const void *data, size_t len)
 }
 
 
-#if defined(CONFIG_RT5081_PMU_DSV) || defined(CONFIG_MT6370_PMU_DSV)
-static struct regulator *disp_bias_pos;
-static struct regulator *disp_bias_neg;
+static struct regulator *disp_vibr30;
 
-static int lcm_panel_bias_regulator_init(void)
+static int lcm_panel_vibr30_regulator_init(struct device *dev)
 {
-	static int regulator_inited;
+	static int vibr30_regulator_inited;
 	int ret = 0;
 
-	if (regulator_inited)
+	if (vibr30_regulator_inited)
 		return ret;
 
 	/* please only get regulator once in a driver */
-	disp_bias_pos = regulator_get(NULL, "dsv_pos");
-	if (IS_ERR(disp_bias_pos)) { /* handle return value */
-		ret = PTR_ERR(disp_bias_pos);
-		dev_info("get dsv_pos fail, error: %d\n", ret);
+	disp_vibr30 = regulator_get(dev, "vibr30");
+	if (IS_ERR(disp_vibr30)) { /* handle return value */
+		ret = PTR_ERR(disp_vibr30);
+		dev_info(dev, "get disp_vibr30 fail, error: %d\n", ret);
 		return ret;
 	}
 
-	disp_bias_neg = regulator_get(NULL, "dsv_neg");
-	if (IS_ERR(disp_bias_neg)) { /* handle return value */
-		ret = PTR_ERR(disp_bias_neg);
-		dev_info("get dsv_neg fail, error: %d\n", ret);
-		return ret;
-	}
-
-	regulator_inited = 1;
+	vibr30_regulator_inited = 1;
 	return ret; /* must be 0 */
-
 }
 
-static int lcm_panel_bias_enable(void)
+static unsigned int vibr30_start_up = 1;
+static int lcm_panel_vibr30_enable(struct device *dev)
 {
 	int ret = 0;
 	int retval = 0;
+	int status = 0;
 
-	lcm_panel_bias_regulator_init();
+	if (IS_ERR_OR_NULL(disp_vibr30))
+		return 0;
 
 	/* set voltage with min & max*/
-	ret = regulator_set_voltage(disp_bias_pos, 5400000, 5400000);
+	ret = regulator_set_voltage(disp_vibr30, 3000000, 3000000);
 	if (ret < 0)
-		dev_info("set voltage disp_bias_pos fail, ret = %d\n", ret);
+		dev_info(dev, "set voltage disp_vibr30 fail, ret = %d\n", ret);
 	retval |= ret;
 
-	ret = regulator_set_voltage(disp_bias_neg, 5400000, 5400000);
-	if (ret < 0)
-		dev_info("set voltage disp_bias_neg fail, ret = %d\n", ret);
-	retval |= ret;
-
-	/* enable regulator */
-	ret = regulator_enable(disp_bias_pos);
-	if (ret < 0)
-		dev_info("enable regulator disp_bias_pos fail, ret = %d\n", ret);
-	retval |= ret;
-
-	ret = regulator_enable(disp_bias_neg);
-	if (ret < 0)
-		dev_info("enable regulator disp_bias_neg fail, ret = %d\n", ret);
-	retval |= ret;
+	status = regulator_is_enabled(disp_vibr30);
+	if (!status || vibr30_start_up) {
+		/* enable regulator */
+		ret = regulator_enable(disp_vibr30);
+		if (ret < 0)
+			dev_info(dev, "enable regulator disp_vibr30 fail, ret = %d\n", ret);
+		vibr30_start_up = 0;
+		retval |= ret;
+	}
 
 	return retval;
 }
 
-static int lcm_panel_bias_disable(void)
+static int lcm_panel_vibr30_disable(struct device *dev)
 {
 	int ret = 0;
 	int retval = 0;
+	int status = 0;
 
-	lcm_panel_bias_regulator_init();
+	if (IS_ERR_OR_NULL(disp_vibr30))
+		return 0;
 
-	ret = regulator_disable(disp_bias_neg);
-	if (ret < 0)
-		dev_info("disable regulator disp_bias_neg fail, ret = %d\n", ret);
-	retval |= ret;
+	status = regulator_is_enabled(disp_vibr30);
+	if (status) {
+		ret = regulator_disable(disp_vibr30);
+		if (ret < 0)
+			dev_info(dev, "disable regulator disp_vibr30 fail, ret = %d\n", ret);
+	}
 
-	ret = regulator_disable(disp_bias_pos);
-	if (ret < 0)
-		dev_info("disable regulator disp_bias_pos fail, ret = %d\n", ret);
 	retval |= ret;
 
 	return retval;
 }
-#endif
 
 static void lcm_panel_init(struct lcm *ctx)
 {
-	aw37501_write_bytes(aw37501_cmd_data[0].cmd, aw37501_cmd_data[0].data);
-	udelay(1000);
-	aw37501_write_bytes(aw37501_cmd_data[1].cmd, aw37501_cmd_data[1].data);
-	udelay(1000);
-	aw37501_write_bytes(aw37501_cmd_data[2].cmd, aw37501_cmd_data[2].data);
-	udelay(1000);
-	aw37501_write_bytes(aw37501_cmd_data[3].cmd, aw37501_cmd_data[3].data);
-	udelay(1000);
-	aw37501_write_bytes(aw37501_cmd_data[4].cmd, aw37501_cmd_data[4].data);
-	udelay(5000);
-
 	ctx->reset_gpio =
 		devm_gpiod_get(ctx->dev, "reset", GPIOD_OUT_HIGH);
 	if (IS_ERR(ctx->reset_gpio)) {
@@ -279,9 +249,7 @@ static int lcm_unprepare(struct drm_panel *panel)
 
 	ctx->error = 0;
 	ctx->prepared = false;
-#if defined(CONFIG_RT5081_PMU_DSV) || defined(CONFIG_MT6370_PMU_DSV)
-	lcm_panel_bias_disable();
-#else
+
 	ctx->reset_gpio =
 		devm_gpiod_get(ctx->dev, "reset", GPIOD_OUT_HIGH);
 	if (IS_ERR(ctx->reset_gpio)) {
@@ -292,30 +260,20 @@ static int lcm_unprepare(struct drm_panel *panel)
 	gpiod_set_value(ctx->reset_gpio, 0);
 	devm_gpiod_put(ctx->dev, ctx->reset_gpio);
 
-	if (ctx->gate_ic == 0) {
-		ctx->bias_neg = devm_gpiod_get_index(ctx->dev,
-			"bias", 1, GPIOD_OUT_HIGH);
-		if (IS_ERR(ctx->bias_neg)) {
-			dev_info(ctx->dev, "%s: cannot get bias_neg %ld\n",
-				__func__, PTR_ERR(ctx->bias_neg));
-			return PTR_ERR(ctx->bias_neg);
-		}
-		gpiod_set_value(ctx->bias_neg, 0);
-		devm_gpiod_put(ctx->dev, ctx->bias_neg);
+	/* VCI 3.0V -> 0 */
+	lcm_panel_vibr30_disable(ctx->dev);
+	udelay(1000);
 
-		udelay(5000);
-
-		ctx->bias_pos = devm_gpiod_get_index(ctx->dev,
-			"bias", 0, GPIOD_OUT_HIGH);
-		if (IS_ERR(ctx->bias_pos)) {
-			dev_info(ctx->dev, "%s: cannot get bias_pos %ld\n",
-				__func__, PTR_ERR(ctx->bias_pos));
-			return PTR_ERR(ctx->bias_pos);
-		}
-		gpiod_set_value(ctx->bias_pos, 0);
-		devm_gpiod_put(ctx->dev, ctx->bias_pos);
+	/* VDDI 1.8V -> 0 */
+	ctx->vddi_gpio = devm_gpiod_get(ctx->dev, "vddi", GPIOD_OUT_HIGH);
+	if (IS_ERR(ctx->vddi_gpio)) {
+		dev_info(ctx->dev, "%s: cannot get vddi_gpio %ld\n",
+			__func__, PTR_ERR(ctx->vddi_gpio));
+		return PTR_ERR(ctx->vddi_gpio);
 	}
-#endif
+	gpiod_set_value(ctx->vddi_gpio, 0);
+	devm_gpiod_put(ctx->dev, ctx->vddi_gpio);
+	udelay(1000);
 
 	return 0;
 }
@@ -328,34 +286,31 @@ static int lcm_prepare(struct drm_panel *panel)
 	if (ctx->prepared)
 		return 0;
 
-#if defined(CONFIG_RT5081_PMU_DSV) || defined(CONFIG_MT6370_PMU_DSV)
-	lcm_panel_bias_enable();
-#else
-	if (ctx->gate_ic == 0) {
-
-		ctx->bias_pos = devm_gpiod_get_index(ctx->dev,
-			"bias", 0, GPIOD_OUT_HIGH);
-		if (IS_ERR(ctx->bias_pos)) {
-			dev_info(ctx->dev, "%s: cannot get bias_pos %ld\n",
-				__func__, PTR_ERR(ctx->bias_pos));
-			return PTR_ERR(ctx->bias_pos);
-		}
-		gpiod_set_value(ctx->bias_pos, 1);
-		devm_gpiod_put(ctx->dev, ctx->bias_pos);
-
-		udelay(1000);
-
-		ctx->bias_neg = devm_gpiod_get_index(ctx->dev,
-			"bias", 1, GPIOD_OUT_HIGH);
-		if (IS_ERR(ctx->bias_neg)) {
-			dev_info(ctx->dev, "%s: cannot get bias_neg %ld\n",
-				__func__, PTR_ERR(ctx->bias_neg));
-			return PTR_ERR(ctx->bias_neg);
-		}
-		gpiod_set_value(ctx->bias_neg, 1);
-		devm_gpiod_put(ctx->dev, ctx->bias_neg);
+	/* VDDI 1.8V */
+	ctx->vddi_gpio = devm_gpiod_get(ctx->dev, "vddi", GPIOD_OUT_HIGH);
+	if (IS_ERR(ctx->vddi_gpio)) {
+		dev_info(ctx->dev, "%s: cannot get vddi_gpio %ld\n",
+			__func__, PTR_ERR(ctx->vddi_gpio));
+		return PTR_ERR(ctx->vddi_gpio);
 	}
-#endif
+	gpiod_set_value(ctx->vddi_gpio, 1);
+	devm_gpiod_put(ctx->dev, ctx->vddi_gpio);
+	udelay(1000);
+
+	/* VCI 3.0V */
+	lcm_panel_vibr30_enable(ctx->dev);
+	udelay(1000);
+
+	/* VDD 1.2V */
+	ctx->vdd_gpio = devm_gpiod_get(ctx->dev, "vdd", GPIOD_OUT_HIGH);
+	if (IS_ERR(ctx->vdd_gpio)) {
+		dev_info(ctx->dev, "%s: cannot get vdd_gpio %ld\n",
+			__func__, PTR_ERR(ctx->vdd_gpio));
+		return PTR_ERR(ctx->vdd_gpio);
+	}
+	gpiod_set_value(ctx->vdd_gpio, 1);
+	devm_gpiod_put(ctx->dev, ctx->vdd_gpio);
+	udelay(1000);
 
 	lcm_panel_init(ctx);
 
@@ -781,23 +736,11 @@ static int lcm_probe(struct mipi_dsi_device *dsi)
 	}
 	devm_gpiod_put(dev, ctx->reset_gpio);
 
-	if (ctx->gate_ic == 0) {
-		ctx->bias_pos = devm_gpiod_get_index(dev, "bias", 0, GPIOD_OUT_HIGH);
-		if (IS_ERR(ctx->bias_pos)) {
-			dev_info(dev, "%s: cannot get bias-pos 0 %ld\n",
-				__func__, PTR_ERR(ctx->bias_pos));
-			return PTR_ERR(ctx->bias_pos);
-		}
-		devm_gpiod_put(dev, ctx->bias_pos);
-
-		ctx->bias_neg = devm_gpiod_get_index(dev, "bias", 1, GPIOD_OUT_HIGH);
-		if (IS_ERR(ctx->bias_neg)) {
-			dev_info(dev, "%s: cannot get bias-neg 1 %ld\n",
-				__func__, PTR_ERR(ctx->bias_neg));
-			return PTR_ERR(ctx->bias_neg);
-		}
-		devm_gpiod_put(dev, ctx->bias_neg);
-	}
+	ret = lcm_panel_vibr30_regulator_init(dev);
+	if (!ret)
+		lcm_panel_vibr30_enable(dev);
+	else
+		dev_info(dev, "%s init vibr30 regulator error\n", __func__);
 
 	ctx->prepared = true;
 	ctx->enabled = true;

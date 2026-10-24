@@ -95,7 +95,48 @@ fdtput -t s "$D" /pwrap@10026000/mt6359-pmic/mt6359regulator/ldo_vufs \
 fdtput -t s "$D" /power-controller@10006000 compatible \
   "mediatek,mt6877-scpsys-clk" "mediatek,mt6877-scpsys" "syscon" "simple-mfd"
 
-# 6. UFS: sin el regulador microtrust registrado, el probe de UFS devuelve -517.
+# 8. SMI/IOMMU: el DTS stock de ruby (4.19) expresa el enlace larb -> smi_common
+#    con "mediatek,smi = <phandle>". El driver 6.6 (mtk-smi.c) y el iommu
+#    (mtk_iommu.c) leen "mediatek,smi-supply" con of_parse_phandle_with_fixed_args
+#    (phandle + 1 arg = is_pwr_decp). Sin esto:
+#      - mtk_smi_larb_probe() no enlaza smi_common (smi_common_dev[0] = NULL).
+#      - mtk_iommu_probe() devuelve -EINVAL en "can't find smicomm_node phase1"
+#        (lee smi-supply del ultimo larb = smi_larb20) -> m4u@14016000 no sondea.
+#      - Sin iommu, ovl/rdma/postmask (iommus=<&m4u ...>) difieren -110.
+SMI=$(fdtget -t x "$D" /smi_common@14002000 phandle)
+for L in \
+  smi_larb0@14003000 smi_larb1@14004000 smi_larb2@1f002000 smi_larb4@1602e000 \
+  smi_larb7@17010000 smi_larb9@1502e000 smi_larb11@1582e000 smi_larb13@1a001000 \
+  smi_larb14@1a002000 smi_larb16@1a00f000 smi_larb17@1a010000 smi_larb18@1a011000 \
+  smi_larb19@1b10f000 smi_larb20@1b00f000; do
+  fdtput -t x "$D" "/$L" mediatek,smi-supply "$SMI" 0x0
+done
+
+# 8b. IOMMU: m4u@14016000 (mt6877_data_iommu0, flag IOMMU_SEC_EN) lee
+#     "mediatek,iommu_banks" para los bancos seguros 1..3. Sin la propiedad el
+#     probe solo salta el setup de IRQ de banco (no fatal), pero la anadimos
+#     para no perderlos. Cada banco necesita "mediatek,bank-id".
+B1=$(fdtget -t x "$D" /m4u@14017000 phandle)
+B2=$(fdtget -t x "$D" /m4u@14018000 phandle)
+B3=$(fdtget -t x "$D" /m4u@14019000 phandle)
+fdtput -t x "$D" /m4u@14016000 mediatek,iommu_banks "$B1" "$B2" "$B3"
+fdtput -t x "$D" /m4u@14017000 mediatek,bank-id 0x1
+fdtput -t x "$D" /m4u@14018000 mediatek,bank-id 0x2
+fdtput -t x "$D" /m4u@14019000 mediatek,bank-id 0x3
+
+# 8c. Larbs de camara (13/14/16/17/18) llevan "power-domains = <0x71 N>" (cam_pd,
+#     compatible "mediatek,mt6877-camera-power-controller"). Ningun driver de
+#     este arbol registra ese genpd, asi que dev_pm_domain_attach() difiere esos
+#     larbs para siempre -> su component_add() nunca corre -> el component
+#     master del iommu (que matchea los 14 larbs de "mediatek,larbs") nunca
+#     enlaza -> sin config de puertos M4U para display. Quitamos power-domains:
+#     la camara no funciona de todos modos.
+for L in smi_larb13@1a001000 smi_larb14@1a002000 smi_larb16@1a00f000 \
+         smi_larb17@1a010000 smi_larb18@1a011000; do
+  fdtput -d "$D" "/$L" power-domains 2>/dev/null || true
+done
+
+# 9. UFS: sin el regulador microtrust registrado, el probe de UFS devuelve -517.
 if [ "$KEEP_VCC" = "0" ]; then
   fdtput -d "$D" /ufshci@11270000 vcc-supply 2>/dev/null || true
 fi
